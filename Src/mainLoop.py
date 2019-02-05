@@ -9,7 +9,7 @@ def main(unused_argv):
     try:
         while True:
             with sc2_env.SC2Env(
-                    map_name="Simple64",
+                    map_name="AbyssalReef",
                     players=[sc2_env.Agent(sc2_env.Race.protoss),
                              sc2_env.Bot(sc2_env.Race.random,
                                          sc2_env.Difficulty.very_easy)],
