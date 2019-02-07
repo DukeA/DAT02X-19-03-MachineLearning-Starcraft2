@@ -8,7 +8,8 @@ class aiBot(base_agent.BaseAgent):
     def step(self, obs):
         super(aiBot, self).step(obs)
 
-
+        # Function for building a supplyDepot on a Random Place
+        # of the obeservable universe
         supply_depot = self.get_units(obs, units.Terran.SupplyDepot)
         if len(supply_depot) >= 0 :
             if self.select_unit(obs, units.Terran.SCV):
@@ -18,7 +19,8 @@ class aiBot(base_agent.BaseAgent):
 
                     return actions.FUNCTIONS.Build_SupplyDepot_screen("now",(x,y))
 
-
+        # Function for building a barracks on a Random Place
+        # of the obeservable universe
         barracks = self.get_units(obs,units.Terran.Barracks)
         if len(barracks) ==0:
             if self.select_unit(obs, units.Terran.SCV):
@@ -27,7 +29,8 @@ class aiBot(base_agent.BaseAgent):
                     y = random.randint(0, 83)
 
                     return actions.FUNCTIONS.Build_Barracks_screen("now", (x, y))
-
+        # Function for building a refinary on a Random Place
+        # of the obeservable universe
         refinery = self.get_units(obs, units.Terran.Refinery)
         if len(refinery) >= 0:
             if self.select_unit(obs, units.Terran.SCV):
