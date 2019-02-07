@@ -12,35 +12,45 @@ class aiBot(base_agent.BaseAgent):
     def step(self, obs):
         super(aiBot, self).step(obs)
 
-        gateway = self.get_units_by_type(obs, units.Protoss.Gateway)
-        if len(gateway) == 0:
-            if self.select_unit_of_type(obs, units.Protoss.Probe):
-                if self.can_do(obs, actions.FUNCTIONS.Build_Gateway_screen.id):
+
+        supply_depot = self.get_units_by_type(obs, units.Terran.SupplyDepot)
+        if len(supply_depot) >= 0 :
+            if self.select_unit_of_type(obs, units.Terran.SCV):
+                if self.can_do(obs,actions.FUNCTIONS.Build_SupplyDepot_screen.id):
                     x = random.randint(0, 83)
                     y = random.randint(0, 83)
 
-                    return actions.FUNCTIONS.Build_Gateway_screen("now", (10, 20))
+                    return actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))
 
-        pylon = self.get_units_by_type(obs, units.Protoss.Pylon)
-        if len(pylon) >= 0:
-            if self.select_unit_of_type(obs, units.Protoss.Probe):
-                if (actions.FUNCTIONS.Build_Pylon_screen.id in
-                        obs.observation.available_actions):
+        barracks = self.get_units_by_type(obs,units.Terran.Barracks)
+        if len(barracks) ==0:
+            if self.select_unit_of_type(obs,units.Terran.SCV):
+                if self.can_do(obs,actions.FUNCTIONS.Build_Barracks_screen.id):
+                    x = random.randint(0,83)
+                    y = random.randint(0,83)
+
+
+                    return  actions.FUNCTIONS.Build_Barracks_screen("now",(x,y))
+
+        refinery = self.get_units_by_type(obs, units.Terran.Refinery)
+        if len(refinery) == 0:
+            if self.select_unit_of_type(obs, units.Terran.SCV):
+                if self.can_do(obs, actions.FUNCTIONS.Build_Refinery_screen.id):
                     x = random.randint(0, 83)
                     y = random.randint(0, 83)
 
-                    return actions.FUNCTIONS.Build_Pylon_screen("now", (x, y))
+                    return actions.FUNCTIONS.Build_Refinery_screen("now", (x, y))
 
 
-        if actions.FUNCTIONS.Train_Probe_quick.id in obs.observation.available_actions:
-            return actions.FUNCTIONS.Train_Probe_quick("now")
+        if actions.FUNCTIONS.Train_SCV_quick.id in obs.observation.available_actions:
+            return actions.FUNCTIONS.Train_SCV_quick("now")
 
 
 
-        nexuses = self.get_units_by_type(obs,units.Protoss.Nexus)
-        if len(nexuses) > 0:
-            nexus = random.choice(nexuses)
-            return actions.FUNCTIONS.select_point("select_all_type", (nexus.x, nexus.y))
+        command_scv = self.get_units_by_type(obs,units.Terran.SCV)
+        if len(command_scv) > 0:
+            command = random.choice(command_scv)
+            return actions.FUNCTIONS.select_point("select_all_type", (command.x, command.y))
         return actions.FUNCTIONS.no_op()
 
     def get_units_by_type( self,obs, unit_type):
@@ -58,21 +68,10 @@ class aiBot(base_agent.BaseAgent):
 
         return False
 
-    def build_pylon(self, obs):
-        if self.select_unit_of_type(obs, units.Protoss.Probe):
-            if (actions.FUNCTIONS.Build_Pylon_screen.id in
-                    obs.observation.available_actions):
-                x = random.randint(0, 83)
-                y = random.randint(0, 83)
+    def can_do(self, obs, action):
+        return action in obs.observation.available_actions
 
-                return actions.FUNCTIONS.Build_Pylon_screen("now", (x, y))
+    def build_supplydepot(self):
+        return
 
 
-    def build_gateway(self, obs):
-        if self.select_unit_of_type(obs, units.Protoss.Probe):
-            if (actions.FUNCTIONS.Build_Gateway_screen.id in
-                    obs.observation.available_actions):
-                x = random.randint(0, 83)
-                y = random.randint(0, 83)
-
-                return actions.FUNCTIONS.Build_Gateway_screen("now", (x, y))
