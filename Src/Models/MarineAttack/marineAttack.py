@@ -5,50 +5,92 @@ import random
 
 class marineAttack(base_agent.BaseAgent):
     screen_has_moved = False
-
+    has_issued_attack = False
     own_marines = []
     enemy_marines = []
+    enemy_x = []
+    enemy_y = []
+    minimap_size = 64  # HARDCODED, DEPENDS ON INITIALIZATION IN runMarineAttack.py
+    predicted_outcome = []
 
     def step(self, obs):
         super(marineAttack, self).step(obs)
 
         if obs.first():
-            self.own_marines = len(self.get_own_units(obs, units.Terran.Marine))
-            print('Own marines: ' + str(self.own_marines))
-        if not self.screen_has_moved:
-            return self.move_camera_to_enemy(obs)
-        if not self.enemy_marines:
-            self.enemy_marines = len(self.get_enemy_units(obs, units.Terran.Marine))
-            print('Enemy marines: ' + str(self.enemy_marines))
+            self.own_marines = self.get_own_units(obs, units.Terran.Marine)
+            print('Own marines: ' + str(len(self.own_marines)))
+            self.enemy_x = []
+            self.enemy_y = []
+            self.enemy_marines = []
+            self.screen_has_moved = False
+            self.has_issued_attack = False
 
-        # TODO: Attacking...
+            # Hardcoding resets. It doesn't loop properly in runMarineAttack.py
+
+        if not self.enemy_x:
+            for x in range(self.minimap_size):
+                for y in range(self.minimap_size):
+                    if obs.observation.feature_minimap[5][x][y] == 4:  # Finds enemy units on minimap
+                        self.enemy_x.append(x)
+                        self.enemy_y.append(y)
+            random_location = random.randrange(0, len(self.enemy_x))
+            self.enemy_x = self.enemy_x[random_location]
+            self.enemy_y = self.enemy_y[random_location]
+            print("Enemy found")
+
+        if len(self.own_marines) > 0:
+            if not self.select_unit(obs, units.Terran.Marine):
+                select = random.choice(self.own_marines)
+                print("Marines selected")
+                return actions.FUNCTIONS.select_point("select_all_type", (select.x, select.y))
+
+        if not self.screen_has_moved:
+            return self.move_camera_to_location(obs, self.enemy_x, self.enemy_y)
+
+        if not self.enemy_marines:
+            self.enemy_marines = self.get_enemy_units(obs, units.Terran.Marine)
+            print('Enemy marines: ' + str(len(self.enemy_marines)))
+
+        if not self.has_issued_attack:
+            if self.screen_has_moved:
+                self.predicted_outcome = random.randrange(0, 2)
+                if self.predicted_outcome == 0:
+                    # Will lose (but attack anyway)
+                    return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
+                elif self.predicted_outcome == 1:
+                    # Will win
+                    return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
 
         return actions.FUNCTIONS.no_op()
 
+    def attack_location_minimap(self, obs, x, y):
+        if self.do_action(obs, actions.FUNCTIONS.Attack_minimap.id):
+            self.has_issued_attack = True
+            return actions.FUNCTIONS.Attack_minimap("now", [y, x])
 
-    def move_camera_to_enemy(self, obs):
-        enemy_x = []
-        enemy_y = []
-        minimap_size = 64
-        for x in range(minimap_size):
-            for y in range(minimap_size):
-                if obs.observation.feature_minimap[5][x][y] == 4:
-                    enemy_x.append(x)
-                    enemy_y.append(y)
+    def move_camera_to_location(self, obs, x, y):
         if self.do_action(obs, actions.FUNCTIONS.move_camera.id):
-            random_loc = random.randrange(len(enemy_x))
             self.screen_has_moved = True
-            return actions.FUNCTIONS.move_camera([enemy_y[random_loc], enemy_x[random_loc]])
+            return actions.FUNCTIONS.move_camera([y, x])
 
     def get_own_units(self, obs, unit_type):
         return [unit for unit in obs.observation.feature_units
                 if (unit.unit_type == unit_type) & (unit[1] == 1)]
 
-
     def get_enemy_units(self, obs, unit_type):
         return [unit for unit in obs.observation.feature_units
                 if (unit.unit_type == unit_type) & (unit[1] == 4)]
 
+    def select_unit(self, obs, unit_type):
+        if (len(obs.observation.single_select) > 0 and
+                obs.observation.single_select[0].unit_type == unit_type):
+            return True
+
+        if (len(obs.observation.multi_select) > 0 and
+                obs.observation.multi_select[0].unit_type == unit_type):
+            return True
+
+        return False
 
     def do_action(self, obs, action):
         return action in obs.observation.available_actions
