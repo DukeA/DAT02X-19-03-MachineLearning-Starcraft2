@@ -2,7 +2,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 import random
 
-
+# The following class should use a neural network to predict outcome. Not implemented yet.
 class marineAttack(base_agent.BaseAgent):
     screen_has_moved = False
     has_issued_attack = False
@@ -13,11 +13,23 @@ class marineAttack(base_agent.BaseAgent):
     minimap_size = 64  # HARDCODED, DEPENDS ON INITIALIZATION IN runMarineAttack.py
     predicted_outcome = []
 
+    def attack(self, obs):
+        self.predicted_outcome = 1
+        # Hardocoded to always think it's going to win. Switch this out for a neural network sometime.
+        if self.predicted_outcome == 0:
+            # Will lose (but attack anyway)
+            self.has_issued_attack = True
+            return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
+        elif self.predicted_outcome == 1:
+            # Will win
+            self.has_issued_attack = True
+            return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
+
     def step(self, obs):
         super(marineAttack, self).step(obs)
 
         if obs.first():
-            self.own_marines = self.get_own_units(obs, units.Terran.Marine)
+            self.own_marines = get_own_units(obs, units.Terran.Marine)
             print('Own marines: ' + str(len(self.own_marines)))
             self.enemy_x = []
             self.enemy_y = []
@@ -39,7 +51,7 @@ class marineAttack(base_agent.BaseAgent):
             print("Enemy found")
 
         if len(self.own_marines) > 0:
-            if not self.select_unit(obs, units.Terran.Marine):
+            if not select_unit(obs, units.Terran.Marine):
                 select = random.choice(self.own_marines)
                 print("Marines selected")
                 return actions.FUNCTIONS.select_point("select_all_type", (select.x, select.y))
@@ -48,40 +60,52 @@ class marineAttack(base_agent.BaseAgent):
             return self.move_camera_to_location(obs, self.enemy_x, self.enemy_y)
 
         if not self.enemy_marines:
-            self.enemy_marines = self.get_enemy_units(obs, units.Terran.Marine)
+            self.enemy_marines = get_enemy_units(obs, units.Terran.Marine)
             print('Enemy marines: ' + str(len(self.enemy_marines)))
 
         if not self.has_issued_attack:
             if self.screen_has_moved:
-                self.predicted_outcome = random.randrange(0, 2)
-                if self.predicted_outcome == 0:
-                    # Will lose (but attack anyway)
-                    return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
-                elif self.predicted_outcome == 1:
-                    # Will win
-                    return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
+                return self.attack(obs)
 
         return actions.FUNCTIONS.no_op()
 
     def attack_location_minimap(self, obs, x, y):
-        if self.do_action(obs, actions.FUNCTIONS.Attack_minimap.id):
+        if do_action(obs, actions.FUNCTIONS.Attack_minimap.id):
             self.has_issued_attack = True
             return actions.FUNCTIONS.Attack_minimap("now", [y, x])
 
     def move_camera_to_location(self, obs, x, y):
-        if self.do_action(obs, actions.FUNCTIONS.move_camera.id):
+        if do_action(obs, actions.FUNCTIONS.move_camera.id):
             self.screen_has_moved = True
             return actions.FUNCTIONS.move_camera([y, x])
 
-    def get_own_units(self, obs, unit_type):
+# The following class randomly predicts outcome.
+class marineAttackGenerator(marineAttack):
+
+    def attack(self, obs):
+        print("This is a random prediction")
+        self.predicted_outcome = random.randrange(0, 2)
+        if self.predicted_outcome == 0:
+            # Will lose (but attack anyway)
+            self.has_issued_attack = True
+            return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
+        elif self.predicted_outcome == 1:
+            # Will win
+            self.has_issued_attack = True
+            return self.attack_location_minimap(obs, self.enemy_x, self.enemy_y)
+
+
+def get_own_units(obs, unit_type):
         return [unit for unit in obs.observation.feature_units
                 if (unit.unit_type == unit_type) & (unit[1] == 1)]
 
-    def get_enemy_units(self, obs, unit_type):
+
+def get_enemy_units(obs, unit_type):
         return [unit for unit in obs.observation.feature_units
                 if (unit.unit_type == unit_type) & (unit[1] == 4)]
 
-    def select_unit(self, obs, unit_type):
+
+def select_unit(obs, unit_type):
         if (len(obs.observation.single_select) > 0 and
                 obs.observation.single_select[0].unit_type == unit_type):
             return True
@@ -92,5 +116,6 @@ class marineAttack(base_agent.BaseAgent):
 
         return False
 
-    def do_action(self, obs, action):
+
+def do_action(obs, action):
         return action in obs.observation.available_actions
