@@ -1,12 +1,17 @@
 from pysc2.env import sc2_env
 from pysc2.lib import features
 from Models.MarineAttack.marineAttack import marineAttack
+from Models.MarineAttack.marineAttack import marineAttackGenerator
+from absl import app
+import numpy as np
 
 
 def main(unused_argv):
     marine_difference = []
     prediction = []
     result = []
+    max_episodes = 10
+    episode = 0
     try:
         with sc2_env.SC2Env(
                 map_name="UnitSpawnerMarine",
@@ -19,8 +24,10 @@ def main(unused_argv):
                 step_mul=1,
                 game_steps_per_episode=0,
                 visualize=True) as env:
-            while True:
-                agent = marineAttack()
+            while episode < max_episodes:
+                episode += 1
+                print("Episode "+str(episode)+"/"+str(max_episodes))
+                agent = marineAttackGenerator()
                 agent.setup(env.observation_spec(), env.action_spec())
 
                 timesteps = env.reset()
@@ -36,9 +43,15 @@ def main(unused_argv):
                         result.append(timesteps[0][1])
                         break
                     timesteps = env.step(step_actions)
+            print(marine_difference)
+            print(prediction)
+            print(result)
+            game_data = np.array((marine_difference, prediction, result))
+            print(game_data)
+            np.save('RandomData', game_data)
 
     except KeyboardInterrupt:
         pass
 
 if __name__ == "__main__":
-    main()
+    app.run(main)
