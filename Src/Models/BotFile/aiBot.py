@@ -8,6 +8,9 @@ class aiBot(base_agent.BaseAgent):
         super(aiBot, self).__init__()
         self.base_location = None
         self.attack_coordinates = None
+        self.reqSteps = 0
+        self.currAct = 0
+        self.queued = False
 
     def step(self, obs):
         super(aiBot, self).step(obs)
@@ -25,66 +28,31 @@ class aiBot(base_agent.BaseAgent):
             else:
                 self.attack_coordiantes = (12, 16)
 
-        # Function for sending idle workers to mine
-        action = random.randint(0, 1)
+        if self.reqSteps == 0:
+            self.currAct = random.randint(0, 4)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
-        # Function for building a supplyDepot on a Random Place
-        # of the obeservable universe
-        if action == 0:
-            command_centers = self.get_units(obs, units.Terran.CommandCenter)
-            if len(command_centers) > 0 and not self.select_unit(obs, units.Terran.CommandCenter):
-                return actions.FUNCTIONS.select_point("select",
-                                                      (self.sigma(command_centers[0].x), self.sigma(command_centers[0].y)))
 
-            if self.select_unit(obs, units.Terran.CommandCenter):
-                if self.do_action(obs, actions.FUNCTIONS.Train_SCV_quick.id
-                                  ) and self.not_in_queue(obs, units.Terran.CommandCenter
-                                                          ) and (command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters
-                                                                 ) and free_supply > 2:
-                    return actions.FUNCTIONS.Train_SCV_quick("now")
+        if self.currAct == 0:  # build scv
+            action = self.build_scv(obs, free_supply)
 
-        elif action == 1:
-            command_scv = self.get_units(obs, units.Terran.SCV)
-            if len(command_scv) > 0 and not self.select_unit(obs, units.Terran.SCV):
-                if(obs.observation.player.idle_worker_count > 0):
-                    return actions.FUNCTIONS.select_idle_worker("select", obs, units.Terran.SCV)
-                command = random.choice(command_scv)
-                return actions.FUNCTIONS.select_point("select", (self.sigma(command.x), self.sigma(command.y)))
+        elif self.currAct == 1:  # build supply depot
+            action = self.build_supply_depot(obs, free_supply)
 
-        barracks = self.get_units(obs, units.Terran.Barracks)
-        if len(barracks) == 0:
-            if self.select_unit(obs, units.Terran.SCV):
-                if self.do_action(obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                    x = random.randint(2, 81)
-                    y = random.randint(2, 81)
+        elif self.currAct == 2:
+            action = self.build_barracks(obs)
 
-                    return actions.FUNCTIONS.Build_Barracks_screen("now", (x, y))
+        elif self.currAct == 3:
+            action = self.build_refinery(obs)
 
-        if free_supply <= 4 and self.not_in_progress(obs, units.Terran.SupplyDepot):
-            if self.select_unit(obs, units.Terran.SCV):
-                if self.do_action(obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
-                    x = random.randint(2, 81)
-                    y = random.randint(2, 81)
+        elif self.currAct == 4:
+            action = self.return_scv(obs)
 
-                    return actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))
+        else:
+            action = [actions.FUNCTIONS.no_op()]
 
-        if obs.observation.player.food_used >= 20:
-            if self.select_unit(obs, units.Terran.SCV):
-                if self.do_action(obs, actions.FUNCTIONS.Build_Refinery_screen.id):
-                    geyser = self.get_units(obs, units.Neutral.VespeneGeyser)
-
-                    return actions.FUNCTIONS.Build_Refinery_screen("now",
-                                                                   (self.sigma(geyser[0].x), self.sigma(geyser[0].y)))
-
-        if self.select_unit(obs, units.Terran.SCV):
-            actions.FUNCTIONS.move_camera("now", obs, self.base_location)
-            minerals = self.get_units(obs, units.Neutral.MineralField)
-            return actions.FUNCTIONS.Harvest_Gather_screen(
-                "now", (self.sigma(minerals[0].x), self.sigma(minerals[0].y)))
-
-        return actions.FUNCTIONS.no_op()
+        return action[0]
 
     def sigma(self, num):
         if num <= 0:
@@ -126,3 +94,148 @@ class aiBot(base_agent.BaseAgent):
 
     def do_action(self, obs, action):
         return action in obs.observation.available_actions
+
+    def build_scv(self, obs, free_supply):
+        new_action = [actions.FUNCTIONS.no_op()]
+        command_centers = self.get_units(obs, units.Terran.CommandCenter)
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif (self.reqSteps == 3):
+            self.reqSteps = 2
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)
+            ]
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            if len(command_centers) > 0:
+                new_action = [actions.FUNCTIONS.select_point("select",
+                                                             (self.sigma(command_centers[0].x), self.sigma(command_centers[0].y)))]
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if self.select_unit(obs, units.Terran.CommandCenter):
+                if self.do_action(obs, actions.FUNCTIONS.Train_SCV_quick.id
+                                  ) and self.not_in_queue(obs, units.Terran.CommandCenter
+                                                          ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
+                    new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
+
+        return new_action
+
+    def build_supply_depot(self, obs, free_supply):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 2
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            command_scv = self.get_units(obs, units.Terran.SCV)
+            if len(command_scv) > 0 and not self.select_unit(obs, units.Terran.SCV):
+                if(obs.observation.player.idle_worker_count > 0):
+                    new_action = [actions.FUNCTIONS.select_idle_worker(
+                        "select", obs, units.Terran.SCV)]
+                else:
+                    command = random.choice(command_scv)
+                    new_action = [actions.FUNCTIONS.select_point(
+                        "select", (self.sigma(command.x), self.sigma(command.y)))]
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if free_supply <= 4 and self.not_in_progress(obs, units.Terran.SupplyDepot):
+                if self.select_unit(obs, units.Terran.SCV):
+                    if self.do_action(obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+
+                        new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
+
+        return new_action
+
+    def build_barracks(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 2
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            command_scv = self.get_units(obs, units.Terran.SCV)
+            if len(command_scv) > 0 and not self.select_unit(obs, units.Terran.SCV):
+                if(obs.observation.player.idle_worker_count > 0):
+                    new_action = [actions.FUNCTIONS.select_idle_worker(
+                        "select", obs, units.Terran.SCV)]
+                else:
+                    command = random.choice(command_scv)
+                    new_action = [actions.FUNCTIONS.select_point(
+                        "select", (self.sigma(command.x), self.sigma(command.y)))]
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            barracks = self.get_units(obs, units.Terran.Barracks)
+            if len(barracks) < 3 and self.not_in_progress(obs, units.Terran.Barracks):
+                if self.select_unit(obs, units.Terran.SCV):
+                    if self.do_action(obs, actions.FUNCTIONS.Build_Barracks_screen.id):
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+
+                        new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
+
+        return new_action
+
+    def build_refinery(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            command_scv = self.get_units(obs, units.Terran.SCV)
+            if len(command_scv) > 0 and not self.select_unit(obs, units.Terran.SCV):
+                if(obs.observation.player.idle_worker_count > 0):
+                    new_action = [actions.FUNCTIONS.select_idle_worker(
+                        "select", obs, units.Terran.SCV)]
+                else:
+                    command = random.choice(command_scv)
+                    new_action = [actions.FUNCTIONS.select_point(
+                        "select", (self.sigma(command.x), self.sigma(command.y)))]
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if obs.observation.player.food_used >= 20:
+                if self.select_unit(obs, units.Terran.SCV):
+                    if self.do_action(obs, actions.FUNCTIONS.Build_Refinery_screen.id):
+                        geyser = self.get_units(obs, units.Neutral.VespeneGeyser)
+
+                        new_action = [actions.FUNCTIONS.Build_Refinery_screen("now",
+                                                                              (self.sigma(geyser[0].x), self.sigma(geyser[0].y)))]
+        return new_action
+
+    def return_scv(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            if(obs.observation.player.idle_worker_count > 0):
+                new_action = [actions.FUNCTIONS.select_idle_worker(
+                    "select", obs, units.Terran.SCV)]
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if self.select_unit(obs, units.Terran.SCV):
+                minerals = self.get_units(obs, units.Neutral.MineralField)
+                new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                    "now", (self.sigma(minerals[0].x), self.sigma(minerals[0].y)))]
+
+        return new_action
