@@ -1,7 +1,7 @@
 import random
 
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units, features
+from pysc2.lib import actions, features
 
 from Models.BuildOrders.BuildOrders import BuildOrders
 
@@ -56,21 +56,3 @@ class aiBot(base_agent.BaseAgent):
             action = [actions.FUNCTIONS.no_op()]
 
         return action[0]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
