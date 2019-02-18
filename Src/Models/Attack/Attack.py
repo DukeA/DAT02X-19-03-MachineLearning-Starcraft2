@@ -37,7 +37,7 @@ class Attack(base_agent.BaseAgent):
                         if obs.observation.feature_minimap[5][x][y] == 4:  # Finds enemy units on minimap
                             enemy_x.append(x)
                             enemy_y.append(y)
-                            distance.append(np.sqrt(np.power(x-base_minimap[0], 2) + np.power(y-base_minimap[1], 2)))
+                            distance.append(np.power(x-base_minimap[0], 2) + np.power(y-base_minimap[1], 2))
                 if len(distance) > 0:
                     index_min = min(range(len(distance)), key=distance.__getitem__)
                     enemy_location = [enemy_y[index_min], enemy_x[index_min]]
