@@ -4,6 +4,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, features
 
 from Models.BuildOrders.BuildOrders import BuildOrders
+from Models.EndGameAndSaveData.EndGameAndSaveData import EndGameAndSaveData
 
 
 class aiBot(base_agent.BaseAgent):
