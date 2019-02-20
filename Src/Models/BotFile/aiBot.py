@@ -33,7 +33,7 @@ class aiBot(base_agent.BaseAgent):
                 self.attack_coordiantes = (12, 16)
 
         if self.reqSteps == 0:
-            self.currAct = random.randint(0, 4)
+            self.currAct = random.randint(0, 5)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)

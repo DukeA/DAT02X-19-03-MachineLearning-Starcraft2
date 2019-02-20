@@ -10,7 +10,7 @@ from pysc2.lib import actions,units
 class UnitOrders(base_agent.BaseAgent):
     def __init__(self):
         super(UnitOrders,self).__init__()
-        self.base_location = None
+        self.barrack_location = None
 
 
     def build_Marines(self,obs ,free_supply):
@@ -27,7 +27,8 @@ class UnitOrders(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
             if len(barracks) >0:
-                if UnitOrders.select_unit(self, obs, units.Terran.Barracks):
+                if UnitOrders.select_unit(self, obs, units.Terran.Barracks)and \
+                        UnitOrders.not_in_queue(self, obs, units.Terran.Barracks) and free_supply > 0:
                     if UnitOrders.not_in_progress(self,obs,units.Terran.Marine):
                         new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
 
