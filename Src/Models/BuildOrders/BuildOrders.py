@@ -3,6 +3,8 @@ import random
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
+from Models.Predefines.Coordinates import Coordinates
+
 
 class BuildOrders(base_agent.BaseAgent):
     def __init__(self):
@@ -33,8 +35,8 @@ class BuildOrders(base_agent.BaseAgent):
             if len(barracks) < 3 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
+                        x = Coordinates.BARRACKS_X
+                        y = Coordinates.BARRACKS_Y
 
                         new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
 
