@@ -38,19 +38,19 @@ class aiBot(base_agent.BaseAgent):
                        obs.observation.player.food_used)
 
         if self.currAct == 0:  # build scv
-            action = BuildOrders.build_scv(self,obs, free_supply)
+            action = BuildOrders.build_scv(self, obs, free_supply)
 
         elif self.currAct == 1:  # build supply depot
-            action = BuildOrders.build_supply_depot(self,obs,free_supply)
+            action = BuildOrders.build_supply_depot(self, obs, free_supply)
 
         elif self.currAct == 2:
-            action = BuildOrders.build_barracks(self,obs,self.reqSteps)
+            action = BuildOrders.build_barracks(self, obs)
 
         elif self.currAct == 3:
-            action = BuildOrders.build_refinery(self,obs)
+            action = BuildOrders.build_refinery(self, obs)
 
         elif self.currAct == 4:
-            action = BuildOrders.return_scv(self,obs)
+            action = BuildOrders.return_scv(self, obs)
 
         else:
             action = [actions.FUNCTIONS.no_op()]
