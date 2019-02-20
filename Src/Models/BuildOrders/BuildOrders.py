@@ -35,8 +35,8 @@ class BuildOrders(base_agent.BaseAgent):
             if len(barracks) < 3 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                        x = Coordinates.BARRACKS_X
-                        y = Coordinates.BARRACKS_Y
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
 
                         new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
 

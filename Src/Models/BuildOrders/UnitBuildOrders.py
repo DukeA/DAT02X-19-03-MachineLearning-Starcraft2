@@ -10,7 +10,6 @@ from pysc2.lib import actions,units
 class UnitOrders(base_agent.BaseAgent):
     def __init__(self):
         super(UnitOrders,self).__init__()
-        self.barrack_location = None
 
 
     def build_Marines(self,obs ,free_supply):
@@ -20,16 +19,16 @@ class UnitOrders(base_agent.BaseAgent):
             self.reqSteps = 2
 
         elif self.reqSteps == 2:
-             self.reqSteps = 2
-             new_action=[
-                     actions.FUNCTIONS.move_camera(self.base_location)
-                 ]
+             self.reqSteps = 1
+
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if len(barracks) >0:
-                if UnitOrders.select_unit(self, obs, units.Terran.Barracks)and \
-                        UnitOrders.not_in_queue(self, obs, units.Terran.Barracks) and free_supply > 0:
-                    if UnitOrders.not_in_progress(self,obs,units.Terran.Marine):
+            if len(barracks) > 0:
+                if UnitOrders.select_unit(self,obs,units.Terran.Barracks):
+                    if UnitOrders.do_action\
+                        (self,obs,actions.FUNCTIONS.Train_Marine_quick.id
+                        ) and UnitOrders.not_in_queue(self,obs,units.Terran.Barracks) \
+                                            and free_supply>0:
                         new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
 
         return  new_action;
@@ -58,8 +57,6 @@ class UnitOrders(base_agent.BaseAgent):
                     return False
         return True
 
-    def do_action(self, obs, action):
-        return action in obs.observation.available_actions
 
     def not_in_progress(self, obs, unit_type):
         units = UnitOrders.get_units(self, obs, unit_type)
