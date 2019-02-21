@@ -6,6 +6,12 @@ from pysc2.lib import actions, units
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingelton import ActionSingelton
 
+"""
+The Class belongs to the Build Order request 
+to build certain elements such as supply depots and
+refinarys.  
+"""
+
 class BuildOrders(base_agent.BaseAgent):
     def __init__(self):
         super(BuildOrders, self).__init__()

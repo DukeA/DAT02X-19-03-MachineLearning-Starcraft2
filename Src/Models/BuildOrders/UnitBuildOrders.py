@@ -1,12 +1,14 @@
-import  random
-
 
 from pysc2.agents import base_agent
 from pysc2.lib import actions,units
 
 from Models.BuildOrders.ActionSingelton import ActionSingelton
 
-
+"""
+@Author :Adam Grandén
+The UnitBuildOrders  is the class which builds units 
+from the specfic infrastrucutre in this case to build marines from barracks 
+"""
 
 class UnitBuildOrders(base_agent.BaseAgent):
     def __init__(self):

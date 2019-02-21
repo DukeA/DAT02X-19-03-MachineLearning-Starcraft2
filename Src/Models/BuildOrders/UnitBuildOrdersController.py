@@ -5,6 +5,11 @@ from pysc2.agents import base_agent
 
 from Models.BuildOrders.UnitBuildOrders import UnitBuildOrders
 
+"""
+A Controller class which changes the state 
+of the action to build certain  troops
+"""
+
 
 class UnitBuildOrdersController(base_agent.BaseAgent):
     def __init__(self):
