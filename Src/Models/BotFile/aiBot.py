@@ -3,6 +3,7 @@ import random
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features
 
+from Models.BuildOrders.BuildOrderController import BuildOrderController
 from Models.BuildOrders.BuildOrders import BuildOrders
 from Models.BuildOrders.UnitBuildOrders import UnitBuildOrders
 
@@ -39,19 +40,24 @@ class aiBot(base_agent.BaseAgent):
                        obs.observation.player.food_used)
 
         if self.currAct == 0:  # build scv
-            action = BuildOrders.build_scv(self, obs, free_supply)
+            BuildOrderController.build_scv(self,obs,free_supply)
+            action = BuildOrders.new_action
 
         elif self.currAct == 1:  # build supply depot
-            action = BuildOrders.build_supply_depot(self, obs, free_supply)
+            BuildOrderController.build_supplaydepot(self,obs,free_supply)
+            action = BuildOrders.new_action
 
         elif self.currAct == 2:
-            action = BuildOrders.build_barracks(self, obs)
+            BuildOrderController.build_barracks(self,obs)
+            action = BuildOrders.new_action
 
         elif self.currAct == 3:
-            action = BuildOrders.build_refinery(self, obs)
+            BuildOrderController.build_refinary(self,obs)
+            action = BuildOrders.new_action
 
         elif self.currAct == 4:
-            action = BuildOrders.return_scv(self, obs)
+            BuildOrderController.return_scv(self,obs)
+            action = BuildOrders.new_action
 
         elif self.currAct ==5:
             action = UnitBuildOrders.build_Marines(self,obs,free_supply)
