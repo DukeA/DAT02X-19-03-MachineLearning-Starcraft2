@@ -33,6 +33,11 @@ class UnitOrders(base_agent.BaseAgent):
                         )  and free_supply>0:
                         new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
         return  new_action;
+    def findall_Barracks (self,obs):
+        new_action =[actions.FUNCTIONS.no_op]
+
+        if self.reqSteps ==0:
+            self.reqSteps
 
     def get_units(self, obs, unit_type):
         return [unit for unit in obs.observation.feature_units

@@ -32,11 +32,11 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
             barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 1  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+            if len(barracks) < 2  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
+                        x = Coordinates.BARRACKS_X
+                        y = Coordinates.BARRACKS_Y
 
                         new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
 
