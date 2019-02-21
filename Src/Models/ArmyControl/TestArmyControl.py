@@ -1,8 +1,9 @@
 from pysc2.env import sc2_env
 from pysc2.agents import base_agent
 from pysc2.lib import features, actions
-from Models.Attack.Attack import Attack
+from Models.ArmyControl.ArmyControl import ArmyControl
 from absl import app
+
 
 class TestAttack(base_agent.BaseAgent):
     def __init__(self):
@@ -28,9 +29,10 @@ class TestAttack(base_agent.BaseAgent):
 
         if self.reqSteps == 0 and not self.has_attacked:
             self.attacking = True
+            self.has_attacked = True
 
         if self.attacking:
-            return Attack.attack(self, obs)
+            return ArmyControl.retreat(self, obs)
 
         return actions.FUNCTIONS.no_op()
 
