@@ -3,18 +3,21 @@ import random
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
+import Models.Predefines.Coordinates as Coordinates
+
 
 class BuildOrders(base_agent.BaseAgent):
     def __init__(self):
         super(BuildOrders, self).__init__()
         self.base_location = None
+        self.expo_loc = 0
 
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 2
 
-        elif self.reqSteps == 2:
+        if self.reqSteps == 2:
             self.reqSteps = 1
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
@@ -45,7 +48,7 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 2
 
-        elif self.reqSteps == 2:
+        if self.reqSteps == 2:
             self.reqSteps = 1
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
@@ -75,7 +78,7 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 3
 
-        elif self.reqSteps == 3:
+        if self.reqSteps == 3:
             self.reqSteps = 2
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
@@ -111,7 +114,7 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 3
 
-        elif (self.reqSteps == 3):
+        if (self.reqSteps == 3):
             self.reqSteps = 2
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)
@@ -157,6 +160,49 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
                     "now", (BuildOrders.sigma(self, minerals[0].x),
                             BuildOrders.sigma(self, minerals[0].y)))]
+
+        return new_action
+
+    def expand(self, obs, top_start, expo_loc):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        if self.reqSteps == 3:
+            self.reqSteps = 2
+            command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
+            if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
+                if (obs.observation.player.idle_worker_count > 0):
+                    new_action = [actions.FUNCTIONS.select_idle_worker(
+                        "select", obs, units.Terran.SCV)]
+                else:
+                    command = random.choice(command_scv)
+                    new_action = [actions.FUNCTIONS.select_point(
+                        "select", (BuildOrders.sigma(self, command.x),
+                                   BuildOrders.sigma(self, command.y)))]
+
+        if self.reqSteps == 2:
+            self.reqSteps = 1
+            if top_start:
+                new_action = [
+                    actions.FUNCTIONS.move_camera(Coordinates.EXPO_LOCATIONS[expo_loc])]
+            else:
+                new_action = [
+                    actions.FUNCTIONS.move_camera(list(reversed(Coordinates.EXPO_LOCATIONS))[expo_loc])]
+
+        if self.reqSteps == 1:
+            self.reqSteps = 0
+            if (BuildOrders.select_unit(self, obs, units.Terran.CommandCenter)):
+                if len(Coordinates.EXPO_LOCATIONS) <= expo_loc+1:
+                    self.reqSteps = 2
+                    return BuildOrders.expand(self, obs, base_location, expo_loc+1)
+                else:
+                    self.reqSteps = 0
+            else:
+                if BuildOrders.select_unit(self, obs, units.Terran.SCV):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
+                        new_action = [
+                            actions.FUNCTIONS.Build_CommandCenter_screen("now", (42, 42))]
 
         return new_action
 
