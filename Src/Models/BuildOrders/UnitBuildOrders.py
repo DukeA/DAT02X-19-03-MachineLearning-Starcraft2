@@ -14,30 +14,37 @@ class UnitOrders(base_agent.BaseAgent):
 
     def build_Marines(self,obs ,free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
-        barracks = UnitOrders.get_units(self, obs, units.Terran.Barracks)
-        if self.reqSteps == 0:
-            self.reqSteps = 2
+        barracks_location = UnitOrders.findall_Barracks(self,obs)
+        for this_barrack in barracks_location:
+            if self.reqSteps == 0:
+                self.reqSteps = 2
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
-            if len(barracks) > 0:
-                new_action = [actions.FUNCTIONS.select_point("select",
-                                                             (UnitOrders.sigma(self, barracks[0].x),
-                                                              UnitOrders.sigma(self, barracks[0].y)))]
-        elif self.reqSteps ==1:
-            self.reqSteps=0
-            if len(barracks) > 0:
-                if UnitOrders.select_unit(self,obs,units.Terran.Barracks):
-                    if UnitOrders.do_action\
-                        (self,obs,actions.FUNCTIONS.Train_Marine_quick.id
-                        )  and free_supply>0:
-                        new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
+            elif self.reqSteps == 2:
+                self.reqSteps = 1
+                if len(barracks_location) > 0  :
+
+                    new_action = [actions.FUNCTIONS.select_point("select",
+                                                             (UnitOrders.sigma(self, this_barrack.x),
+                                                              UnitOrders.sigma(self, this_barrack.y)))]
+            elif self.reqSteps == 1:
+                self.reqSteps=0
+                if len(barracks_location) > 0:
+                    if UnitOrders.select_unit(self,obs,units.Terran.Barracks):
+                        if UnitOrders.do_action\
+                            (self,obs,actions.FUNCTIONS.Train_Marine_quick.id
+                            )  and free_supply > 0:
+                            new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
         return  new_action;
-    def findall_Barracks (self,obs):
-        new_action =[actions.FUNCTIONS.no_op]
 
-        if self.reqSteps ==0:
-            self.reqSteps
+
+
+    def findall_Barracks (self,obs):
+        barracks_location = []
+        barracks = UnitOrders.get_units(self, obs,units.Terran.Barracks)
+        for barrack_unit in barracks:
+            barracks_location.append(barrack_unit)
+        return barracks_location;
+
 
     def get_units(self, obs, unit_type):
         return [unit for unit in obs.observation.feature_units
