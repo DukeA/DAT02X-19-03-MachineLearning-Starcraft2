@@ -4,22 +4,21 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, features
 
 from Models.BuildOrders.BuildOrderController import BuildOrderController
-from Models.BuildOrders.BuildOrders import BuildOrders
-from Models.BuildOrders.UnitBuildOrders import UnitBuildOrders
+from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
+from Models.BuildOrders.ActionSingelton import ActionSingelton
 
 
-class aiBot(base_agent.BaseAgent):
+class AiBot(base_agent.BaseAgent):
     def __init__(self):
-        super(aiBot, self).__init__()
+        super(AiBot, self).__init__()
         self.base_location = None
         self.attack_coordinates = None
         self.reqSteps = 0
         self.currAct = 0
         self.queued = False
-        self.ai_Action=None
 
     def step(self, obs):
-        super(aiBot, self).step(obs)
+        super(AiBot, self).step(obs)
 
         # first step
         if obs.first():
@@ -42,26 +41,27 @@ class aiBot(base_agent.BaseAgent):
 
         if self.currAct == 0:  # build scv
             BuildOrderController.build_scv(self,obs,free_supply)
-            action = self.ai_Action
+            action = ActionSingelton().get_action()
 
         elif self.currAct == 1:  # build supply depot
-            BuildOrderController.build_supplaydepot(self,obs,free_supply)
-            action = self.ai_Action
+            BuildOrderController.build_supplaydepot(self, obs, free_supply)
+            action = ActionSingelton().get_action()
 
         elif self.currAct == 2:
-            BuildOrderController.build_barracks(self,obs)
-            action = self.ai_Action
+            BuildOrderController.build_barracks(self, obs)
+            action = ActionSingelton().get_action()
 
         elif self.currAct == 3:
-            BuildOrderController.build_refinary(self,obs)
-            action = self.ai_Action
+            BuildOrderController.build_refinary(self, obs)
+            action = ActionSingelton().get_action()
 
         elif self.currAct == 4:
-            BuildOrderController.return_scv(self,obs)
-            action = self.ai_Action
+            BuildOrderController.return_scv(self, obs)
+            action = ActionSingelton().get_action()
 
-        elif self.currAct ==5:
-            action = UnitBuildOrders.build_Marines(self,obs,free_supply)
+        elif self.currAct == 5:
+            UnitBuildOrdersController.train_marines(self, obs, free_supply)
+            action = ActionSingelton().get_action()
 
         else:
             action = [actions.FUNCTIONS.no_op()]

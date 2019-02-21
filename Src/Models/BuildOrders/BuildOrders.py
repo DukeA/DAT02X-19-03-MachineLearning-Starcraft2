@@ -4,16 +4,16 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
 from Models.Predefines.Coordinates import Coordinates
-from Models.BotFile.aiBot import aiBot
-
+from Models.BuildOrders.ActionSingelton import ActionSingelton
 
 class BuildOrders(base_agent.BaseAgent):
     def __init__(self):
         super(BuildOrders, self).__init__()
         self.base_location = None
+        self.new_action = None
 
     def build_barracks(self, obs):
-        BuildOrders.new_action = [actions.FUNCTIONS.no_op()]
+        new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 2
 
@@ -22,11 +22,11 @@ class BuildOrders(base_agent.BaseAgent):
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
                 if (obs.observation.player.idle_worker_count > 0):
-                    aiBot.ai_Action = [actions.FUNCTIONS.select_idle_worker(
+                    BuildOrders.new_action = [actions.FUNCTIONS.select_idle_worker(
                         "select", obs, units.Terran.SCV)]
                 else:
                     command = random.choice(command_scv)
-                    aiBot.ai_Action = [actions.FUNCTIONS.select_point(
+                    new_action = [actions.FUNCTIONS.select_point(
                         "select", (BuildOrders.sigma(self, command.x),
                                    BuildOrders.sigma(self, command.y)))]
 
@@ -39,11 +39,12 @@ class BuildOrders(base_agent.BaseAgent):
                         x = Coordinates.BARRACKS_X
                         y = Coordinates.BARRACKS_Y
 
-                        aiBot.ai_Action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
+                        new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
+        ActionSingelton().set_action(new_action)
 
 
     def build_supply_depot(self, obs, free_supply):
-        BuildOrders.new_action = [actions.FUNCTIONS.no_op()]
+        new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 2
 
@@ -52,11 +53,11 @@ class BuildOrders(base_agent.BaseAgent):
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
                 if(obs.observation.player.idle_worker_count > 0):
-                    aiBot.ai_Action = [actions.FUNCTIONS.select_idle_worker(
+                    BuildOrders.new_action = [actions.FUNCTIONS.select_idle_worker(
                         "select", obs, units.Terran.SCV)]
                 else:
                     command = random.choice(command_scv)
-                    aiBot.ai_Action = [actions.FUNCTIONS.select_point(
+                    new_action = [actions.FUNCTIONS.select_point(
                         "select", (BuildOrders.sigma(self, command.x),
                                    BuildOrders.sigma(self, command.y)))]
 
@@ -69,11 +70,12 @@ class BuildOrders(base_agent.BaseAgent):
                         x = random.randint(2, 81)
                         y = random.randint(2, 81)
 
-                        aiBot.ai_Action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
+                        new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
+        ActionSingelton().set_action(new_action)
 
 
     def build_refinery(self, obs):
-        BuildOrders.new_action = [actions.FUNCTIONS.no_op()]
+        new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 3
 
@@ -82,17 +84,17 @@ class BuildOrders(base_agent.BaseAgent):
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
                 if (obs.observation.player.idle_worker_count > 0):
-                    aiBot.ai_Action = [actions.FUNCTIONS.select_idle_worker(
+                    new_action = [actions.FUNCTIONS.select_idle_worker(
                         "select", obs, units.Terran.SCV)]
                 else:
                     command = random.choice(command_scv)
-                    aiBot.ai_Action = [actions.FUNCTIONS.select_point(
+                    new_action= [actions.FUNCTIONS.select_point(
                         "select", (BuildOrders.sigma(self, command.x),
                                    BuildOrders.sigma(self, command.y)))]
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
-            aiBot.ai_Action = [
+            new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
@@ -102,25 +104,27 @@ class BuildOrders(base_agent.BaseAgent):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Refinery_screen.id):
                         geyser = BuildOrders.get_units(self, obs, units.Neutral.VespeneGeyser)
 
-                        aiBot.ai_Action = [actions.FUNCTIONS.Build_Refinery_screen("now",
+                        new_action = [actions.FUNCTIONS.Build_Refinery_screen("now",
                                                                               (BuildOrders.sigma(self, geyser[0].x),
                                                                                BuildOrders.sigma(self, geyser[0].y)))]
+        ActionSingelton().set_action(new_action)
+
 
     def build_scv(self, obs, free_supply):
-        aiBot.ai_Action = [actions.FUNCTIONS.no_op()]
+        new_action = [actions.FUNCTIONS.no_op()]
         command_centers = BuildOrders.get_units(self, obs, units.Terran.CommandCenter)
         if self.reqSteps == 0:
             self.reqSteps = 3
 
         elif self.reqSteps == 3:
             self.reqSteps = 2
-            aiBot.ai_Action = [
+            new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)
             ]
         elif self.reqSteps == 2:
             self.reqSteps = 1
             if len(command_centers) > 0:
-                aiBot.ai_Action = [actions.FUNCTIONS.select_point("select",
+                new_action = [actions.FUNCTIONS.select_point("select",
                                                              (BuildOrders.sigma(self, command_centers[0].x),
                                                               BuildOrders.sigma(self, command_centers[0].y)))]
         elif self.reqSteps == 1:
@@ -131,32 +135,36 @@ class BuildOrders(base_agent.BaseAgent):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
                                          ) and BuildOrders.not_in_queue(self, obs, units.Terran.CommandCenter
                                                                         ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
-                        aiBot.ai_Action = [actions.FUNCTIONS.Train_SCV_quick("now")]
+                        new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
+        ActionSingelton().set_action(new_action)
+
 
 
     def return_scv(self, obs):
-        aiBot.ai_Action = [actions.FUNCTIONS.no_op()]
+        new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 3
 
         elif self.reqSteps == 3:
             self.reqSteps = 2
             if(obs.observation.player.idle_worker_count > 0):
-               aiBot.ai_Action = [actions.FUNCTIONS.select_idle_worker(
+                new_action = [actions.FUNCTIONS.select_idle_worker(
                     "select", obs, units.Terran.SCV)]
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
-            aiBot.ai_Action = [
+            new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
             if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                 minerals = BuildOrders.get_units(self, obs, units.Neutral.MineralField)
-                aiBot.ai_Action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
                     "now", (BuildOrders.sigma(self, minerals[0].x),
                             BuildOrders.sigma(self, minerals[0].y)))]
+        ActionSingelton().set_action(new_action)
+
 
 
 
