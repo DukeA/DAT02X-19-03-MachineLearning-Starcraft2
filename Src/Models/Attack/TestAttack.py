@@ -3,7 +3,6 @@ from pysc2.agents import base_agent
 from pysc2.lib import features, actions
 from Models.Attack.Attack import Attack
 from absl import app
-import numpy as np
 
 class TestAttack(base_agent.BaseAgent):
     def __init__(self):
@@ -31,7 +30,7 @@ class TestAttack(base_agent.BaseAgent):
             self.attacking = True
 
         if self.attacking:
-            return Attack.attack(self, obs, [3, 3])
+            return Attack.attack(self, obs)
 
         return actions.FUNCTIONS.no_op()
 
