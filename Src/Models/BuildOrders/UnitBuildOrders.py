@@ -19,18 +19,19 @@ class UnitOrders(base_agent.BaseAgent):
             self.reqSteps = 2
 
         elif self.reqSteps == 2:
-             self.reqSteps = 1
-
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
+            self.reqSteps = 1
+            if len(barracks) > 0:
+                new_action = [actions.FUNCTIONS.select_point("select",
+                                                             (UnitOrders.sigma(self, barracks[0].x),
+                                                              UnitOrders.sigma(self, barracks[0].y)))]
+        elif self.reqSteps ==1:
+            self.reqSteps=0
             if len(barracks) > 0:
                 if UnitOrders.select_unit(self,obs,units.Terran.Barracks):
                     if UnitOrders.do_action\
                         (self,obs,actions.FUNCTIONS.Train_Marine_quick.id
-                        ) and UnitOrders.not_in_queue(self,obs,units.Terran.Barracks) \
-                                            and free_supply>0:
+                        )  and free_supply>0:
                         new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
-
         return  new_action;
 
     def get_units(self, obs, unit_type):

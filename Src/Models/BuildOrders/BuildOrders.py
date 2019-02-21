@@ -32,7 +32,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
             barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 3 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+            if len(barracks) < 1  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
                         x = random.randint(2, 81)
@@ -62,7 +62,8 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if free_supply <= 4 and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
+            supply_depot = BuildOrders.get_units(self,obs,units.Terran.SupplyDepot)
+            if free_supply <= 4 and len(supply_depot) < 1  and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
                         x = random.randint(2, 81)
@@ -113,26 +114,26 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 3
 
-        elif (self.reqSteps == 3):
+        elif self.reqSteps == 3:
             self.reqSteps = 2
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)
             ]
-
         elif self.reqSteps == 2:
             self.reqSteps = 1
             if len(command_centers) > 0:
                 new_action = [actions.FUNCTIONS.select_point("select",
                                                              (BuildOrders.sigma(self, command_centers[0].x),
                                                               BuildOrders.sigma(self, command_centers[0].y)))]
-
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if BuildOrders.select_unit(self, obs, units.Terran.CommandCenter):
-                if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
+            suv_units = BuildOrders.get_units(self,obs,units.Terran.SCV)
+            if len(suv_units)< 15:
+                if BuildOrders.select_unit(self, obs, units.Terran.CommandCenter):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
                                          ) and BuildOrders.not_in_queue(self, obs, units.Terran.CommandCenter
                                                                         ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
-                    new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
+                        new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
 
         return new_action
 
