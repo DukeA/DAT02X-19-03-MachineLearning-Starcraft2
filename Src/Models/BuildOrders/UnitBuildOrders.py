@@ -7,32 +7,29 @@ from pysc2.lib import actions,units
 
 
 
-class UnitOrders(base_agent.BaseAgent):
+class UnitBuildOrders(base_agent.BaseAgent):
     def __init__(self):
-        super(UnitOrders,self).__init__()
+        super(UnitBuildOrders,self).__init__()
 
 
     def build_Marines(self,obs ,free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
-        barracks_location = UnitOrders.findall_Barracks(self,obs)
+        barracks_location = UnitBuildOrders.findall_Barracks(self,obs)
         for this_barrack in barracks_location:
             if self.reqSteps == 0:
                 self.reqSteps = 2
-
             elif self.reqSteps == 2:
                 self.reqSteps = 1
-                if len(barracks_location) > 0  :
-
-                    new_action = [actions.FUNCTIONS.select_point("select",
-                                                             (UnitOrders.sigma(self, this_barrack.x),
-                                                              UnitOrders.sigma(self, this_barrack.y)))]
+                if len(barracks_location) > 0:
+                    new_action = \
+                        [actions.FUNCTIONS.select_point("select",(UnitBuildOrders.sigma(self, this_barrack.x),
+                                                              UnitBuildOrders.sigma(self, this_barrack.y)))]
             elif self.reqSteps == 1:
                 self.reqSteps=0
                 if len(barracks_location) > 0:
-                    if UnitOrders.select_unit(self,obs,units.Terran.Barracks):
-                        if UnitOrders.do_action\
-                            (self,obs,actions.FUNCTIONS.Train_Marine_quick.id
-                            )  and free_supply > 0:
+                    if UnitBuildOrders.select_unit(self,obs,units.Terran.Barracks):
+                        if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
+                                and free_supply > 0:
                             new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
         return  new_action;
 
@@ -40,7 +37,7 @@ class UnitOrders(base_agent.BaseAgent):
 
     def findall_Barracks (self,obs):
         barracks_location = []
-        barracks = UnitOrders.get_units(self, obs,units.Terran.Barracks)
+        barracks = UnitBuildOrders.get_units(self, obs,units.Terran.Barracks)
         for barrack_unit in barracks:
             barracks_location.append(barrack_unit)
         return barracks_location;
@@ -72,7 +69,7 @@ class UnitOrders(base_agent.BaseAgent):
 
 
     def not_in_progress(self, obs, unit_type):
-        units = UnitOrders.get_units(self, obs, unit_type)
+        units = UnitBuildOrders.get_units(self, obs, unit_type)
         for unit in units:
             if (unit.build_progress != 100):
                 return False

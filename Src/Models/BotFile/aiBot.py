@@ -4,7 +4,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, features
 
 from Models.BuildOrders.BuildOrders import BuildOrders
-from Models.BuildOrders.UnitBuildOrders import UnitOrders
+from Models.BuildOrders.UnitBuildOrders import UnitBuildOrders
 
 
 class aiBot(base_agent.BaseAgent):
@@ -54,7 +54,7 @@ class aiBot(base_agent.BaseAgent):
             action = BuildOrders.return_scv(self, obs)
 
         elif self.currAct ==5:
-            action = UnitOrders.build_Marines(self,obs,free_supply)
+            action = UnitBuildOrders.build_Marines(self,obs,free_supply)
 
         else:
             action = [actions.FUNCTIONS.no_op()]
