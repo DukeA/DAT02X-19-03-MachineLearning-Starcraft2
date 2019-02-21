@@ -16,6 +16,7 @@ class aiBot(base_agent.BaseAgent):
         self.reqSteps = 0
         self.currAct = 0
         self.queued = False
+        self.ai_Action=None
 
     def step(self, obs):
         super(aiBot, self).step(obs)
@@ -41,23 +42,23 @@ class aiBot(base_agent.BaseAgent):
 
         if self.currAct == 0:  # build scv
             BuildOrderController.build_scv(self,obs,free_supply)
-            action = BuildOrders.new_action
+            action = self.ai_Action
 
         elif self.currAct == 1:  # build supply depot
             BuildOrderController.build_supplaydepot(self,obs,free_supply)
-            action = BuildOrders.new_action
+            action = self.ai_Action
 
         elif self.currAct == 2:
             BuildOrderController.build_barracks(self,obs)
-            action = BuildOrders.new_action
+            action = self.ai_Action
 
         elif self.currAct == 3:
             BuildOrderController.build_refinary(self,obs)
-            action = BuildOrders.new_action
+            action = self.ai_Action
 
         elif self.currAct == 4:
             BuildOrderController.return_scv(self,obs)
-            action = BuildOrders.new_action
+            action = self.ai_Action
 
         elif self.currAct ==5:
             action = UnitBuildOrders.build_Marines(self,obs,free_supply)
