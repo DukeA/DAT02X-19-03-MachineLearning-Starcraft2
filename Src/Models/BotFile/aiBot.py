@@ -32,7 +32,7 @@ class aiBot(base_agent.BaseAgent):
                 self.attack_coordiantes = (12, 16)
 
         if self.reqSteps == 0:
-            self.currAct = random.randint(0, 4)
+            self.currAct = random.randint(0, 5)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
@@ -51,6 +51,9 @@ class aiBot(base_agent.BaseAgent):
 
         elif self.currAct == 4:
             action = BuildOrders.return_scv(self, obs)
+
+        elif self.currAct == 5:
+            action = BuildOrders.build_marine(self, obs, free_supply)
 
         else:
             action = [actions.FUNCTIONS.no_op()]
