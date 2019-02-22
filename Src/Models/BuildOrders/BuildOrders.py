@@ -217,7 +217,7 @@ class BuildOrders(base_agent.BaseAgent):
                             new_action = [
                                 actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
             self.reqSteps -= 1
-        return new_action
+        ActionSingelton().set_action(new_action)
 
     def choose_screen_location(self, top_start):  # returns a location based on the start location
         if top_start:

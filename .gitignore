@@ -9009,3 +9009,7 @@ Src/venv/Scripts/vcruntime140\.dll
 Src/venv/Scripts/winsound\.pyd
 
 Src/venv/Scripts/wsdump\.py
+
+Src/Models/Predefines/__pycache__/
+
+Src/Models/BuildOrders/__pycache__/
