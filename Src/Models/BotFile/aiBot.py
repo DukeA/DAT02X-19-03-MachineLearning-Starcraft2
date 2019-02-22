@@ -5,7 +5,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 
 from Models.BuildOrders.BuildOrders import BuildOrders
-from Models.Attack.Attack import Attack
+from Models.ArmyControl.ArmyControl import ArmyControl
 
 
 selectors = ['buildSelector', 'attackSelector']
@@ -81,6 +81,8 @@ class aiBot(base_agent.BaseAgent):
                 self.doAttack = random.choice(attackSelector)
 
             if self.doAttack == "attack":
-                action = Attack.attack(self, obs, self.base_location)
+                action = ArmyControl.attack(self, obs, self.base_location)
 
+            if self.doAttack == "retreat":
+                action = ArmyControl.retreat(self, obs, self.base_location)
         return action[0]
