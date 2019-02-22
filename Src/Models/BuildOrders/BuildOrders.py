@@ -3,14 +3,21 @@ import random
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
-import Models.Predefines.Coordinates as Coordinates
+from Models.Predefines.Coordinates import Coordinates
+from Models.BuildOrders.ActionSingelton import ActionSingelton
 
+"""
+The Class belongs to the Build Order request 
+to build certain elements such as supply depots and
+refinarys.  
+"""
 
 class BuildOrders(base_agent.BaseAgent):
     def __init__(self):
         super(BuildOrders, self).__init__()
         self.base_location = None
         self.expo_loc = 0
+        self.new_action = None
 
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -22,7 +29,7 @@ class BuildOrders(base_agent.BaseAgent):
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
                 if (obs.observation.player.idle_worker_count > 0):
-                    new_action = [actions.FUNCTIONS.select_idle_worker(
+                    BuildOrders.new_action = [actions.FUNCTIONS.select_idle_worker(
                         "select", obs, units.Terran.SCV)]
                 else:
                     command = random.choice(command_scv)
@@ -33,15 +40,15 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
             barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 3 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+            if len(barracks) < 2  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
+                        x = Coordinates.BARRACKS_X
+                        y = Coordinates.BARRACKS_Y
 
                         new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
+        ActionSingelton().set_action(new_action)
 
-        return new_action
 
     def build_supply_depot(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -53,7 +60,7 @@ class BuildOrders(base_agent.BaseAgent):
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
                 if(obs.observation.player.idle_worker_count > 0):
-                    new_action = [actions.FUNCTIONS.select_idle_worker(
+                    BuildOrders.new_action = [actions.FUNCTIONS.select_idle_worker(
                         "select", obs, units.Terran.SCV)]
                 else:
                     command = random.choice(command_scv)
@@ -63,15 +70,16 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if free_supply <= 4 and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
+            supply_depot = BuildOrders.get_units(self,obs,units.Terran.SupplyDepot)
+            if free_supply <= 4 and len(supply_depot) < 1  and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
                         x = random.randint(2, 81)
                         y = random.randint(2, 81)
 
                         new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
+        ActionSingelton().set_action(new_action)
 
-        return new_action
 
     def build_refinery(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -87,7 +95,7 @@ class BuildOrders(base_agent.BaseAgent):
                         "select", obs, units.Terran.SCV)]
                 else:
                     command = random.choice(command_scv)
-                    new_action = [actions.FUNCTIONS.select_point(
+                    new_action= [actions.FUNCTIONS.select_point(
                         "select", (BuildOrders.sigma(self, command.x),
                                    BuildOrders.sigma(self, command.y)))]
 
@@ -106,7 +114,8 @@ class BuildOrders(base_agent.BaseAgent):
                         new_action = [actions.FUNCTIONS.Build_Refinery_screen("now",
                                                                               (BuildOrders.sigma(self, geyser[0].x),
                                                                                BuildOrders.sigma(self, geyser[0].y)))]
-        return new_action
+        ActionSingelton().set_action(new_action)
+
 
     def build_scv(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -114,28 +123,29 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 3
 
-        if (self.reqSteps == 3):
+        elif self.reqSteps == 3:
             self.reqSteps = 2
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)
             ]
-
         elif self.reqSteps == 2:
             self.reqSteps = 1
             if len(command_centers) > 0:
                 new_action = [actions.FUNCTIONS.select_point("select",
                                                              (BuildOrders.sigma(self, command_centers[0].x),
                                                               BuildOrders.sigma(self, command_centers[0].y)))]
-
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if BuildOrders.select_unit(self, obs, units.Terran.CommandCenter):
-                if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
+            suv_units = BuildOrders.get_units(self,obs,units.Terran.SCV)
+            if len(suv_units)< 15:
+                if BuildOrders.select_unit(self, obs, units.Terran.CommandCenter):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
                                          ) and BuildOrders.not_in_queue(self, obs, units.Terran.CommandCenter
                                                                         ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
-                    new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
+                        new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
+        ActionSingelton().set_action(new_action)
 
-        return new_action
+
 
     def return_scv(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -160,8 +170,8 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
                     "now", (BuildOrders.sigma(self, minerals[0].x),
                             BuildOrders.sigma(self, minerals[0].y)))]
+        ActionSingelton().set_action(new_action)
 
-        return new_action
 
     def expand(self, obs, top_start):
         new_action = [actions.FUNCTIONS.no_op()]

@@ -4,6 +4,9 @@ import statistics
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 
+from Models.BuildOrders.BuildOrderController import BuildOrderController
+from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
+from Models.BuildOrders.ActionSingelton import ActionSingelton
 from Models.BuildOrders.BuildOrders import BuildOrders
 from Models.ArmyControl.ArmyControl import ArmyControl
 
@@ -16,7 +19,7 @@ buildSelector = ['build_scv', 'build_supply_depot',
 
 class aiBot(base_agent.BaseAgent):
     def __init__(self):
-        super(aiBot, self).__init__()
+        super(AiBot, self).__init__()
         self.base_location = None
         self.start_top = None
         self.attack_coordinates = None
@@ -26,7 +29,7 @@ class aiBot(base_agent.BaseAgent):
         self.doAttack = None
 
     def step(self, obs):
-        super(aiBot, self).step(obs)
+        super(AiBot, self).step(obs)
 
         # first step
         if obs.first():
