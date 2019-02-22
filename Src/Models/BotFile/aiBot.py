@@ -64,7 +64,7 @@ class AiBot(base_agent.BaseAgent):
                 self.doBuild = random.choice(buildSelector)
 
             if self.doBuild == "expand":
-                BuildOrderController.build_expand(self,obs,top_start)
+                BuildOrderController.build_expand(self,obs,self.start_top)
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "build_scv":  # build scv
