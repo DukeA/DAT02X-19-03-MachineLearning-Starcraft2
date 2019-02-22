@@ -3,18 +3,21 @@ import random
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
+import Models.Predefines.Coordinates as Coordinates
+
 
 class BuildOrders(base_agent.BaseAgent):
     def __init__(self):
         super(BuildOrders, self).__init__()
         self.base_location = None
+        self.expo_loc = 0
 
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 2
 
-        elif self.reqSteps == 2:
+        if self.reqSteps == 2:
             self.reqSteps = 1
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
@@ -45,7 +48,7 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 2
 
-        elif self.reqSteps == 2:
+        if self.reqSteps == 2:
             self.reqSteps = 1
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
@@ -75,7 +78,7 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 3
 
-        elif self.reqSteps == 3:
+        if self.reqSteps == 3:
             self.reqSteps = 2
             command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
             if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
@@ -111,7 +114,7 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 3
 
-        elif (self.reqSteps == 3):
+        if (self.reqSteps == 3):
             self.reqSteps = 2
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)
@@ -159,6 +162,64 @@ class BuildOrders(base_agent.BaseAgent):
                             BuildOrders.sigma(self, minerals[0].y)))]
 
         return new_action
+
+    def expand(self, obs, top_start):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if obs.observation.player.minerals >= 400:  # check if it is possible
+            if self.reqSteps == 0:
+                self.expo_loc = 0
+                self.reqSteps = 4
+
+            if self.reqSteps == 4:  # move to base
+                new_action = [
+                    actions.FUNCTIONS.move_camera(self.base_location)]
+
+            if self.reqSteps == 3:  # select scv
+                command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
+                if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
+                    if (obs.observation.player.idle_worker_count > 0):
+                        new_action = [actions.FUNCTIONS.select_idle_worker(
+                            "select", obs, units.Terran.SCV)]
+                    else:
+                        command = random.choice(command_scv)
+                        new_action = [actions.FUNCTIONS.select_point(
+                            "select", (BuildOrders.sigma(self, command.x),
+                                       BuildOrders.sigma(self, command.y)))]
+
+            if self.reqSteps == 2:  # move to expansion location
+                target = BuildOrders.choose_location(self, top_start)
+                new_action = [
+                    actions.FUNCTIONS.move_camera(target)]
+
+            if self.reqSteps == 1:  # check if there is a commandcenter there if there is move to the next location or build one
+                command_center = BuildOrders.get_units(self, obs, units.Terran.CommandCenter)
+                if len(command_center) > 0:
+                    if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc+1:
+                        self.reqSteps = 2
+                        self.expo_loc += 1
+                        target = BuildOrders.choose_location(self, top_start)
+                        new_action = [
+                            actions.FUNCTIONS.move_camera(target)]
+                else:
+                    if BuildOrders.select_unit(self, obs, units.Terran.SCV):
+                        if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
+                            target = BuildOrders.choose_screen_location(self, top_start)
+                            new_action = [
+                                actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
+            self.reqSteps -= 1
+        return new_action
+
+    def choose_screen_location(self, top_start):  # returns a location based on the start location
+        if top_start:
+            return Coordinates.CC_LOCATIONS[self.expo_loc]
+        else:
+            return Coordinates.CC_LOCATIONS2[self.expo_loc]
+
+    def choose_location(self, top_start):  # returns a location based on the start location
+        if top_start:
+            return Coordinates.EXPO_LOCATIONS[self.expo_loc]
+        else:
+            return Coordinates.EXPO_LOCATIONS2[self.expo_loc]
 
     def sigma(self, num):
         if num <= 0:
