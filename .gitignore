@@ -23,6 +23,9 @@
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
 
+
+*.pyc
+
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
@@ -9007,4 +9010,10 @@ Src/venv/Scripts/winsound\.pyd
 
 Src/venv/Scripts/wsdump\.py
 
+<<<<<<< HEAD
 *.pyc
+=======
+Src/Models/Predefines/__pycache__/
+
+Src/Models/BuildOrders/__pycache__/
+>>>>>>> Development
