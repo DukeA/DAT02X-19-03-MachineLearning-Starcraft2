@@ -26,16 +26,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         if self.reqSteps == 2:
             self.reqSteps = 1
-            command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
-            if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
-                if (obs.observation.player.idle_worker_count > 0):
-                    BuildOrders.new_action = [actions.FUNCTIONS.select_idle_worker(
-                        "select", obs, units.Terran.SCV)]
-                else:
-                    command = random.choice(command_scv)
-                    new_action = [actions.FUNCTIONS.select_point(
-                        "select", (BuildOrders.sigma(self, command.x),
-                                   BuildOrders.sigma(self, command.y)))]
+            new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -57,16 +48,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         if self.reqSteps == 2:
             self.reqSteps = 1
-            command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
-            if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
-                if(obs.observation.player.idle_worker_count > 0):
-                    BuildOrders.new_action = [actions.FUNCTIONS.select_idle_worker(
-                        "select", obs, units.Terran.SCV)]
-                else:
-                    command = random.choice(command_scv)
-                    new_action = [actions.FUNCTIONS.select_point(
-                        "select", (BuildOrders.sigma(self, command.x),
-                                   BuildOrders.sigma(self, command.y)))]
+            new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -88,16 +70,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         if self.reqSteps == 3:
             self.reqSteps = 2
-            command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
-            if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
-                if (obs.observation.player.idle_worker_count > 0):
-                    new_action = [actions.FUNCTIONS.select_idle_worker(
-                        "select", obs, units.Terran.SCV)]
-                else:
-                    command = random.choice(command_scv)
-                    new_action= [actions.FUNCTIONS.select_point(
-                        "select", (BuildOrders.sigma(self, command.x),
-                                   BuildOrders.sigma(self, command.y)))]
+            new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
@@ -217,19 +190,52 @@ class BuildOrders(base_agent.BaseAgent):
                             new_action = [
                                 actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
             self.reqSteps -= 1
-        return new_action
+        ActionSingelton().set_action(new_action)
 
     def choose_screen_location(self, top_start):  # returns a location based on the start location
         if top_start:
-            return Coordinates.CC_LOCATIONS[self.expo_loc]
+            return Coordinates().CC_LOCATIONS[self.expo_loc]
         else:
-            return Coordinates.CC_LOCATIONS2[self.expo_loc]
+            return Coordinates().CC_LOCATIONS2[self.expo_loc]
 
-    def choose_location(self, top_start):  # returns a location based on the start location
+    def choose_location(self, top_start):
+        value =self.expo_loc
+        # returns a location based on the start location
         if top_start:
-            return Coordinates.EXPO_LOCATIONS[self.expo_loc]
+            return Coordinates().EXPO_LOCATIONS[self.expo_loc]
         else:
-            return Coordinates.EXPO_LOCATIONS2[self.expo_loc]
+            return Coordinates().EXPO_LOCATIONS2[self.expo_loc]
+
+    def build_marine(self, obs, free_supply):
+        new_action = [actions.FUNCTIONS.no_op()]
+        barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)
+            ]
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            if len(barracks) > 0:
+                new_action = [actions.FUNCTIONS.select_point("select",
+                                                             (BuildOrders.sigma(self, barracks[0].x),
+                                                              BuildOrders.sigma(self, barracks[0].y)))]
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if BuildOrders.select_unit(self, obs, units.Terran.Barracks):
+                if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_Marine_quick.id
+                                         ) and BuildOrders.not_in_queue(self, obs, units.Terran.Barracks
+                                                                        ) and free_supply > 0:
+                    new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
+
+        return new_action
+
+
 
     def sigma(self, num):
         if num <= 0:
@@ -271,3 +277,17 @@ class BuildOrders(base_agent.BaseAgent):
             return True
 
         return False
+
+    def select_scv(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
+        if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
+            if (obs.observation.player.idle_worker_count > 0):
+                new_action = [actions.FUNCTIONS.select_idle_worker(
+                    "select", obs, units.Terran.SCV)]
+            else:
+                command = random.choice(command_scv)
+                new_action = [actions.FUNCTIONS.select_point(
+                    "select", (BuildOrders.sigma(self, command.x),
+                               BuildOrders.sigma(self, command.y)))]
+        return new_action

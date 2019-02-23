@@ -34,7 +34,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                         if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
                                 and free_supply > 0:
                             new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
-            ActionSingelton().set_action(new_action)
+        ActionSingelton().set_action(new_action)
 
     def findall_barracks(self, obs):
         barracks_location = []

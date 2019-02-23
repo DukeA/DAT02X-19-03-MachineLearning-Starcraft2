@@ -1,10 +1,10 @@
 from pysc2.env import sc2_env
 from pysc2.lib import features
-from Models.BotFile.aiBot import aiBot
+from Models.BotFile.aiBot import AiBot
 
 
 def main(unused_argv):
-    agent = aiBot()
+    agent = AiBot()
     try:
         while True:
             with sc2_env.SC2Env(
