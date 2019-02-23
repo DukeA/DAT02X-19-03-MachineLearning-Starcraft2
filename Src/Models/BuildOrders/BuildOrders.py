@@ -221,15 +221,17 @@ class BuildOrders(base_agent.BaseAgent):
 
     def choose_screen_location(self, top_start):  # returns a location based on the start location
         if top_start:
-            return Coordinates.CC_LOCATIONS[self.expo_loc]
+            return Coordinates().CC_LOCATIONS[self.expo_loc]
         else:
-            return Coordinates.CC_LOCATIONS2[self.expo_loc]
+            return Coordinates().CC_LOCATIONS2[self.expo_loc]
 
-    def choose_location(self, top_start):  # returns a location based on the start location
+    def choose_location(self, top_start):
+        value =self.expo_loc
+        # returns a location based on the start location
         if top_start:
-            return Coordinates.EXPO_LOCATIONS[self.expo_loc]
+            return Coordinates().EXPO_LOCATIONS[self.expo_loc]
         else:
-            return Coordinates.EXPO_LOCATIONS2[self.expo_loc]
+            return Coordinates().EXPO_LOCATIONS2[self.expo_loc]
 
     def sigma(self, num):
         if num <= 0:
