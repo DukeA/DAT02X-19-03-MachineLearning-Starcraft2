@@ -9006,3 +9006,5 @@ Src/venv/Scripts/vcruntime140\.dll
 Src/venv/Scripts/winsound\.pyd
 
 Src/venv/Scripts/wsdump\.py
+
+*.pyc
