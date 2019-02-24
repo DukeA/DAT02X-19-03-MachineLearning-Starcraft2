@@ -1,17 +1,16 @@
 from pysc2.env import sc2_env
 from pysc2.lib import features
-from Models.BotFile.m_singelton import m_singelton;
-from Models.BotFile.aiBot import aiBot
+from Models.BotFile.aiBot import AiBot
 
 
 def main(unused_argv):
-    agent = aiBot()
+    agent = AiBot()
     try:
         while True:
             with sc2_env.SC2Env(
                     map_name="AbyssalReef",
                     players=[sc2_env.Agent(sc2_env.Race.terran),
-                             sc2_env.Bot(sc2_env.Race.random,
+                             sc2_env.Bot(sc2_env.Race.terran,
                                          sc2_env.Difficulty.very_easy)],
                     agent_interface_format=features.AgentInterfaceFormat(
                         feature_dimensions=features.Dimensions(screen=84, minimap=64),
