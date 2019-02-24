@@ -1,7 +1,6 @@
 from pysc2.env import sc2_env
 from pysc2.lib import features
-from Models.BotFile.m_singelton import m_singelton;
-from Models.BotFile.aiBot import aiBot
+from Models.BotFile.aiBot import AiBot
 
 
 def main(unused_argv):
