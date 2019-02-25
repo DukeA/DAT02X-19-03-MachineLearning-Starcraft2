@@ -145,6 +145,59 @@ class BuildOrders(base_agent.BaseAgent):
                             BuildOrders.sigma(self, minerals[0].y)))]
         ActionSingelton().set_action(new_action)
 
+    def build_factory(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 2
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = BuildOrders.select_scv(self, obs)
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            Factory = BuildOrders.get_units(self, obs, units.Terran.Factory)
+            if len(Factory) < 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Factory):
+                if BuildOrders.select_unit(self, obs, units.Terran.SCV):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Factory_screen.id):
+                        x = random.randint(0, 81)
+                        y = random.randint(0, 81)
+                        new_action =[actions.FUNCTIONS.Build_Factory_screen("queued", (x, y))]
+        ActionSingelton().set_action(self, new_action)
+
+    def build_starport (self,obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 2
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = BuildOrders.select_scv(self, obs)
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            starport = BuildOrders.get_units(self, obs, units.Terran.Starport)
+            if len(starport) < 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Starport):
+                if BuildOrders.select_scv(self, obs, units.Terran.SCV):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Starport_screen.id):
+                        x = random.randint(0,81)
+                        y = random.randint(0,81)
+                        new_action = [actions.FUNCTIONS.Build_Starport("queued", (x, y))]
+        ActionSingelton().set_action(self, new_action)
+
+    def upgrade_barracks(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 1
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
+            if len(barracks) > 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+                x = barracks[0].x
+                y = barracks[0].y
+                new_action =[actions.FUNCTIONS.Build_Techlab("queued", (x, y))]
+        ActionSingelton().set_action(self, new_action)
 
     def expand(self, obs, top_start):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -237,6 +290,7 @@ class BuildOrders(base_agent.BaseAgent):
 
 
 
+
     def sigma(self, num):
         if num <= 0:
             return 0
@@ -277,6 +331,7 @@ class BuildOrders(base_agent.BaseAgent):
             return True
 
         return False
+
 
     def select_scv(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
