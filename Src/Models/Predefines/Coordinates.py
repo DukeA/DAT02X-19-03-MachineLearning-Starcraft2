@@ -8,8 +8,8 @@ class Coordinates():
     FACTORY_X =80
     FACTORY_Y =30
 
-    STARPORT_X = 60
-    STARPORT_Y = 30
+    STARPORT_X = 80
+    STARPORT_Y = 20
 
 
 

@@ -39,10 +39,9 @@ class BuildOrders(base_agent.BaseAgent):
             if len(barracks) < 2  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                        x = Coordinates.BARRACKS_X
-                        y = Coordinates.BARRACKS_Y
-
-                        new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+                        new_action = [actions.FUNCTIONS.Build_Barracks_screen("now", (x, y))]
         ActionSingelton().set_action(new_action)
 
 
@@ -64,7 +63,6 @@ class BuildOrders(base_agent.BaseAgent):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
                         x = random.randint(2, 81)
                         y = random.randint(2, 81)
-
                         new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
         ActionSingelton().set_action(new_action)
 
@@ -171,9 +169,9 @@ class BuildOrders(base_agent.BaseAgent):
             if len(Factory) < 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Factory):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Factory_screen.id):
-                        x = random.randint(0, 81)
-                        y = random.randint(0, 81)
-                        new_action =[actions.FUNCTIONS.Build_Factory_screen("queued", (x, y))]
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+                        new_action =[actions.FUNCTIONS.Build_Factory_screen("now", (x, y))]
         ActionSingelton().set_action( new_action)
 
     def build_starport (self,obs):
@@ -194,11 +192,11 @@ class BuildOrders(base_agent.BaseAgent):
             self.reqSteps = 0
             starport = BuildOrders.get_units(self, obs, units.Terran.Starport)
             if len(starport) < 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Starport):
-                if BuildOrders.select_scv(self, obs, units.Terran.SCV):
+                if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Starport_screen.id):
-                        x = random.randint(0,81)
-                        y = random.randint(0,81)
-                        new_action = [actions.FUNCTIONS.Build_Starport("queued", (x, y))]
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+                        new_action = [actions.FUNCTIONS.Build_Starport_screen("now", (x, y))]
         ActionSingelton().set_action( new_action)
 
     def upgrade_barracks(self, obs):
