@@ -17,7 +17,7 @@ def main(unused_argv):
                 step_mul=5,
                 game_steps_per_episode=0,
                 visualize=True,
-                disable_fog=True) as env:
+                disable_fog=False) as env:
             while True:
                 agent.setup(env.observation_spec(), env.action_spec())
 

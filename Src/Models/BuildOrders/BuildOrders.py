@@ -180,9 +180,12 @@ class BuildOrders(base_agent.BaseAgent):
                     if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc+1:
                         self.reqSteps = 2
                         self.expo_loc += 1
-                        target = BuildOrders.choose_location(self, top_start)
-                        new_action = [
-                            actions.FUNCTIONS.move_camera(target)]
+                        if self.expo_loc < len(Coordinates.CC_LOCATIONS):
+                            target = BuildOrders.choose_location(self, top_start)
+                            new_action = [
+                                actions.FUNCTIONS.move_camera(target)]
+                        else:
+                            self.reqSteps = 1
                 else:
                     if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                         if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):

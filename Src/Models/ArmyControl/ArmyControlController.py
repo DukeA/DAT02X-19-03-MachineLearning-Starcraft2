@@ -24,3 +24,9 @@ class ArmyControlController(base_agent.BaseAgent):
 
     def retreat(self, obs, location=None):
         ArmyControl.retreat(self, obs, location)
+
+    def scout(self, obs):
+        ArmyControl.scout(self, obs)
+
+    def count_army(self, obs):
+        ArmyControl.count_army(self, obs)
