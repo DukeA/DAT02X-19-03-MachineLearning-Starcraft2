@@ -5,6 +5,13 @@ class Coordinates():
     BARRACKS_X = 80
     BARRACKS_Y = 40
 
+    FACTORY_X =80
+    FACTORY_Y =30
+
+    STARPORT_X = 60
+    STARPORT_Y = 30
+
+
 
     # minimap locations, reversed exists to simplify spawning in different corners
     EXPO_LOCATIONS = [(22, 18), (13, 26), (18, 32), (22, 26), (31, 19),

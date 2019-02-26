@@ -22,11 +22,16 @@ class BuildOrders(base_agent.BaseAgent):
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            self.reqSteps = 2
+            self.reqSteps = 3
 
-        if self.reqSteps == 2:
-            self.reqSteps = 1
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
             new_action = BuildOrders.select_scv(self, obs)
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -49,6 +54,7 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 2:
             self.reqSteps = 1
             new_action = BuildOrders.select_scv(self, obs)
+
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -148,11 +154,16 @@ class BuildOrders(base_agent.BaseAgent):
     def build_factory(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
             self.reqSteps = 2
+            new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
-            new_action = BuildOrders.select_scv(self, obs)
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -163,16 +174,21 @@ class BuildOrders(base_agent.BaseAgent):
                         x = random.randint(0, 81)
                         y = random.randint(0, 81)
                         new_action =[actions.FUNCTIONS.Build_Factory_screen("queued", (x, y))]
-        ActionSingelton().set_action(self, new_action)
+        ActionSingelton().set_action( new_action)
 
     def build_starport (self,obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
             self.reqSteps = 2
+            new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
-            new_action = BuildOrders.select_scv(self, obs)
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -183,7 +199,7 @@ class BuildOrders(base_agent.BaseAgent):
                         x = random.randint(0,81)
                         y = random.randint(0,81)
                         new_action = [actions.FUNCTIONS.Build_Starport("queued", (x, y))]
-        ActionSingelton().set_action(self, new_action)
+        ActionSingelton().set_action( new_action)
 
     def upgrade_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -197,7 +213,7 @@ class BuildOrders(base_agent.BaseAgent):
                 x = barracks[0].x
                 y = barracks[0].y
                 new_action =[actions.FUNCTIONS.Build_Techlab("queued", (x, y))]
-        ActionSingelton().set_action(self, new_action)
+        ActionSingelton().set_action( new_action)
 
     def expand(self, obs, top_start):
         new_action = [actions.FUNCTIONS.no_op()]
