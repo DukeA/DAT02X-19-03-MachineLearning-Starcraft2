@@ -202,15 +202,19 @@ class BuildOrders(base_agent.BaseAgent):
     def upgrade_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
+            self.reqSteps = 2
+
+        elif self.reqSteps == 2:
             self.reqSteps = 1
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
             barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) > 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
-                x = barracks[0].x
-                y = barracks[0].y
-                new_action =[actions.FUNCTIONS.Build_Techlab("queued", (x, y))]
+            if len(barracks) >= 1 and BuildOrders.not_in_queue(self,obs,units.Terran.Barracks):
+                if BuildOrders.select_unit(self, obs, units.Terran.Barracks):
+                        new_action =[actions.FUNCTIONS.Build_TechLab_Barracks_screen("now")]
         ActionSingelton().set_action( new_action)
 
     def expand(self, obs, top_start):
