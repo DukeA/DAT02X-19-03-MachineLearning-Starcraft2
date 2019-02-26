@@ -29,12 +29,10 @@ class AiBot(base_agent.BaseAgent):
         self.doBuild = None
         self.doAttack = None
         self.new_action=None
-        self.total_steps = 0
 
 
     def step(self, obs):
         super(AiBot, self).step(obs)
-        self.total_steps += 1
         # first step
         if obs.first():
             start_y, start_x = (obs.observation.feature_minimap.player_relative
@@ -54,7 +52,7 @@ class AiBot(base_agent.BaseAgent):
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            if self.total_steps < 16*60*6/5*1.4:  # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
+            if self.steps < 16*60*6/5*1.4:  # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
                 self.selector = 'buildSelector'
             else:
                 self.selector = random.choice(selectors)
