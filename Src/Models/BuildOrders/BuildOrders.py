@@ -19,6 +19,16 @@ class BuildOrders(base_agent.BaseAgent):
         self.expo_loc = 0
         self.new_action = None
 
+
+        """
+            @Author:Arvid , revised :Adam Grandén
+            @:param The parameter would be  self which is a aibot
+            @:param The other would be the observable universe
+            This method would be the barracks which builds the barrack from the start of the base_location 
+            and gets an instance where to build that barrack on that location.
+        
+        """
+
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
@@ -151,9 +161,13 @@ class BuildOrders(base_agent.BaseAgent):
 
 
     """
-        @Author
+        @Author Adam Grandén 
+        @:param self- Object aibot
+        @:param obs - the observable universe 
+        The following code is the action for building an factory this is made from taking the builder 
+        then move to the loaction and then get if there was any  other factories being built and return 
+        a new build for factory.  
     """
-
     def build_factory(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
@@ -179,6 +193,14 @@ class BuildOrders(base_agent.BaseAgent):
                         new_action =[actions.FUNCTIONS.Build_Factory_screen("now", (x, y))]
         ActionSingelton().set_action( new_action)
 
+        """
+            @Author Adam Grandén 
+            @:param self-Object aibot
+            @:param obs - the observable universe 
+            The following code is the action for building an Starport this is made from taking the builder 
+            then move to the loaction and then get if there was any  other factories being built and return 
+            a new build for starport.  
+        """
     def build_starport (self,obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
@@ -204,6 +226,13 @@ class BuildOrders(base_agent.BaseAgent):
                         new_action = [actions.FUNCTIONS.Build_Starport_screen("now", (x, y))]
         ActionSingelton().set_action( new_action)
 
+        """
+            @Author Adam Grandén 
+            @:param self- Object aibot
+            @:param obs - the observable universe 
+            This code takes the  barracks which are located and then adds 
+            an  techlab when the building is built.
+        """
     def upgrade_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
