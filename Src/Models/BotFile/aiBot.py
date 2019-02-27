@@ -12,7 +12,7 @@ from Models.ArmyControl.ArmyControl import ArmyControl
 
 
 selectors = ['buildSelector', 'attackSelector']
-attackSelector = ['attack']
+attackSelector = ['attack', 'retreat']
 buildSelector = ['build_scv', 'build_supply_depot',"build_marine",
                  'build_barracks', 'build_refinery', 'return_scv', 'expand']
 

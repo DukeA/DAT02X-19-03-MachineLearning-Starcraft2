@@ -15,8 +15,10 @@ def main(unused_argv):
                     agent_interface_format=features.AgentInterfaceFormat(
                         feature_dimensions=features.Dimensions(screen=84, minimap=64),
                         use_feature_units=True),
-                    step_mul=1,
-                    game_steps_per_episode=0,
+                    step_mul=5,  #about 200 APM
+                    game_steps_per_episode=80000, # about 1 h before game ends
+                    #save_replay_episodes=1, #How often do you save replays
+                    #replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
                     visualize=True) as env:
 
                 agent.setup(env.observation_spec(), env.action_spec())
