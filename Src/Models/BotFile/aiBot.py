@@ -28,13 +28,20 @@ class AiBot(base_agent.BaseAgent):
         self.doBuild = None
         self.doAttack = None
         self.new_action = None
+
+        # Basic game state test variables.
+
         self.last_scout = 0        # Maybe for ML
         self.marine_count = 0      # Maybe for ML
         self.action_finished = False
         self.action_data = []    # Does this persist between loops? It's a tuple (selector, action, steps, marine_count)
 
+        # End of basic game state test variables.
+
     def step(self, obs):
         super(AiBot, self).step(obs)
+
+        # Basic game state test.
 
         if self.action_finished:
             self.action_finished = False
@@ -42,7 +49,7 @@ class AiBot(base_agent.BaseAgent):
                 self.action_data.append((self.selector, self.doAttack, self.steps, self.marine_count))
                 print((self.selector, self.doAttack, self.steps, self.marine_count))
 
-
+        # End of basic game state test.
 
         # first step
         if obs.first():

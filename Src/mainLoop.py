@@ -14,8 +14,10 @@ def main(unused_argv):
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True),
-                step_mul=5,
-                game_steps_per_episode=16*60*13*1.4,    # Ends after 13 minutes (real-time)
+                step_mul=5,  #about 200 APM
+                game_steps_per_episode=16 * 60 * 13 * 1.4,  # Ends after 13 minutes (real-time)
+                #save_replay_episodes=1, #How often do you save replays
+                #replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
                 visualize=True,
                 disable_fog=True) as env:
             while True:
@@ -27,9 +29,11 @@ def main(unused_argv):
                 while True:
                     step_actions = [agent.step(timesteps[0])]
                     if timesteps[0].last():
+                        # Game state test
                         print(agent.action_data)
                         result = timesteps[0][1]
                         print("Result: "+str(result))
+                        # End of game state test
                         break
                     timesteps = env.step(step_actions)
 
