@@ -8,7 +8,8 @@ from Models.BuildOrders.BuildOrderController import BuildOrderController
 from Models.BuildOrders.BuildOrders import BuildOrders
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
 from Models.BuildOrders.ActionSingelton import ActionSingelton
-from Models.ArmyControl.ArmyControl import ArmyControl
+from Models.ArmyControl.ArmyControlController import ArmyControlController
+from Models.Predefines.Coordinates import Coordinates
 
 
 selectors = ['buildSelector', 'attackSelector']
@@ -32,7 +33,6 @@ class AiBot(base_agent.BaseAgent):
 
     def step(self, obs):
         super(AiBot, self).step(obs)
-
         # first step
         if obs.first():
             start_y, start_x = (obs.observation.feature_minimap.player_relative
@@ -46,17 +46,16 @@ class AiBot(base_agent.BaseAgent):
                 self.attack_coordinates = (47, 47)
             else:
                 self.start_top = False
-                self.attack_coordiantes = (12, 16)
+                self.attack_coordinates = (12, 16)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            if True:  # någon algoritm för att kolla så att tiden är mindre än 2 min
+            if self.steps < 16*60*6/5*1.4:  # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
                 self.selector = 'buildSelector'
             else:
-                pass
-                # ska vara men vet ej om attackers funkar än: self.selector = random.choice(selectors)
+                self.selector = random.choice(selectors)
 
         if self.selector == "buildSelector":
 
@@ -91,14 +90,18 @@ class AiBot(base_agent.BaseAgent):
                 UnitBuildOrdersController.train_marines(self,obs,free_supply)
                 action = ActionSingelton().get_action()
 
-
         elif self.selector == "attackSelector":
             if self.reqSteps == 0:
                 self.doAttack = random.choice(attackSelector)
+                self.doAttack = "attack"
 
             if self.doAttack == "attack":
-                action = ArmyControl.attack(self, obs, self.base_location)
+                ArmyControlController.attack(self, obs, self.attack_coordinates) # Det tar tid att hitta närmaste fienden
+                action = ActionSingelton().get_action()
 
             if self.doAttack == "retreat":
-                action = ArmyControl.retreat(self, obs, self.base_location)
+                ArmyControlController.retreat(self, obs)
+                action = ActionSingelton().get_action()
+
         return action[0]
+
