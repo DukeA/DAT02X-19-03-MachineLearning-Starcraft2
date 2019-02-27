@@ -15,9 +15,9 @@ def main(unused_argv):
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True),
                 step_mul=5,
-                game_steps_per_episode=0,
+                game_steps_per_episode=16*60*13*1.4,    # Ends after 13 minutes (real-time)
                 visualize=True,
-                disable_fog=False) as env:
+                disable_fog=True) as env:
             while True:
                 agent.setup(env.observation_spec(), env.action_spec())
 
@@ -27,6 +27,9 @@ def main(unused_argv):
                 while True:
                     step_actions = [agent.step(timesteps[0])]
                     if timesteps[0].last():
+                        print(agent.action_data)
+                        result = timesteps[0][1]
+                        print("Result: "+str(result))
                         break
                     timesteps = env.step(step_actions)
 

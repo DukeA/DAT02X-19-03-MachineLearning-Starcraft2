@@ -12,7 +12,7 @@ from Models.Predefines.Coordinates import Coordinates
 
 
 selectors = ['buildSelector', 'attackSelector']
-attackSelector = ['attack', 'retreat', 'scout', 'count_army']
+attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'temp_no_op']    # Might be unnecessary depending on implementation of randomness
 buildSelector = ['build_scv', 'build_supply_depot',"build_marine",
                  'build_barracks', 'build_refinery', 'return_scv', 'expand']
 
@@ -30,12 +30,23 @@ class AiBot(base_agent.BaseAgent):
         self.new_action = None
         self.last_scout = 0        # Maybe for ML
         self.marine_count = 0      # Maybe for ML
+        self.action_finished = False
+        self.action_data = []    # Does this persist between loops? It's a tuple (selector, action, steps, marine_count)
 
     def step(self, obs):
         super(AiBot, self).step(obs)
+
+        if self.action_finished:
+            self.action_finished = False
+            if self.selector == "attackSelector":
+                self.action_data.append((self.selector, self.doAttack, self.steps, self.marine_count))
+                print((self.selector, self.doAttack, self.steps, self.marine_count))
+
+
+
         # first step
         if obs.first():
-            self.steps = 0
+            self.steps = 0    # Räknaren resettas inte mellan games/episoder. Vet ej om detta är en bra lösning.
             start_y, start_x = (obs.observation.feature_minimap.player_relative
                                 == features.PlayerRelative.SELF).nonzero()
             xmean = start_x.mean()
@@ -54,7 +65,7 @@ class AiBot(base_agent.BaseAgent):
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            if self.steps < 16*60*3/5*1.4:  # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
+            if self.steps < 16*60*5/5*1.4:  # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
                 self.selector = 'buildSelector'
             else:
                 self.selector = random.choice(selectors)
@@ -94,20 +105,21 @@ class AiBot(base_agent.BaseAgent):
 
         elif self.selector == "attackSelector":
 
+            # Här kommer en bit kod som alltid räknar armén innan attackSelector väljer en action. Tar 2 steps.
             if self.reqSteps == 0:
                 ArmyControlController.count_army(self, obs)    # count_army sets self.reqSteps = -1
                 action = ActionSingelton().get_action()
-            elif self.reqSteps == -1:
+            elif self.reqSteps == -1:    # Fulhackar lite med negativ reqSteps. Se ArmyControl.count_army.
                 self.reqSteps = 0
-                self.doAttack = "scout"
-                if self.steps > 16 * 60 * 5 / 5 * 1.4:
-                    random_action = random.random()
-                    if random_action < 0.6:
-                        self.doAttack = "attack"
-                    elif random_action < 0.85:
-                        self.doAction = "retreat"
-                    else:
-                        self.doAction = "scout"
+                random_action = random.random()
+                if random_action < 0.15:
+                    self.doAttack = "attack"
+                elif random_action < 0.16:
+                    self.doAttack = "retreat"
+                elif random_action < 0.16:    # Scouting is disabled
+                    self.doAttack = "scout"
+                else:
+                    self.doAttack = "temp_no_op"    # Kanske bra att vikta selectorn också.
 
             if self.doAttack == "attack":
                 ArmyControlController.attack(self, obs)
@@ -119,6 +131,10 @@ class AiBot(base_agent.BaseAgent):
 
             if self.doAttack == "scout":
                 ArmyControlController.scout(self, obs)
+                action = ActionSingelton().get_action()
+
+            if self.doAttack == "temp_no_op":
+                ArmyControlController.temp_no_op(self, obs)
                 action = ActionSingelton().get_action()
 
         return action[0]
