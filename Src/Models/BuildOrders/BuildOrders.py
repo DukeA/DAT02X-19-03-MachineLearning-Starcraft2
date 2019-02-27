@@ -149,6 +149,11 @@ class BuildOrders(base_agent.BaseAgent):
                             BuildOrders.sigma(self, minerals[0].y)))]
         ActionSingelton().set_action(new_action)
 
+
+    """
+        @Author
+    """
+
     def build_factory(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
@@ -201,21 +206,28 @@ class BuildOrders(base_agent.BaseAgent):
 
     def upgrade_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
+        barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
         if self.reqSteps == 0:
-            self.reqSteps = 2
+            self.reqSteps = 3
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)]
 
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            if len(barracks) > 0 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+                new_action = [actions.FUNCTIONS.select_point("select",
+                                                             (BuildOrders.sigma(self, barracks[0].x),
+                                                              BuildOrders.sigma(self, barracks[0].y)))]
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) >= 1 and BuildOrders.not_in_queue(self,obs,units.Terran.Barracks):
+            if len(barracks) > 0:
                 if BuildOrders.select_unit(self, obs, units.Terran.Barracks):
-                        new_action =[actions.FUNCTIONS.Build_TechLab_Barracks_screen("now")]
-        ActionSingelton().set_action( new_action)
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_quick.id):
+                        new_action = [actions.FUNCTIONS.Build_TechLab_quick("now")]
+        ActionSingelton().set_action(new_action)
 
     def expand(self, obs, top_start):
         new_action = [actions.FUNCTIONS.no_op()]
