@@ -72,6 +72,7 @@ class ArmyControl(base_agent.BaseAgent):
                     has_attack_point = True
 
             if actions.FUNCTIONS.Attack_screen.id in obs.observation.available_actions:
+                self.action_finished = True
                 new_action = [actions.FUNCTIONS.Attack_screen("now", screen_location)]
 
         ActionSingelton().set_action(new_action)
@@ -99,6 +100,7 @@ class ArmyControl(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
             if actions.FUNCTIONS.Move_minimap.id in obs.observation.available_actions:
+                self.action_finished = True
                 new_action = [actions.FUNCTIONS.Move_minimap("now", [location[0], location[1]])]
 
         ActionSingelton().set_action(new_action)
@@ -132,6 +134,7 @@ class ArmyControl(base_agent.BaseAgent):
                         self.scout_location = random.choice(Coordinates.EXPO_LOCATIONS2+[Coordinates.START_LOCATIONS[0]])
 
                     self.last_scout = self.steps
+                    self.action_finished = True
                     new_action = [actions.FUNCTIONS.Move_minimap("now", self.scout_location)]
 
         ActionSingelton().set_action(new_action)
@@ -139,8 +142,6 @@ class ArmyControl(base_agent.BaseAgent):
     def count_army(self, obs):
         """Selects all army units and counts them. Currently only counts marines.
                 :param obs: The observer.
-                :param location: The desired location to attack [y, x] in minimap coordinates.
-                                   If None, it attacks the closest enemy
         """
         new_action = [actions.FUNCTIONS.no_op()]
 
@@ -152,7 +153,7 @@ class ArmyControl(base_agent.BaseAgent):
             if actions.FUNCTIONS.select_army.id in obs.observation.available_actions:
                 new_action = [actions.FUNCTIONS.select_army("select")]
             else:
-                self.reqSteps = 0
+                self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
 
         if self.reqSteps == 1:
             if ArmyControl.select_unit(self, obs, units.Terran.Marine):
@@ -164,6 +165,23 @@ class ArmyControl(base_agent.BaseAgent):
             self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
 
         ActionSingelton().set_action(new_action)
+
+    def temp_no_op(self, obs):
+        """Temporary no_op until a help class with no_op gets added. Doesn't do anything.
+                :param obs: The observer.
+        """
+        new_action = [actions.FUNCTIONS.no_op()]
+
+        if self.reqSteps == 0:
+            self.reqSteps = 2
+
+        if self.reqSteps == 2:
+            self.reqSteps = 1
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+
+        ActionSingelton().set_action(new_action)
+
 
 
     # The following lines of code should be in a help class.

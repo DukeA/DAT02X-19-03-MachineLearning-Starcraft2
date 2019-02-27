@@ -30,3 +30,6 @@ class ArmyControlController(base_agent.BaseAgent):
 
     def count_army(self, obs):
         ArmyControl.count_army(self, obs)
+
+    def temp_no_op(self, obs):
+        ArmyControl.temp_no_op(self, obs)
