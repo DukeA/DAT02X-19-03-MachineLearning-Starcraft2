@@ -45,8 +45,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 2  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+            if BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
                         x = random.randint(2, 81)
@@ -67,8 +66,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            supply_depot = BuildOrders.get_units(self,obs,units.Terran.SupplyDepot)
-            if free_supply <= 4 and len(supply_depot) < 1  and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
+            if free_supply <= 4  and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
                         x = random.randint(2, 81)
@@ -184,8 +182,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            Factory = BuildOrders.get_units(self, obs, units.Terran.Factory)
-            if len(Factory) < 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Factory):
+            if BuildOrders.not_in_progress(self, obs, units.Terran.Factory):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Factory_screen.id):
                         x = random.randint(2, 81)
@@ -217,8 +214,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            starport = BuildOrders.get_units(self, obs, units.Terran.Starport)
-            if len(starport) < 1 and BuildOrders.not_in_progress(self, obs, units.Terran.Starport):
+            if BuildOrders.not_in_progress(self, obs, units.Terran.Starport):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Starport_screen.id):
                         x = random.randint(2, 81)
