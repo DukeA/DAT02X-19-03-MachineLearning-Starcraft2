@@ -13,8 +13,19 @@ from Models.ArmyControl.ArmyControl import ArmyControl
 
 selectors = ['buildSelector', 'attackSelector']
 attackSelector = ['attack']
-buildSelector = ['build_scv', 'build_supply_depot',"build_marine",
+buildSelector = ['build_scv', 'build_supply_depot', "build_marine",
                  'build_barracks', 'build_refinery', 'return_scv', 'expand']
+
+
+class State:
+    def __init__(self):
+        self.armySupply = 0
+        self.workerSupply = 0
+        self.freeSupply = 0
+        self.barracks = 0
+        self.factories = 0
+        self.commandcenters = 1
+        self.refineries = 0
 
 
 class AiBot(base_agent.BaseAgent):
@@ -27,8 +38,8 @@ class AiBot(base_agent.BaseAgent):
         self.selector = None
         self.doBuild = None
         self.doAttack = None
-        self.new_action=None
-
+        self.new_action = None
+        self.state = State()
 
     def step(self, obs):
         super(AiBot, self).step(obs)
@@ -51,6 +62,7 @@ class AiBot(base_agent.BaseAgent):
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
+        self.state.freeSupply = free_supply
         if self.reqSteps == 0:
             if True:  # någon algoritm för att kolla så att tiden är mindre än 2 min
                 self.selector = 'buildSelector'
@@ -64,33 +76,32 @@ class AiBot(base_agent.BaseAgent):
                 self.doBuild = random.choice(buildSelector)
 
             if self.doBuild == "expand":
-                BuildOrderController.build_expand(self,obs,self.start_top)
+                BuildOrderController.build_expand(self, obs, self.start_top)
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "build_scv":  # build scv
-                BuildOrderController.build_scv(self,obs,free_supply)
+                BuildOrderController.build_scv(self, obs, free_supply)
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "build_supply_depot":  # build supply depot
-                BuildOrderController.build_supplaydepot(self,obs,free_supply)
+                BuildOrderController.build_supplaydepot(self, obs, free_supply)
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "build_barracks":
-                BuildOrderController.build_barracks(self,obs)
+                BuildOrderController.build_barracks(self, obs)
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "build_refinery":
-                BuildOrderController.build_refinary(self,obs)
+                BuildOrderController.build_refinary(self, obs)
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "return_scv":
-                BuildOrderController.return_scv(self,obs)
+                BuildOrderController.return_scv(self, obs)
                 action = ActionSingelton().get_action()
 
-            elif self.doBuild =="build_marine":
-                UnitBuildOrdersController.train_marines(self,obs,free_supply)
+            elif self.doBuild == "build_marine":
+                UnitBuildOrdersController.train_marines(self, obs, free_supply)
                 action = ActionSingelton().get_action()
-
 
         elif self.selector == "attackSelector":
             if self.reqSteps == 0:
