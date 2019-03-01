@@ -39,53 +39,52 @@ class UnitBuildOrders(base_agent.BaseAgent):
 
     def build_marauder(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
-        if self.observation.player.minerals >= 100 and self.observation.player.vespene >= 25 and free_supply >= 2:
-            if self.reqSteps == 0:
-                self.reqSteps = 3
 
-            if self.reqSteps == 3:
-                self.reqSteps = 2
-                # or maybe another location if we have one for barracks
-                new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
 
-            elif self.reqSteps == 2:
-                self.reqSteps = 1
-                barracks = UnitBuildOrders.get_units(self, obs, units.Terran.Barracks)
-                if len(barracks) > 0:
-                    new_action = \
-                        [actions.FUNCTIONS.select_point("select_all_type", (UnitBuildOrders.sigma(self, barracks[0].x),
-                                                                            UnitBuildOrders.sigma(self, barracks[0].y)))]
-            elif self.reqSteps == 1:
-                self.reqSteps = 0
-                if UnitBuildOrders.select_unit(self, obs, units.Terran.Barracks):
-                    if UnitBuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_Marauder_quick.id):
-                        new_action = [actions.FUNCTIONS.Train_Marauder_quick("now")]
+        if self.reqSteps == 3:
+            self.reqSteps = 2
+            # or maybe another location if we have one for barracks
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            barracks = UnitBuildOrders.get_units(self, obs, units.Terran.Barracks)
+            if len(barracks) > 0:
+                new_action = \
+                    [actions.FUNCTIONS.select_point("select_all_type", (UnitBuildOrders.sigma(self, barracks[0].x),
+                                                                        UnitBuildOrders.sigma(self, barracks[0].y)))]
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if UnitBuildOrders.select_unit(self, obs, units.Terran.Barracks):
+                if UnitBuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_Marauder_quick.id):
+                    new_action = [actions.FUNCTIONS.Train_Marauder_quick("now")]
         ActionSingelton().set_action(new_action)
 
-        def build_medivac(self, obs, free_supply):
-            new_action = [actions.FUNCTIONS.no_op()]
-            if self.observation.player.minerals >= 100 and self.observation.player.vespene >= 100 and free_supply >= 2:
-                if self.reqSteps == 0:
-                    self.reqSteps = 3
+    def build_medivac(self, obs, free_supply):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
 
-                if self.reqSteps == 3:
-                    self.reqSteps = 2
-                    # or maybe another location if we have one for starport
-                    new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+        if self.reqSteps == 3:
+            self.reqSteps = 2
+            # or maybe another location if we have one for starport
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
-                elif self.reqSteps == 2:
-                    self.reqSteps = 1
-                    starports = UnitBuildOrders.get_units(self, obs, units.Terran.Starport)
-                    if len(starports) > 0:
-                        new_action = \
-                            [actions.FUNCTIONS.select_point("select_all_type", (UnitBuildOrders.sigma(self, starports[0].x),
-                                                                                UnitBuildOrders.sigma(self, starports[0].y)))]
-                elif self.reqSteps == 1:
-                    self.reqSteps = 0
-                    if UnitBuildOrders.select_unit(self, obs, units.Terran.Starport):
-                        if UnitBuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_Medivac_quick.id):
-                            new_action = [actions.FUNCTIONS.Train_Medivac_quick("now")]
-            ActionSingelton().set_action(new_action)
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            starports = UnitBuildOrders.get_units(self, obs, units.Terran.Starport)
+            if len(starports) > 0:
+                new_action = \
+                    [actions.FUNCTIONS.select_point("select_all_type", (UnitBuildOrders.sigma(self, starports[0].x),
+                                                                        UnitBuildOrders.sigma(self, starports[0].y)))]
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if UnitBuildOrders.select_unit(self, obs, units.Terran.Starport):
+                if UnitBuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_Medivac_quick.id):
+                    new_action = [actions.FUNCTIONS.Train_Medivac_quick("now")]
+        ActionSingelton().set_action(new_action)
 
     def findall_barracks(self, obs):
         barracks_location = []

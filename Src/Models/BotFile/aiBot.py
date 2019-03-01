@@ -28,7 +28,6 @@ class AiBot(base_agent.BaseAgent):
         self.doBuild = None
         self.doAttack = None
         self.new_action = None
-        self.state = State()
 
     def step(self, obs):
         super(AiBot, self).step(obs)
@@ -109,4 +108,5 @@ class AiBot(base_agent.BaseAgent):
 
             if self.doAttack == "retreat":
                 action = ArmyControl.retreat(self, obs, self.base_location)
+
         return action[0]
