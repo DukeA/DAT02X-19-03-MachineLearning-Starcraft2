@@ -173,12 +173,13 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 3:
             self.reqSteps = 2
-            new_action = BuildOrders.select_scv(self, obs)
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
+
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
-            new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)]
+            new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -205,12 +206,12 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 3:
             self.reqSteps = 2
-            new_action = BuildOrders.select_scv(self, obs)
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
-            new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)]
+            new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -232,7 +233,9 @@ class BuildOrders(base_agent.BaseAgent):
     def upgrade_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
+
         if self.reqSteps == 0:
+            if actions.FUNCTIONS.
             self.reqSteps = 3
 
         elif self.reqSteps == 3:
