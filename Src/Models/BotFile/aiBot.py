@@ -17,17 +17,6 @@ buildSelector = ['build_scv', 'build_supply_depot', "build_marine", "build_marau
                  "build_medivac", 'build_barracks', 'build_refinery', 'return_scv', 'expand']
 
 
-class State:
-    def __init__(self):
-        self.armySupply = 0
-        self.workerSupply = 0
-        self.freeSupply = 0
-        self.barracks = 0
-        self.factories = 0
-        self.commandcenters = 1
-        self.refineries = 0
-
-
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
         super(AiBot, self).__init__()
@@ -62,7 +51,7 @@ class AiBot(base_agent.BaseAgent):
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
-        self.state.freeSupply = free_supply
+
         if self.reqSteps == 0:
             if True:  # någon algoritm för att kolla så att tiden är mindre än 2 min
                 self.selector = 'buildSelector'
