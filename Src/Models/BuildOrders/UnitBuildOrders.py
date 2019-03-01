@@ -18,23 +18,27 @@ class UnitBuildOrders(base_agent.BaseAgent):
     def build_marines(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
         barracks_location = UnitBuildOrders.findall_barracks(self, obs)
-        for this_barrack in barracks_location:
-            for i in range(0,5):
-                if self.reqSteps == 0:
-                    self.reqSteps = 2
-                elif self.reqSteps == 2:
-                    self.reqSteps = 1
-                    if len(barracks_location) > 0:
-                        new_action = \
-                            [actions.FUNCTIONS.select_point("select",(UnitBuildOrders.sigma(self, this_barrack.x),
-                                                              UnitBuildOrders.sigma(self, this_barrack.y)))]
-                elif self.reqSteps == 1:
-                    self.reqSteps=0
-                    if len(barracks_location) > 0:
-                        if UnitBuildOrders.select_unit(self,obs,units.Terran.Barracks):
-                            if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
-                                and free_supply > 0:
-                                new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = [
+                        actions.FUNCTIONS.move_camera(self.base_location)
+                    ]
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            if len(barracks_location) > 0:
+                if UnitBuildOrders.not_in_progress(self,obs,units.Terran.Barracks):
+                    new_action = \
+                        [actions.FUNCTIONS.select_unit("select", units.Terran.Barracks)]
+        elif self.reqSteps == 1:
+            self.reqSteps=0
+            if len(barracks_location) > 0:
+                if UnitBuildOrders.select_unit(self,obs,units.Terran.Barracks):
+                    if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
+                        and free_supply > 0:
+                        new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
         ActionSingelton().set_action(new_action)
 
     def findall_barracks(self, obs):
