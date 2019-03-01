@@ -29,9 +29,9 @@ class UnitBuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 2:
             self.reqSteps = 1
             if len(barracks_location) > 0:
-                if UnitBuildOrders.not_in_progress(self,obs,units.Terran.Barracks):
                     new_action = \
-                        [actions.FUNCTIONS.select_unit("select", units.Terran.Barracks)]
+                        [actions.FUNCTIONS.select_point("select_all_type",
+                                                       [barracks_location[0].x,barracks_location[0].y])]
         elif self.reqSteps == 1:
             self.reqSteps=0
             if len(barracks_location) > 0:
