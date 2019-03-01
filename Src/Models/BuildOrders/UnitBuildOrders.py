@@ -19,28 +19,30 @@ class UnitBuildOrders(base_agent.BaseAgent):
         new_action = [actions.FUNCTIONS.no_op()]
         barracks_location = UnitBuildOrders.findall_barracks(self, obs)
         for this_barrack in barracks_location:
-            if self.reqSteps == 0:
-                self.reqSteps = 2
-            elif self.reqSteps == 2:
-                self.reqSteps = 1
-                if len(barracks_location) > 0:
-                    new_action = \
-                        [actions.FUNCTIONS.select_point("select",(UnitBuildOrders.sigma(self, this_barrack.x),
+            for i in range(0,5):
+                if self.reqSteps == 0:
+                    self.reqSteps = 2
+                elif self.reqSteps == 2:
+                    self.reqSteps = 1
+                    if len(barracks_location) > 0:
+                        new_action = \
+                            [actions.FUNCTIONS.select_point("select",(UnitBuildOrders.sigma(self, this_barrack.x),
                                                               UnitBuildOrders.sigma(self, this_barrack.y)))]
-            elif self.reqSteps == 1:
-                self.reqSteps=0
-                if len(barracks_location) > 0:
-                    if UnitBuildOrders.select_unit(self,obs,units.Terran.Barracks):
-                        if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
+                elif self.reqSteps == 1:
+                    self.reqSteps=0
+                    if len(barracks_location) > 0:
+                        if UnitBuildOrders.select_unit(self,obs,units.Terran.Barracks):
+                            if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
                                 and free_supply > 0:
-                            new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
+                                new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
         ActionSingelton().set_action(new_action)
 
     def findall_barracks(self, obs):
         barracks_location = []
         barracks = UnitBuildOrders.get_units(self, obs,units.Terran.Barracks)
         for barrack_unit in barracks:
-            barracks_location.append(barrack_unit)
+            if UnitBuildOrders.not_in_queue(self,obs,units.Terran.Barracks):
+                barracks_location.append(barrack_unit)
         return barracks_location
 
     def set_action(self, action):
