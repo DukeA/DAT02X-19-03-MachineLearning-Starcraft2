@@ -20,24 +20,29 @@ class BuildOrders(base_agent.BaseAgent):
         self.new_action = None
 
     def build_barracks(self, obs):
+        finding_location = True
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 2
 
-        if self.reqSteps == 2:
+        elif self.reqSteps == 2:
             self.reqSteps = 1
             new_action = BuildOrders.select_scv(self, obs)
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
             barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 2  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+            if len(barracks) < 10:
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
-                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                        x = Coordinates.BARRACKS_X
-                        y = Coordinates.BARRACKS_Y
-
-                        new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
+                    finding_location = True
+                    for loop in range(10):
+                        if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id) \
+                                and finding_location:
+                            x = random.randint(2, 82)
+                            y = random.randint(2, 82)
+                            if BuildOrders.check_placement(self, obs, (x, y), 7):
+                                finding_location = False
+                                new_action = [actions.FUNCTIONS.Build_Barracks_screen("now", (x, y))]
         ActionSingelton().set_action(new_action)
 
 
@@ -55,11 +60,15 @@ class BuildOrders(base_agent.BaseAgent):
             supply_depot = BuildOrders.get_units(self,obs,units.Terran.SupplyDepot)
             if free_supply <= 4 and len(supply_depot) < 1  and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
-                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
-
-                        new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
+                    finding_location = True
+                    for loop in range(20):
+                        if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id) \
+                                and finding_location:
+                            x = random.randint(2, 82)
+                            y = random.randint(2, 82)
+                            if BuildOrders.check_placement(self, obs, (x, y), 2):
+                                finding_location = False
+                                new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
         ActionSingelton().set_action(new_action)
 
 
@@ -224,7 +233,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 2:
             self.reqSteps = 1
             if len(barracks) > 0:
-                new_action = [actions.FUNCTIONS.select_point("select",
+                new_action = [actions.FUNCTIONS.select_point("select_all_type",
                                                              (BuildOrders.sigma(self, barracks[0].x),
                                                               BuildOrders.sigma(self, barracks[0].y)))]
 
@@ -294,3 +303,23 @@ class BuildOrders(base_agent.BaseAgent):
                     "select", (BuildOrders.sigma(self, command.x),
                                BuildOrders.sigma(self, command.y)))]
         return new_action
+
+    def check_placement(self, obs, screen_coordinates, building_radius):
+        x = screen_coordinates[1]
+        y = screen_coordinates[0]
+        if x-building_radius < 0 or x+building_radius > 84 or y-building_radius < 0 or y+building_radius > 84:
+            return False
+        occupied_locations = 0
+        height = obs.observation.feature_screen[0][x][y]
+        for i in range(2*building_radius):
+            for j in range(2*building_radius):
+                if (obs.observation.feature_screen[5][x-building_radius+i][y-building_radius+j] != 0 or
+                        obs.observation.feature_screen[0][x-building_radius+i][y-building_radius+j] != height) \
+                        and height > 10:
+                    occupied_locations += 1
+
+        if occupied_locations == 0:
+            return True
+        else:
+            return False
+
