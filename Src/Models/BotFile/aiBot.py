@@ -47,7 +47,7 @@ class AiBot(base_agent.BaseAgent):
             self.action_finished = False
             if self.selector == "attackSelector":
                 self.action_data.append((self.selector, self.doAttack, self.steps, self.marine_count))
-                print((self.selector, self.doAttack, self.steps, self.marine_count))
+                #print((self.selector, self.doAttack, self.steps, self.marine_count))
 
         # End of basic game state test.
 
@@ -64,9 +64,11 @@ class AiBot(base_agent.BaseAgent):
             if xmean <= 31 and ymean <= 31:
                 self.start_top = True
                 self.attack_coordinates = Coordinates.START_LOCATIONS[1]
+                self.base_location = Coordinates.START_LOCATIONS[0]
             else:
                 self.start_top = False
                 self.attack_coordinates = Coordinates.START_LOCATIONS[0]
+                self.base_location = Coordinates.START_LOCATIONS[1]
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
