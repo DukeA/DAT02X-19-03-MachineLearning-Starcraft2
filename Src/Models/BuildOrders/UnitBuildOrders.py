@@ -3,6 +3,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions,units
 
 from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.HelperClass.HelperClass import HelperClass
 
 """
 @Author :Adam Grandén
@@ -25,73 +26,25 @@ class UnitBuildOrders(base_agent.BaseAgent):
                 self.reqSteps = 1
                 if len(barracks_location) > 0:
                     new_action = \
-                        [actions.FUNCTIONS.select_point("select",(UnitBuildOrders.sigma(self, this_barrack.x),
-                                                              UnitBuildOrders.sigma(self, this_barrack.y)))]
+                        [actions.FUNCTIONS.select_point("select",(HelperClass.sigma(self, this_barrack.x),
+                                                              HelperClass.sigma(self, this_barrack.y)))]
             elif self.reqSteps == 1:
                 self.reqSteps=0
                 if len(barracks_location) > 0:
-                    if UnitBuildOrders.select_unit(self,obs,units.Terran.Barracks):
-                        if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
+                    if HelperClass.select_unit(self,obs,units.Terran.Barracks):
+                        if HelperClass.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
                                 and free_supply > 0:
                             new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
         ActionSingelton().set_action(new_action)
 
     def findall_barracks(self, obs):
         barracks_location = []
-        barracks = UnitBuildOrders.get_units(self, obs,units.Terran.Barracks)
+        barracks = HelperClass.get_units(self, obs,units.Terran.Barracks)
         for barrack_unit in barracks:
             barracks_location.append(barrack_unit)
         return barracks_location
 
-    def set_action(self, action):
-        self.new_action = action
-
-    def get_action(self):
-        return self.new_action
-
-    def get_units(self, obs, unit_type):
-        return [unit for unit in obs.observation.feature_units
-                if unit.unit_type == unit_type]
 
 
-    def do_action(self, obs, action):
-        return action in obs.observation.available_actions
-
-    def sigma(self, num):
-        if num <= 0:
-            return 0
-        elif num >= 83:
-            return 83
-        else:
-            return num
-
-    def not_in_queue(self, obs, unit_type):
-        queues = obs.observation.build_queue
-        if len(queues) > 0:
-            for queue in queues:
-                if queue[0] == unit_type:
-                    return False
-        return True
 
 
-    def not_in_progress(self, obs, unit_type):
-        units = UnitBuildOrders.get_units(self, obs, unit_type)
-        for unit in units:
-            if (unit.build_progress != 100):
-                return False
-        return True
-
-    def get_units(self, obs, unit_type):
-        return [unit for unit in obs.observation.feature_units
-                if unit.unit_type == unit_type]
-
-    def select_unit(self, obs, unit_type):
-        if (len(obs.observation.single_select) > 0 and
-                obs.observation.single_select[0].unit_type == unit_type):
-            return True
-
-        if (len(obs.observation.multi_select) > 0 and
-                obs.observation.multi_select[0].unit_type == unit_type):
-            return True
-
-        return False

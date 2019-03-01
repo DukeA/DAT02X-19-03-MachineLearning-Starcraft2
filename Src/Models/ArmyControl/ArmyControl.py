@@ -3,6 +3,7 @@ from pysc2.lib import actions, units, features
 import numpy as np
 from Models.BuildOrders.ActionSingelton import ActionSingelton
 from Models.Predefines.Coordinates import Coordinates
+from Models.HelperClass.HelperClass import HelperClass
 import random
 
 """
@@ -122,11 +123,11 @@ class ArmyControl(base_agent.BaseAgent):
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
-            new_action = ArmyControl.select_scv(self, obs)
+            new_action = HelperClass.select_scv(self, obs)
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if ArmyControl.select_unit(self, obs, units.Terran.SCV):
+            if HelperClass.select_unit(self, obs, units.Terran.SCV):
                 if actions.FUNCTIONS.Move_minimap.id in obs.observation.available_actions:
                     if self.start_top:
                         self.scout_location = random.choice(Coordinates.EXPO_LOCATIONS2+[Coordinates.START_LOCATIONS[1]])
@@ -156,7 +157,7 @@ class ArmyControl(base_agent.BaseAgent):
                 self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
 
         if self.reqSteps == 1:
-            if ArmyControl.select_unit(self, obs, units.Terran.Marine):
+            if HelperClass.select_unit(self, obs, units.Terran.Marine):
                 self.marine_count = 0
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Marine:
@@ -166,59 +167,5 @@ class ArmyControl(base_agent.BaseAgent):
 
         ActionSingelton().set_action(new_action)
 
-    def temp_no_op(self, obs):
-        """Temporary no_op until a help class with no_op gets added. Doesn't do anything.
-                :param obs: The observer.
-        """
-        new_action = [actions.FUNCTIONS.no_op()]
-
-        if self.reqSteps == 0:
-            self.reqSteps = 2
-
-        if self.reqSteps == 2:
-            self.reqSteps = 1
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-
-        ActionSingelton().set_action(new_action)
-
-
-
     # The following lines of code should be in a help class.
 
-    def sigma(self, num):
-        if num <= 0:
-            return 0
-        elif num >= 83:
-            return 83
-        else:
-            return num
-
-    def get_units(self, obs, unit_type):
-        return [unit for unit in obs.observation.feature_units
-                if unit.unit_type == unit_type]
-
-    def select_scv(self, obs):
-        new_action = [actions.FUNCTIONS.no_op()]
-        command_scv = ArmyControl.get_units(self, obs, units.Terran.SCV)
-        if len(command_scv) > 0 and not ArmyControl.select_unit(self, obs, units.Terran.SCV):
-            if obs.observation.player.idle_worker_count > 0:
-                new_action = [actions.FUNCTIONS.select_idle_worker(
-                    "select", obs, units.Terran.SCV)]
-            else:
-                command = random.choice(command_scv)
-                new_action = [actions.FUNCTIONS.select_point(
-                    "select", (ArmyControl.sigma(self, command.x),
-                               ArmyControl.sigma(self, command.y)))]
-        return new_action
-
-    def select_unit(self, obs, unit_type):
-        if (len(obs.observation.single_select) > 0 and
-                obs.observation.single_select[0].unit_type == unit_type):
-            return True
-
-        if (len(obs.observation.multi_select) > 0 and
-                obs.observation.multi_select[0].unit_type == unit_type):
-            return True
-
-        return False

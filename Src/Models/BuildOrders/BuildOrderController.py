@@ -4,6 +4,7 @@ from pysc2.agents import base_agent
 
 
 from Models.BuildOrders.BuildOrders import BuildOrders
+from Models.HelperClass.HelperClass import HelperClass
 """
  @Author Adam Grandén
  @Class Description: 
@@ -35,3 +36,6 @@ class BuildOrderController(base_agent.BaseAgent):
 
     def build_expand(self, obs,top_start):
         BuildOrders.expand(self,obs,top_start)
+
+    def no_op(self, obs, reqSteps):
+        HelperClass.no_op(self, obs, reqSteps)
