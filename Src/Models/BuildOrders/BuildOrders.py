@@ -20,7 +20,6 @@ class BuildOrders(base_agent.BaseAgent):
         self.new_action = None
 
     def build_barracks(self, obs):
-        finding_location = True
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.reqSteps = 2
@@ -34,17 +33,12 @@ class BuildOrders(base_agent.BaseAgent):
             barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
             if len(barracks) < 10:
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
-                    finding_location = True
-                    for loop in range(10):
-                        if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id) \
-                                and finding_location:
-                            x = random.randint(2, 82)
-                            y = random.randint(2, 82)
-                            if BuildOrders.check_placement(self, obs, (x, y), 7):
-                                finding_location = False
-                                new_action = [actions.FUNCTIONS.Build_Barracks_screen("now", (x, y))]
-        ActionSingelton().set_action(new_action)
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
+                            coordinates = BuildOrders.find_placement(self, obs, 6, maximum_searches=10, sampling_size=9)
+                            if coordinates is not None:
+                                new_action = [actions.FUNCTIONS.Build_Barracks_screen("now", coordinates)]
 
+        ActionSingelton().set_action(new_action)
 
     def build_supply_depot(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -154,7 +148,6 @@ class BuildOrders(base_agent.BaseAgent):
                             BuildOrders.sigma(self, minerals[0].y)))]
         ActionSingelton().set_action(new_action)
 
-
     def expand(self, obs, top_start):
         new_action = [actions.FUNCTIONS.no_op()]
         if obs.observation.player.minerals >= 400:  # check if it is possible
@@ -247,8 +240,6 @@ class BuildOrders(base_agent.BaseAgent):
 
         return new_action
 
-
-
     def sigma(self, num):
         if num <= 0:
             return 0
@@ -305,6 +296,14 @@ class BuildOrders(base_agent.BaseAgent):
         return new_action
 
     def check_placement(self, obs, screen_coordinates, building_radius):
+        """Checks if a location and a radius around it is a suitable place to build a building.
+            Note: Air units in the desired location will return
+                :param obs: The observer.
+                :param screen_coordinates: The desired location to check for building placement in screen coordinates.
+                :param building_radius: The radius (in screen coordinates) of the area to be checked.
+
+                :return Boolean
+        """
         x = screen_coordinates[1]
         y = screen_coordinates[0]
         if x-building_radius < 0 or x+building_radius > 84 or y-building_radius < 0 or y+building_radius > 84:
@@ -323,3 +322,38 @@ class BuildOrders(base_agent.BaseAgent):
         else:
             return False
 
+    def find_placement(self, obs, building_radius, maximum_searches=None, sampling_size=None):
+        """Finds a suitable location to place a building on a grid on the current screen.
+            Note: It will be computationally expensive if maximum_searches is high and/or
+                    if sampling_size is close to 1.
+
+                :param obs: The observer.
+                :param building_radius: The radius (in screen coordinates) of the building (e.g. Barracks' is 6 or 7).
+                :param maximum_searches: The maximum amount of searches before giving up. If None, it equals the number
+                                            of grid points. It won't be higher than the number of grid points.
+                :param sampling_size: How many screen points to skip before evaluating the next location. Essentially
+                                        the density of the grid (lower => more dense). If None, it defaults to 7.
+
+                :return coordinates (x, y) or None
+        """
+        coordinates = []
+        size = len(obs.observation.feature_screen[5][0])
+        if sampling_size is None:
+            sampling_size = 7
+        elif sampling_size < 1:
+            sampling_size = 1
+        if size > 0:
+            for x in range(int(size/sampling_size)):
+                for y in range(int(size/sampling_size)):
+                    if obs.observation.feature_screen[5][sampling_size*y][sampling_size*x] == 0:
+                        coordinates.append((sampling_size*x, sampling_size*y))
+        else:
+            return None
+
+        random.shuffle(coordinates)
+        if maximum_searches is None or maximum_searches > len(coordinates):
+            maximum_searches = len(coordinates)
+        for location_tuple in range(maximum_searches):
+            if BuildOrders.check_placement(self, obs, coordinates[location_tuple], building_radius):
+                return coordinates[location_tuple]
+        return None
