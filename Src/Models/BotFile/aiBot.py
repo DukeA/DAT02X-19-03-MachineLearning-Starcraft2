@@ -1,14 +1,13 @@
-import random
-import statistics
+
 
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units, features
+from pysc2.lib import actions, features
 
 from Models.BuildOrders.BuildOrderController import BuildOrderController
-from Models.BuildOrders.BuildOrders import BuildOrders
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
 from Models.BuildOrders.ActionSingelton import ActionSingelton
 from Models.ArmyControl.ArmyControl import ArmyControl
+from Models.Selector.selector import Selector
 
 
 selectors = ['buildSelector', 'attackSelector']
@@ -52,61 +51,48 @@ class AiBot(base_agent.BaseAgent):
         action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
-            if True:  # någon algoritm för att kolla så att tiden är mindre än 2 min
-                self.selector = 'buildSelector'
-            else:
-                pass
-                # ska vara men vet ej om attackers funkar än: self.selector = random.choice(selectors)
+            self.next_action = Selector.selector(self)
 
-        if self.selector == "buildSelector":
+        if self.next_action == "expand":
+            BuildOrderController.build_expand(self, obs, self.start_top)
+            action = ActionSingelton().get_action()
 
-            if self.reqSteps == 0:
-                self.doBuild = random.choice(buildSelector)
+        elif self.next_action == "build_scv":  # build scv
+            BuildOrderController.build_scv(self, obs, free_supply)
+            action = ActionSingelton().get_action()
 
-            if self.doBuild == "expand":
-                BuildOrderController.build_expand(self, obs, self.start_top)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "build_supply_depot":  # build supply depot
+            BuildOrderController.build_supplaydepot(self, obs, free_supply)
+            action = ActionSingelton().get_action()
 
-            elif self.doBuild == "build_scv":  # build scv
-                BuildOrderController.build_scv(self, obs, free_supply)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "build_barracks":
+            BuildOrderController.build_barracks(self, obs)
+            action = ActionSingelton().get_action()
 
-            elif self.doBuild == "build_supply_depot":  # build supply depot
-                BuildOrderController.build_supplaydepot(self, obs, free_supply)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "build_refinery":
+            BuildOrderController.build_refinary(self, obs)
+            action = ActionSingelton().get_action()
 
-            elif self.doBuild == "build_barracks":
-                BuildOrderController.build_barracks(self, obs)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "return_scv":
+            BuildOrderController.return_scv(self, obs)
+            action = ActionSingelton().get_action()
 
-            elif self.doBuild == "build_refinery":
-                BuildOrderController.build_refinary(self, obs)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "build_marine":
+            UnitBuildOrdersController.train_marines(self, obs, free_supply)
+            action = ActionSingelton().get_action()
 
-            elif self.doBuild == "return_scv":
-                BuildOrderController.return_scv(self, obs)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "build_marauder":
+            UnitBuildOrdersController.train_marauder(self, obs, free_supply)
+            action = ActionSingelton().get_action()
 
-            elif self.doBuild == "build_marine":
-                UnitBuildOrdersController.train_marines(self, obs, free_supply)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "build_medivac":
+            UnitBuildOrdersController.train_medivac(self, obs, free_supply)
+            action = ActionSingelton().get_action()
 
-            elif self.doBuild == "build_marauder":
-                UnitBuildOrdersController.train_marauder(self, obs, free_supply)
-                action = ActionSingelton().get_action()
+        elif self.next_action == "attack":
+            action = ArmyControl.attack(self, obs, self.base_location)
 
-            elif self.doBuild == "build_medivac":
-                UnitBuildOrdersController.train_medivac(self, obs, free_supply)
-                action = ActionSingelton().get_action()
-
-        elif self.selector == "attackSelector":
-            if self.reqSteps == 0:
-                self.doAttack = random.choice(attackSelector)
-
-            if self.doAttack == "attack":
-                action = ArmyControl.attack(self, obs, self.base_location)
-
-            if self.doAttack == "retreat":
-                action = ArmyControl.retreat(self, obs, self.base_location)
+        elif self.next_action == "retreat":
+            action = ArmyControl.retreat(self, obs, self.base_location)
 
         return action[0]
