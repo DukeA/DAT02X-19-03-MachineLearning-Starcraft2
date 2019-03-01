@@ -235,7 +235,6 @@ class BuildOrders(base_agent.BaseAgent):
         barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
 
         if self.reqSteps == 0:
-            if actions.FUNCTIONS.
             self.reqSteps = 3
 
         elif self.reqSteps == 3:
