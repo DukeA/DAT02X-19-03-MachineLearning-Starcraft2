@@ -19,7 +19,7 @@ class ArmyControl(base_agent.BaseAgent):
                 It checks for enemies using the minimap. It also counts the army.
 
                 :param obs: The observer.
-                :param location: The desired location to attack [y, x] in minimap coordinates.
+                :param location: The desired location to attack [x, y] in minimap coordinates.
                                    If None, it attacks the closest enemy
                 """
         new_action = [actions.FUNCTIONS.no_op()]
