@@ -7,9 +7,9 @@ import random
 
 class HelperClass(base_agent.BaseAgent):
 
-    #Moves to camera to a standard location defined in Models.Predefines.Coordinates 
-    def move_camera_to_standard_location(self, obs):
-        return actions.FUNCTIONS.move_camera(Coordinates.CAMERA_STANDARD_LOCATION)
+    #Moves to camera to a self.base_location
+    def move_camera_to_base_location(self, obs):
+        return actions.FUNCTIONS.move_camera(self.base_location)
 
     def sigma(self, num):
         if num <= 0:
@@ -66,16 +66,16 @@ class HelperClass(base_agent.BaseAgent):
         return [unit for unit in obs.observation.feature_units
                 if unit.unit_type == unit_type]
 
-    def no_op(self, obs, reqSteps):
+    def no_op(self, obs):
 
         new_action = [actions.FUNCTIONS.no_op()]
 
-        if reqSteps == 0:
-            reqSteps = 2
+        if self.reqSteps == 0:
+            self.reqSteps = 2
 
-        if reqSteps == 2:
-            reqSteps = 1
-        elif reqSteps == 1:
-            reqSteps = 0
+        if self.reqSteps == 2:
+            self.reqSteps = 1
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
 
         ActionSingelton().set_action(new_action)

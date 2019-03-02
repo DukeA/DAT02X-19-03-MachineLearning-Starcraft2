@@ -31,5 +31,6 @@ class ArmyControlController(base_agent.BaseAgent):
     def count_army(self, obs):
         ArmyControl.count_army(self, obs)
 
-    def no_op(self, obs, reqSteps):
-        HelperClass.no_op(self, obs, reqSteps)
+    def no_op(self, obs):
+        HelperClass.no_op(self, obs)
+        

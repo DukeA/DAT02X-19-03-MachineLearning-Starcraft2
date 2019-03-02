@@ -111,7 +111,7 @@ class AiBot(base_agent.BaseAgent):
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "no_op":
-                BuildOrderController.no_op(self, obs, self.reqSteps)
+                BuildOrderController.no_op(self, obs)
                 action = ActionSingelton().get_action()
 
         elif self.selector == "attackSelector":
@@ -145,7 +145,7 @@ class AiBot(base_agent.BaseAgent):
                 action = ActionSingelton().get_action()
 
             if self.doAttack == "no_op":
-                ArmyControlController.no_op(self, obs, self.reqSteps)
+                ArmyControlController.no_op(self, obs)
                 action = ActionSingelton().get_action()
 
         return action[0]

@@ -76,7 +76,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 2:
             self.reqSteps = 1
             new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)]
+                HelperClass.move_camera_to_base_location(self, obs)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -92,6 +92,7 @@ class BuildOrders(base_agent.BaseAgent):
 
 
     def build_scv(self, obs, free_supply):
+        
         new_action = [actions.FUNCTIONS.no_op()]
         command_centers = HelperClass.get_units(self, obs, units.Terran.CommandCenter)
         if self.reqSteps == 0:
@@ -100,7 +101,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 3:
             self.reqSteps = 2
             new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)
+                HelperClass.move_camera_to_base_location(self, obs)
             ]
         elif self.reqSteps == 2:
             self.reqSteps = 1
@@ -135,7 +136,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 2:
             self.reqSteps = 1
             new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)]
+                HelperClass.move_camera_to_base_location(self, obs)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
@@ -156,7 +157,7 @@ class BuildOrders(base_agent.BaseAgent):
 
             if self.reqSteps == 4:  # move to base
                 new_action = [
-                    actions.FUNCTIONS.move_camera(self.base_location)]
+                    HelperClass.move_camera_to_base_location(self, obs)]
 
             if self.reqSteps == 3:  # select scv
                 command_scv = HelperClass.get_units(self, obs, units.Terran.SCV)
@@ -219,7 +220,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 3:
             self.reqSteps = 2
             new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)
+                HelperClass.move_camera_to_base_location(self, obs)
             ]
 
         elif self.reqSteps == 2:

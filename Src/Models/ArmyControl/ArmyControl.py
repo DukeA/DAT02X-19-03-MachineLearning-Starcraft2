@@ -117,7 +117,7 @@ class ArmyControl(base_agent.BaseAgent):
         if self.reqSteps == 3:
             self.reqSteps = 2
             if actions.FUNCTIONS.move_camera.id in obs.observation.available_actions:
-                new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+                new_action = [HelperClass.move_camera_to_base_location(self, obs)]
             else:
                 self.reqSteps = 0
 
