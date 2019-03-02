@@ -22,7 +22,12 @@ class BuildOrders(base_agent.BaseAgent):
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        if self.reqSteps == 3:
             self.reqSteps = 2
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 2:
             self.reqSteps = 1
@@ -308,19 +313,14 @@ class BuildOrders(base_agent.BaseAgent):
         y = screen_coordinates[0]
         if x-building_radius < 0 or x+building_radius > 84 or y-building_radius < 0 or y+building_radius > 84:
             return False
-        occupied_locations = 0
         height = obs.observation.feature_screen[0][x][y]
         for i in range(2*building_radius):
             for j in range(2*building_radius):
-                if (obs.observation.feature_screen[5][x-building_radius+i][y-building_radius+j] != 0 or
-                        obs.observation.feature_screen[0][x-building_radius+i][y-building_radius+j] != height) \
-                        and height > 10:
-                    occupied_locations += 1
-
-        if occupied_locations == 0:
-            return True
-        else:
-            return False
+                if (height <= 10 or    # Godtyckligt vald (botten av kartan är unpathable)
+                        obs.observation.feature_screen[5][x-building_radius+i][y-building_radius+j] != 0 or
+                        obs.observation.feature_screen[0][x-building_radius+i][y-building_radius+j] != height):
+                    return False
+        return True
 
     def find_placement(self, obs, building_radius, maximum_searches=None, sampling_size=None):
         """Finds a suitable location to place a building on a grid on the current screen.
