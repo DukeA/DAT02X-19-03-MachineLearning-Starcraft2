@@ -3,7 +3,6 @@ import random
 
 class BuildSelector():
     def buildSelector(self):
-        print("hello")
         possible_actions = BuildSelector.possible_build_actions(self)
         return (random.choice(possible_actions))
 

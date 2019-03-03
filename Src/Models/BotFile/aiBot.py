@@ -81,8 +81,6 @@ class AiBot(base_agent.BaseAgent):
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.next_action = Selector.selector(self)
 
-        print(self.reqSteps)
-        print(self.next_action)
         if self.next_action == "expand":
             BuildOrderController.build_expand(self, obs, self.start_top)
             action = ActionSingelton().get_action()
