@@ -12,9 +12,9 @@ from Models.Predefines.Coordinates import Coordinates
 
 
 selectors = ['buildSelector', 'attackSelector']
-attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'temp_no_op']    # Might be unnecessary depending on implementation of randomness
+attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']    # Might be unnecessary depending on implementation of randomness
 buildSelector = ['build_scv', 'build_supply_depot',"build_marine",
-                 'build_barracks', 'build_refinery', 'return_scv', 'expand']
+                 'build_barracks', 'build_refinery', 'return_scv', 'expand', 'no_op']
 
 
 class AiBot(base_agent.BaseAgent):
@@ -112,6 +112,10 @@ class AiBot(base_agent.BaseAgent):
                 UnitBuildOrdersController.train_marines(self, obs, free_supply)
                 action = ActionSingelton().get_action()
 
+            elif self.doBuild == "no_op":
+                BuildOrderController.no_op(self, obs)
+                action = ActionSingelton().get_action()
+
         elif self.selector == "attackSelector":
 
             # Här kommer en bit kod som alltid räknar armén innan attackSelector väljer en action. Tar 2 steps.
@@ -128,7 +132,7 @@ class AiBot(base_agent.BaseAgent):
                 elif random_action < 0.16:    # Scouting is disabled
                     self.doAttack = "scout"
                 else:
-                    self.doAttack = "temp_no_op"    # Kanske bra att vikta selectorn också.
+                    self.doAttack = "no_op"    # Kanske bra att vikta selectorn också.
 
             if self.doAttack == "attack":
                 ArmyControlController.attack(self, obs)
@@ -142,8 +146,8 @@ class AiBot(base_agent.BaseAgent):
                 ArmyControlController.scout(self, obs)
                 action = ActionSingelton().get_action()
 
-            if self.doAttack == "temp_no_op":
-                ArmyControlController.temp_no_op(self, obs)
+            if self.doAttack == "no_op":
+                ArmyControlController.no_op(self, obs)
                 action = ActionSingelton().get_action()
 
         return action[0]

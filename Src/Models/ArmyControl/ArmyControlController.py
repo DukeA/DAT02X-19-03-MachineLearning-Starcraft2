@@ -2,7 +2,7 @@
 
 from pysc2.agents import base_agent
 from Models.ArmyControl.ArmyControl import ArmyControl
-
+from Models.HelperClass.HelperClass import HelperClass
 """
  @Author Adam Grandén
  @Class Description: 
@@ -31,8 +31,9 @@ class ArmyControlController(base_agent.BaseAgent):
     def count_army(self, obs):
         ArmyControl.count_army(self, obs)
 
-    def temp_no_op(self, obs):
-        ArmyControl.temp_no_op(self, obs)
+    def no_op(self, obs):
+        HelperClass.no_op(self, obs)
+
 
     def attack_aa(self, obs):
         ArmyControl.attack(self, obs, location=[11, 12])
