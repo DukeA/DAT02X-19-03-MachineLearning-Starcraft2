@@ -19,25 +19,38 @@ class BuildOrders(base_agent.BaseAgent):
         self.expo_loc = 0
         self.new_action = None
 
+
+        """
+            @Author:Arvid , revised :Adam Grandén
+            @:param The parameter would be  self which is a aibot
+            @:param The other would be the observable universe
+            This method would be the barracks which builds the barrack from the start of the base_location 
+            and gets an instance where to build that barrack on that location.
+        
+        """
+
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            self.reqSteps = 2
+            self.reqSteps = 3
 
-        if self.reqSteps == 2:
-            self.reqSteps = 1
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
             new_action = BuildOrders.select_scv(self, obs)
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 2  and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+            if BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                        x = Coordinates.BARRACKS_X
-                        y = Coordinates.BARRACKS_Y
-
-                        new_action = [actions.FUNCTIONS.Build_Barracks_screen("queued", (x, y))]
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+                        new_action = [actions.FUNCTIONS.Build_Barracks_screen("now", (x, y))]
         ActionSingelton().set_action(new_action)
 
 
@@ -50,15 +63,14 @@ class BuildOrders(base_agent.BaseAgent):
             self.reqSteps = 1
             new_action = BuildOrders.select_scv(self, obs)
 
+
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            supply_depot = BuildOrders.get_units(self,obs,units.Terran.SupplyDepot)
-            if free_supply <= 4 and len(supply_depot) < 1  and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
+            if free_supply <= 4  and BuildOrders.not_in_progress(self, obs, units.Terran.SupplyDepot):
                 if BuildOrders.select_unit(self, obs, units.Terran.SCV):
                     if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id):
                         x = random.randint(2, 81)
                         y = random.randint(2, 81)
-
                         new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
         ActionSingelton().set_action(new_action)
 
@@ -145,6 +157,104 @@ class BuildOrders(base_agent.BaseAgent):
                             BuildOrders.sigma(self, minerals[0].y)))]
         ActionSingelton().set_action(new_action)
 
+
+    """
+        @Author Adam Grandén 
+        @:param self- Object aibot
+        @:param obs - the observable universe 
+        The following code is the action for building an factory this is made from taking the builder 
+        then move to the loaction and then get if there was any  other factories being built and return 
+        a new build for factory.  
+    """
+    def build_factory(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
+
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = BuildOrders.select_scv(self, obs)
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if BuildOrders.not_in_progress(self, obs, units.Terran.Factory):
+                if BuildOrders.select_unit(self, obs, units.Terran.SCV):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Factory_screen.id):
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+                        new_action =[actions.FUNCTIONS.Build_Factory_screen("now", (x, y))]
+        ActionSingelton().set_action( new_action)
+
+        """
+            @Author Adam Grandén 
+            @:param self-Object aibot
+            @:param obs - the observable universe 
+            The following code is the action for building an Starport this is made from taking the builder 
+            then move to the loaction and then get if there was any  other factories being built and return 
+            a new build for starport.  
+        """
+    def build_starport (self,obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            new_action = BuildOrders.select_scv(self, obs)
+
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if BuildOrders.not_in_progress(self, obs, units.Terran.Starport):
+                if BuildOrders.select_unit(self, obs, units.Terran.SCV):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_Starport_screen.id):
+                        x = random.randint(2, 81)
+                        y = random.randint(2, 81)
+                        new_action = [actions.FUNCTIONS.Build_Starport_screen("now", (x, y))]
+        ActionSingelton().set_action( new_action)
+
+        """
+            @Author Adam Grandén 
+            @:param self- Object aibot
+            @:param obs - the observable universe 
+            This code takes the  barracks which are located and then adds 
+            an  techlab when the building is built.
+        """
+    def upgrade_barracks(self, obs):
+        new_action = [actions.FUNCTIONS.no_op()]
+        barracks = BuildOrders.get_units(self, obs, units.Terran.Barracks)
+
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
+
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            if len(barracks) > 0 and BuildOrders.not_in_progress(self, obs, units.Terran.Barracks):
+                new_action = [actions.FUNCTIONS.select_point("select",
+                                                             (BuildOrders.sigma(self, barracks[0].x),
+                                                              BuildOrders.sigma(self, barracks[0].y)))]
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            if len(barracks) > 0:
+                if BuildOrders.select_unit(self, obs, units.Terran.Barracks):
+                    if BuildOrders.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_quick.id):
+                        new_action = [actions.FUNCTIONS.Build_TechLab_quick("now")]
+        ActionSingelton().set_action(new_action)
 
     def expand(self, obs, top_start):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -237,6 +347,7 @@ class BuildOrders(base_agent.BaseAgent):
 
 
 
+
     def sigma(self, num):
         if num <= 0:
             return 0
@@ -277,6 +388,7 @@ class BuildOrders(base_agent.BaseAgent):
             return True
 
         return False
+
 
     def select_scv(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]

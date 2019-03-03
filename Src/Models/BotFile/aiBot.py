@@ -13,8 +13,8 @@ from Models.ArmyControl.ArmyControl import ArmyControl
 
 selectors = ['buildSelector', 'attackSelector']
 attackSelector = ['attack']
-buildSelector = ['build_scv', 'build_supply_depot',"build_marine",
-                 'build_barracks', 'build_refinery', 'return_scv', 'expand']
+buildSelector = ['build_scv', 'build_supply_depot',"build_marine","build_factory","build_starport"
+                ,"expand_barracks",'build_barracks', 'build_refinery', 'return_scv', 'expand']
 
 
 class AiBot(base_agent.BaseAgent):
@@ -89,6 +89,18 @@ class AiBot(base_agent.BaseAgent):
 
             elif self.doBuild =="build_marine":
                 UnitBuildOrdersController.train_marines(self,obs,free_supply)
+                action = ActionSingelton().get_action()
+
+            elif self.doBuild =="build_factory":
+                BuildOrders.build_factory(self,obs)
+                action = ActionSingelton().get_action()
+
+            elif self.doBuild =="build_starport":
+                BuildOrders.build_starport(self,obs)
+                action = ActionSingelton().get_action()
+
+            elif self.doBuild =="expand_barracks":
+                BuildOrders.upgrade_barracks(self,obs)
                 action = ActionSingelton().get_action()
 
 
