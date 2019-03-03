@@ -31,9 +31,12 @@ class ArmyControlController(base_agent.BaseAgent):
     def count_army(self, obs):
         ArmyControl.count_army(self, obs)
 
+    # Might need to be in its own controller class.
+
     def no_op(self, obs):
         HelperClass.no_op(self, obs)
 
+    # Currently unused.
 
     def attack_aa(self, obs):
         ArmyControl.attack(self, obs, location=[11, 12])
