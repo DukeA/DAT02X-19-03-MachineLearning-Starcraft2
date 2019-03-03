@@ -218,35 +218,6 @@ class BuildOrders(base_agent.BaseAgent):
         else:
             return Coordinates().EXPO_LOCATIONS2[self.expo_loc]
 
-    def build_marine(self, obs, free_supply):
-        new_action = [actions.FUNCTIONS.no_op()]
-        barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
-        if self.reqSteps == 0:
-            self.reqSteps = 3
-
-        elif self.reqSteps == 3:
-            self.reqSteps = 2
-            new_action = [
-                HelperClass.move_camera_to_base_location(self, obs)
-            ]
-
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
-            if len(barracks) > 0:
-                new_action = [actions.FUNCTIONS.select_point("select",
-                                                             (HelperClass.sigma(self, barracks[0].x),
-                                                              HelperClass.sigma(self, barracks[0].y)))]
-
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-            if HelperClass.select_unit(self, obs, units.Terran.Barracks):
-                if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Marine_quick.id
-                                         ) and HelperClass.not_in_queue(self, obs, units.Terran.Barracks
-                                                                        ) and free_supply > 0:
-                    new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
-
-        return new_action
-
     def check_placement(self, obs, screen_coordinates, building_radius):
         """Checks if a location and a radius around it is a suitable place to build a building.
             Note: Air units in the desired location will return
