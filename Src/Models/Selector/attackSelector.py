@@ -3,6 +3,7 @@ import random
 
 class AttackSelector():
     def attackSelector(self):
+
         possible_actions = AttackSelector.possible_attack_actions(self)
         return (random.choice(possible_actions))
 
@@ -15,4 +16,6 @@ class AttackSelector():
             poss_actions.append("retreat")
         if True:
             poss_actions.append("scout")
+        if True:
+            poss_actions.append("no_op")
         return poss_actions

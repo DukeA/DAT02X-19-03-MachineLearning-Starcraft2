@@ -9,11 +9,12 @@ from Models.BuildOrders.ActionSingelton import ActionSingelton
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
-
+from Models.HelperClass.HelperClass import HelperClass
 
 selectors = ['buildSelector', 'attackSelector']
-attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']    # Might be unnecessary depending on implementation of randomness
-buildSelector = ['build_scv', 'build_supply_depot',"build_marine",
+# Might be unnecessary depending on implementation of randomness
+attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']
+buildSelector = ['build_scv', 'build_supply_depot', "build_marine",
                  'build_barracks', 'build_refinery', 'return_scv', 'expand', 'no_op']
 
 
@@ -34,7 +35,8 @@ class AiBot(base_agent.BaseAgent):
         self.last_scout = 0        # Maybe for ML
         self.marine_count = 0      # Maybe for ML
         self.action_finished = False
-        self.action_data = []    # Does this persist between loops? It's a tuple (selector, action, steps, marine_count)
+        # Does this persist between loops? It's a tuple (selector, action, steps, marine_count)
+        self.action_data = []
 
         # End of basic game state test variables.
 
@@ -46,14 +48,16 @@ class AiBot(base_agent.BaseAgent):
         if self.action_finished:
             self.action_finished = False
             if self.selector == "attackSelector":
-                self.action_data.append((self.selector, self.doAttack, self.steps, self.marine_count))
+                self.action_data.append((self.selector, self.doAttack,
+                                         self.steps, self.marine_count))
                 print((self.selector, self.doAttack, self.steps, self.marine_count))
 
         # End of basic game state test.
 
         # first step
         if obs.first():
-            self.steps = 0    # Räknaren resettas inte mellan games/episoder. Vet ej om detta är en bra lösning.
+            # Räknaren resettas inte mellan games/episoder. Vet ej om detta är en bra lösning.
+            self.steps = 0
             start_y, start_x = (obs.observation.feature_minimap.player_relative
                                 == features.PlayerRelative.SELF).nonzero()
             xmean = start_x.mean()
@@ -74,11 +78,9 @@ class AiBot(base_agent.BaseAgent):
 
         if self.reqSteps == 0:
             self.next_action = Selector.selector(self)
-            if self.steps < 16*60*5/5*1.4:  # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
-                self.selector = 'buildSelector'
-            else:
-                self.selector = random.choice(selectors)
 
+        print(self.reqSteps)
+        print(self.next_action)
         if self.next_action == "expand":
             BuildOrderController.build_expand(self, obs, self.start_top)
             action = ActionSingelton().get_action()
@@ -116,10 +118,19 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingelton().get_action()
 
         elif self.next_action == "attack":
-            action = ArmyControl.attack(self, obs, self.base_location)
+            action = ArmyControlController.attack(self, obs, self.base_location)
+            action = ActionSingelton().get_action()
 
         elif self.next_action == "retreat":
-            action = ArmyControl.retreat(self, obs, self.base_location)
+            action = ArmyControlController.retreat(self, obs, self.base_location)
+            action = ActionSingelton().get_action()
+
+        elif self.next_action == "scout":
+            action = ArmyControlController.scout(self, obs)
+            action = ActionSingelton().get_action()
+
+        elif self.next_action == "no_op":
+            action = HelperClass.no_op(self, obs)
+            action = ActionSingelton().get_action()
 
         return action[0]
-

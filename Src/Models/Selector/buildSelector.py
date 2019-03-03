@@ -3,6 +3,7 @@ import random
 
 class BuildSelector():
     def buildSelector(self):
+        print("hello")
         possible_actions = BuildSelector.possible_build_actions(self)
         return (random.choice(possible_actions))
 
@@ -33,4 +34,6 @@ class BuildSelector():
             poss_actions.append("build_starport")
         if True:
             poss_actions.append("build_tech_lab")
+        if True:
+            poss_actions.append("no_op")
         return poss_actions
