@@ -2,6 +2,8 @@ from pysc2.env import sc2_env
 from pysc2.agents import base_agent
 from pysc2.lib import features, actions
 from Models.ArmyControl.ArmyControl import ArmyControl
+from Models.ArmyControl.ArmyControlController import ArmyControlController
+from Models.BuildOrders.ActionSingelton import ActionSingelton
 from absl import app
 
 
@@ -16,6 +18,7 @@ class TestAttack(base_agent.BaseAgent):
 
     def step(self, obs):
         super(TestAttack, self).step(obs)
+        action = actions.FUNCTIONS.no_op()
         if obs.first():
             start_y, start_x = (obs.observation.feature_minimap.player_relative
                                 == features.PlayerRelative.SELF).nonzero()
@@ -32,9 +35,10 @@ class TestAttack(base_agent.BaseAgent):
             self.has_attacked = True
 
         if self.attacking:
-            return ArmyControl.retreat(self, obs)
+            ArmyControlController.attack(self, obs)
+            action = ActionSingelton().get_action()
 
-        return actions.FUNCTIONS.no_op()
+        return action
 
 
 def main(unused_argv):
