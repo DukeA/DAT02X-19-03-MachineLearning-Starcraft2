@@ -20,11 +20,10 @@ class ArmyControl(base_agent.BaseAgent):
                 It checks for enemies using the minimap. It also counts the army.
 
                 :param obs: The observer.
-                :param location: The desired location to attack [y, x] in minimap coordinates.
+                :param location: The desired location to attack [x, y] in minimap coordinates.
                                    If None, it attacks the closest enemy
                 """
         new_action = [actions.FUNCTIONS.no_op()]
-        screen_location = [0, 0]
 
         if self.reqSteps == 0:
             self.reqSteps = 3
@@ -64,6 +63,7 @@ class ArmyControl(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
             has_attack_point = False
+            screen_location = [0, 0]
 
             while not has_attack_point:
                 x = random.randint(2, 81)
@@ -156,7 +156,7 @@ class ArmyControl(base_agent.BaseAgent):
             else:
                 self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
 
-        if self.reqSteps == 1:
+        elif self.reqSteps == 1:
             if HelperClass.select_unit(self, obs, units.Terran.Marine):
                 self.marine_count = 0
                 for i in range(len(obs.observation.multi_select)):
@@ -166,6 +166,3 @@ class ArmyControl(base_agent.BaseAgent):
             self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
 
         ActionSingelton().set_action(new_action)
-
-    # The following lines of code should be in a help class.
-

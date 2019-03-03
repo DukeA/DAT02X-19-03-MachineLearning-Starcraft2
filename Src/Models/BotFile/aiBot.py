@@ -68,15 +68,17 @@ class AiBot(base_agent.BaseAgent):
             if xmean <= 31 and ymean <= 31:
                 self.start_top = True
                 self.attack_coordinates = Coordinates.START_LOCATIONS[1]
+                self.base_location = Coordinates.START_LOCATIONS[0]
             else:
                 self.start_top = False
                 self.attack_coordinates = Coordinates.START_LOCATIONS[0]
+                self.base_location = Coordinates.START_LOCATIONS[1]
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
 
-        if self.reqSteps == 0:
+        if self.reqSteps == 0 or self.reqSteps == -1:
             self.next_action = Selector.selector(self)
 
         print(self.reqSteps)
@@ -117,20 +119,24 @@ class AiBot(base_agent.BaseAgent):
             UnitBuildOrdersController.train_medivac(self, obs, free_supply)
             action = ActionSingelton().get_action()
 
+        elif self.next_action == "army_count":
+            ArmyControlController.count_army(self, obs)
+            action = ActionSingelton().get_action()
+
         elif self.next_action == "attack":
-            action = ArmyControlController.attack(self, obs, self.base_location)
+            ArmyControlController.attack(self, obs)
             action = ActionSingelton().get_action()
 
         elif self.next_action == "retreat":
-            action = ArmyControlController.retreat(self, obs, self.base_location)
+            ArmyControlController.retreat(self, obs)
             action = ActionSingelton().get_action()
 
         elif self.next_action == "scout":
-            action = ArmyControlController.scout(self, obs)
+            ArmyControlController.scout(self, obs)
             action = ActionSingelton().get_action()
 
         elif self.next_action == "no_op":
-            action = HelperClass.no_op(self, obs)
+            HelperClass.no_op(self, obs)
             action = ActionSingelton().get_action()
 
         return action[0]
