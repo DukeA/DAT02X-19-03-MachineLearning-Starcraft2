@@ -1,7 +1,7 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 import numpy as np
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingelton
 from Models.Predefines.Coordinates import Coordinates
 import random
 

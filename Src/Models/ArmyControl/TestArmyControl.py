@@ -3,7 +3,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import features, actions
 from Models.ArmyControl.ArmyControl import ArmyControl
 from Models.ArmyControl.ArmyControlController import ArmyControlController
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingelton
 from absl import app
 
 

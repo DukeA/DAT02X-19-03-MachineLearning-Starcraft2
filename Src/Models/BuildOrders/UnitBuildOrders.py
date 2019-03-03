@@ -2,7 +2,8 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions,units
 
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingelton
+from Models.BuildOrders.IsPossible import IsPossible
 
 """
 @Author :Adam Grandén
@@ -18,22 +19,59 @@ class UnitBuildOrders(base_agent.BaseAgent):
     def build_marines(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
         barracks_location = UnitBuildOrders.findall_barracks(self, obs)
-        for this_barrack in barracks_location:
+
+        if IsPossible.build_marines_possible(self, obs):
+            for this_barrack in barracks_location:
+
+                if self.reqSteps == 0:
+                    self.reqSteps = 2
+
+                elif self.reqSteps == 2:
+                    self.reqSteps = 1
+                    if len(barracks_location) > 0:
+                        new_action = \
+                            [actions.FUNCTIONS.select_point("select",(UnitBuildOrders.sigma(self, this_barrack.x),
+                                                                  UnitBuildOrders.sigma(self, this_barrack.y)))]
+
+                elif self.reqSteps == 1:
+                    self.reqSteps = 0
+                    if len(barracks_location) > 0:
+                        if UnitBuildOrders.is_unit_selected(self, obs, units.Terran.Barracks):
+                            if UnitBuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_Marine_quick.id) \
+                                    and UnitBuildOrders.not_in_queue(self, obs, units.Terran.Barracks
+                                                                 ) and free_supply > 0:
+                                new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
+
+        ActionSingelton().set_action(new_action)
+
+    def build_scv(self, obs, free_supply):
+        new_action = [actions.FUNCTIONS.no_op()]
+        command_centers = UnitBuildOrders.get_units(self, obs, units.Terran.CommandCenter)
+        if IsPossible.build_scv_possible(self, obs):
+            
             if self.reqSteps == 0:
+                self.reqSteps = 3
+
+            elif self.reqSteps == 3:
                 self.reqSteps = 2
+                new_action = [
+                    actions.FUNCTIONS.move_camera(self.base_location)
+                ]
             elif self.reqSteps == 2:
                 self.reqSteps = 1
-                if len(barracks_location) > 0:
-                    new_action = \
-                        [actions.FUNCTIONS.select_point("select",(UnitBuildOrders.sigma(self, this_barrack.x),
-                                                              UnitBuildOrders.sigma(self, this_barrack.y)))]
+                if len(command_centers) > 0:
+                    new_action = [actions.FUNCTIONS.select_point("select",
+                                                                 (UnitBuildOrders.sigma(self, command_centers[0].x),
+                                                                  UnitBuildOrders.sigma(self, command_centers[0].y)))]
             elif self.reqSteps == 1:
-                self.reqSteps=0
-                if len(barracks_location) > 0:
-                    if UnitBuildOrders.select_unit(self,obs,units.Terran.Barracks):
-                        if UnitBuildOrders.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
-                                and free_supply > 0:
-                            new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
+                self.reqSteps = 0
+                suv_units = UnitBuildOrders.get_units(self,obs,units.Terran.SCV)
+                if len(suv_units)< 15:
+                    if UnitBuildOrders.is_unit_selected(self, obs, units.Terran.CommandCenter):
+                        if UnitBuildOrders.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
+                                             ) and UnitBuildOrders.not_in_queue(self, obs, units.Terran.CommandCenter
+                                                                            ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
+                            new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
         ActionSingelton().set_action(new_action)
 
     def findall_barracks(self, obs):
@@ -85,7 +123,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
         return [unit for unit in obs.observation.feature_units
                 if unit.unit_type == unit_type]
 
-    def select_unit(self, obs, unit_type):
+    def is_unit_selected(self, obs, unit_type):
         if (len(obs.observation.single_select) > 0 and
                 obs.observation.single_select[0].unit_type == unit_type):
             return True

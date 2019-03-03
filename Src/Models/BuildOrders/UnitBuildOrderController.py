@@ -17,3 +17,6 @@ class UnitBuildOrdersController(base_agent.BaseAgent):
 
     def train_marines(self, obs,free_supply):
         UnitBuildOrders.build_marines(self, obs, free_supply)
+
+    def build_scv(self, obs, free_supply):
+        UnitBuildOrders.build_scv(self, obs, free_supply)

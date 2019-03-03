@@ -5,8 +5,8 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 
 from Models.BuildOrders.BuildOrderController import BuildOrderController
-from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.UnitBuildOrderController import UnitBuildOrdersController
+from Models.BuildOrders.ActionSingleton import ActionSingelton
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 
@@ -87,7 +87,7 @@ class AiBot(base_agent.BaseAgent):
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "build_scv":  # build scv
-                BuildOrderController.build_scv(self, obs, free_supply)
+                UnitBuildOrdersController.build_scv(self, obs, free_supply)
                 action = ActionSingelton().get_action()
 
             elif self.doBuild == "build_supply_depot":  # build supply depot
