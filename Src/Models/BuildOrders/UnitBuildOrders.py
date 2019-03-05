@@ -99,6 +99,6 @@ class UnitBuildOrders(base_agent.BaseAgent):
         barracks_location = []
         barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
         for barrack_unit in barracks:
-            if UnitBuildOrders.not_in_queue(self,obs,units.Terran.Barracks):
+            if HelperClass.not_in_queue(self,obs,units.Terran.Barracks):
                 barracks_location.append(barrack_unit)
         return barracks_location
