@@ -11,6 +11,12 @@ class HelperClass(base_agent.BaseAgent):
     def move_camera_to_base_location(self, obs):
         return actions.FUNCTIONS.move_camera(self.base_location)
 
+    def select_all_buildings(self, obs):
+        if obs.observation.control_groups[9][1] > 0:
+            return [actions.FUNCTIONS.select_control_group("recall", 9)]
+        else:
+            return [actions.FUNCTIONS.no_op()]
+
     def sigma(self, num):
         if num <= 0:
             return 0
@@ -99,12 +105,11 @@ class HelperClass(base_agent.BaseAgent):
 
         build_screen_action = action_types.get(building_type, actions.FUNCTIONS.Build_SupplyDepot_screen)
 
-        if HelperClass.not_in_progress(self, obs, building_type):
-            if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
-                if HelperClass.do_action(self, obs, build_screen_action.id):
-                    coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
-                    new_action = [build_screen_action("now", coordinates)]
-                    if building_type is not units.Terran.CommandCenter:
-                        self.game_state.add_unit_in_progress(self, self.base_location, coordinates, building_type.value)
+        if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
+            if HelperClass.do_action(self, obs, build_screen_action.id):
+                coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
+                new_action = [build_screen_action("now", coordinates)]
+                if building_type is not units.Terran.CommandCenter:
+                    self.game_state.add_unit_in_progress(self, self.base_location, coordinates, building_type.value)
 
         return new_action
