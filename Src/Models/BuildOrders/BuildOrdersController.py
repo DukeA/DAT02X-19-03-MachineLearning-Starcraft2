@@ -19,8 +19,8 @@ class BuildOrdersController(base_agent.BaseAgent):
         super(BuildOrdersController).__init__()
         self.BuildOrders()
 
-    def build_supplaydepot(self, obs, free_supply):
-        BuildOrders.build_supply_depot(self, obs, free_supply)
+    def build_supply_depot(self, obs):
+        BuildOrders.build_supply_depot(self, obs)
 
     def build_refinery(self, obs):
         BuildOrders.build_refinery(self, obs)
