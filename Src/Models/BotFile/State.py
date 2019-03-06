@@ -37,6 +37,7 @@ class State:
             self.minerals = obs.observation.player.minerals
             self.vespene = obs.observation.player.vespene
             self.units_amount[units.Terran.Marine.value] = obs.observation.player.army_count  # Temporary solution
+            self.units_amount[units.Terran.SCV.value] = obs.observation.player.food_workers
 
             # Update the score and reward
             oldScore = self.score
@@ -45,7 +46,9 @@ class State:
 
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \
-                    sum(self.units_amount.values()) - obs.observation.player.army_count:
+                    sum(self.units_amount.values())\
+                    - obs.observation.player.army_count\
+                    - obs.observation.player.food_workers:
                 new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]
                 bot_obj.reqSteps = 1
             else:
