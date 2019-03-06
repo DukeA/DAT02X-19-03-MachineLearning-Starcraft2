@@ -11,9 +11,9 @@ class AttackSelector():
             selection = random.random()
             if selection < 0.15:
                 action = possible_actions[1]
-            elif selection < 0.16:
+            elif selection < 0.3:
                 action = possible_actions[2]
-            elif selection < 0.2:
+            elif selection < 0.3:
                 action = possible_actions[3]
             else:
                 action = possible_actions[4]
