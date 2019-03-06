@@ -10,7 +10,7 @@ from Models.HelperClass.HelperClass import HelperClass
 """
 The Class belongs to the Build Order request
 to build certain elements such as supply depots and
-refinarys.
+refineries.
 """
 
 
