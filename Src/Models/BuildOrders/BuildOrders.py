@@ -55,6 +55,8 @@ class BuildOrders(base_agent.BaseAgent):
                         if coordinates is not None:
                             new_action = [
                                 actions.FUNCTIONS.Build_Barracks_screen("now", coordinates)]
+                            self.game_state.add_unit_in_progress(
+                                self, self.base_location, coordinates, units.Terran.Barracks.value)
 
         ActionSingelton().set_action(new_action)
 
@@ -82,6 +84,8 @@ class BuildOrders(base_agent.BaseAgent):
                                 finding_location = False
                                 new_action = [
                                     actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
+                                self.game_state.add_unit_in_progress(
+                                    self, self.base_location, (x, y), units.Terran.SupplyDepot.value)
         ActionSingelton().set_action(new_action)
 
     def build_refinery(self, obs):
@@ -105,9 +109,12 @@ class BuildOrders(base_agent.BaseAgent):
                     if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Refinery_screen.id):
                         geyser = HelperClass.get_units(self, obs, units.Neutral.VespeneGeyser)
 
-                        new_action = [actions.FUNCTIONS.Build_Refinery_screen("now",
-                                                                              (HelperClass.sigma(self, geyser[0].x),
-                                                                               HelperClass.sigma(self, geyser[0].y)))]
+                        screen_coordinate = (HelperClass.sigma(self, geyser[0].x),
+                                                                               HelperClass.sigma(self, geyser[0].y))
+                        new_action = [actions.FUNCTIONS.Build_Refinery_screen("now", screen_coordinate)]
+                        self.game_state.add_unit_in_progress(
+                            self, self.base_location, screen_coordinate, units.Terran.Refinery.value)
+
         ActionSingelton().set_action(new_action)
 
     def build_scv(self, obs, free_supply):
@@ -195,7 +202,10 @@ class BuildOrders(base_agent.BaseAgent):
                         x = random.randint(2, 81)
                         y = random.randint(2, 81)
                         new_action = [actions.FUNCTIONS.Build_Factory_screen("now", (x, y))]
+                        self.game_state.add_unit_in_progress(
+                            self, self.base_location, (x, y), units.Terran.Factory.value)
         ActionSingelton().set_action(new_action)
+
 
         """
             @Author Adam Grandén
@@ -228,6 +238,8 @@ class BuildOrders(base_agent.BaseAgent):
                         x = random.randint(2, 81)
                         y = random.randint(2, 81)
                         new_action = [actions.FUNCTIONS.Build_Starport_screen("now", (x, y))]
+                        self.game_state.add_unit_in_progress(
+                            self, self.base_location, (x, y), units.Terran.Starport.value)
         ActionSingelton().set_action(new_action)
 
         """
@@ -262,6 +274,8 @@ class BuildOrders(base_agent.BaseAgent):
                 if HelperClass.select_unit(self, obs, units.Terran.Barracks):
                     if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_quick.id):
                         new_action = [actions.FUNCTIONS.Build_TechLab_quick("now")]
+                        self.game_state.add_unit_in_progress(
+                            self, self.base_location, (42, 42), units.Terran.TechLab.value)
         ActionSingelton().set_action(new_action)
 
     def expand(self, obs, top_start):
@@ -310,6 +324,12 @@ class BuildOrders(base_agent.BaseAgent):
                             target = BuildOrders.choose_screen_location(self, top_start)
                             new_action = [
                                 actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
+                            if self.base_location[0] < 32:
+                                expo_target = Coordinates.EXPO_LOCATIONS[self.expo_loc]
+                            else:
+                                expo_target = Coordinates.EXPO_LOCATIONS2[self.expo_loc]
+                            self.game_state.add_unit_in_progress(self, expo_target, (42, 42),
+                                                                 units.Terran.CommandCenter.value)
             self.reqSteps -= 1
         ActionSingelton().set_action(new_action)
 
