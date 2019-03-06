@@ -1,7 +1,7 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 import numpy as np
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.Predefines.Coordinates import Coordinates
 import random
 
@@ -22,7 +22,7 @@ class HelperClass(base_agent.BaseAgent):
     def select_scv(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         command_scv = HelperClass.get_units(self, obs, units.Terran.SCV)
-        if len(command_scv) > 0 and not HelperClass.select_unit(self, obs, units.Terran.SCV):
+        if len(command_scv) > 0 and not HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
             if obs.observation.player.idle_worker_count > 0:
                 new_action = [actions.FUNCTIONS.select_idle_worker(
                     "select", obs, units.Terran.SCV)]
@@ -33,7 +33,7 @@ class HelperClass(base_agent.BaseAgent):
                                HelperClass.sigma(self, command.y)))]
         return new_action
 
-    def select_unit(self, obs, unit_type):
+    def is_unit_selected(self, obs, unit_type):
         if (len(obs.observation.single_select) > 0 and
                 obs.observation.single_select[0].unit_type == unit_type):
             return True
@@ -75,7 +75,36 @@ class HelperClass(base_agent.BaseAgent):
 
         if self.reqSteps == 2:
             self.reqSteps = 1
+
         elif self.reqSteps == 1:
             self.reqSteps = 0
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
+
+    def place_building(self, obs, building_type, *coordinates):
+
+        new_action = [actions.FUNCTIONS.no_op()]
+
+        if len(coordinates) == 0:
+            coordinates = (random.randint(2, 81), random.randint(2, 81))
+
+        action_types = {
+            units.Terran.Barracks: actions.FUNCTIONS.Build_Barracks_screen,
+            units.Terran.SupplyDepot: actions.FUNCTIONS.Build_SupplyDepot_screen,
+            units.Terran.Refinery: actions.FUNCTIONS.Build_Refinery_screen,
+            units.Terran.CommandCenter: actions.FUNCTIONS.Build_CommandCenter_screen,
+            units.Terran.Factory: actions.FUNCTIONS.Build_Factory_screen,
+            units.Terran.Starport: actions.FUNCTIONS.Build_Starport_screen
+        }
+
+        build_screen_action = action_types.get(building_type, actions.FUNCTIONS.Build_SupplyDepot_screen)
+
+        if HelperClass.not_in_progress(self, obs, building_type):
+            if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
+                if HelperClass.do_action(self, obs, build_screen_action.id):
+                    coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
+                    new_action = [build_screen_action("now", coordinates)]
+                    if building_type is not units.Terran.CommandCenter:
+                        self.game_state.add_unit_in_progress(self, self.base_location, coordinates, building_type.value)
+
+        return new_action

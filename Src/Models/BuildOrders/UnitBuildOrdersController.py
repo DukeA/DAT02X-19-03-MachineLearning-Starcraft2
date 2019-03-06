@@ -15,11 +15,14 @@ class UnitBuildOrdersController(base_agent.BaseAgent):
     def __init__(self):
         super.UnitBuildOrdersController().__init__()
 
-    def train_marines(self, obs, free_supply):
-        UnitBuildOrders.build_marines(self, obs, free_supply)
+    def train_marines(self, obs):
+        UnitBuildOrders.build_marines(self, obs)
 
     def train_marauder(self, obs, free_supply):
         UnitBuildOrders.build_marauder(self, obs, free_supply)
 
     def train_medivac(self, obs, free_supply):
         UnitBuildOrders.build_medivac(self, obs, free_supply)
+
+    def build_scv(self, obs, free_supply):
+        UnitBuildOrders.build_scv(self, obs, free_supply)

@@ -14,22 +14,19 @@ from Models.HelperClass.HelperClass import HelperClass
 """
 
 
-class BuildOrderController(base_agent.BaseAgent):
+class BuildOrdersController(base_agent.BaseAgent):
     def __init__(self):
-        super(BuildOrderController).__init__()
+        super(BuildOrdersController).__init__()
         self.BuildOrders()
 
     def build_supplaydepot(self, obs, free_supply):
         BuildOrders.build_supply_depot(self, obs, free_supply)
 
-    def build_refinary(self, obs):
+    def build_refinery(self, obs):
         BuildOrders.build_refinery(self, obs)
 
     def build_barracks(self, obs):
         BuildOrders.build_barracks(self, obs)
-
-    def build_scv(self, obs, free_supply):
-        BuildOrders.build_scv(self, obs, free_supply)
 
     def return_scv(self, obs):
         BuildOrders.return_scv(self, obs)

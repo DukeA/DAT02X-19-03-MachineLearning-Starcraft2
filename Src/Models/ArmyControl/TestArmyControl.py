@@ -3,7 +3,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import features, actions
 from Models.ArmyControl.ArmyControl import ArmyControl
 from Models.ArmyControl.ArmyControlController import ArmyControlController
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from absl import app
 
 
@@ -36,7 +36,7 @@ class TestAttack(base_agent.BaseAgent):
 
         if self.attacking:
             ArmyControlController.attack(self, obs)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         return action
 

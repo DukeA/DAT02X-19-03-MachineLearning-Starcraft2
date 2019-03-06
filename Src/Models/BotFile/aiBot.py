@@ -3,9 +3,9 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 
-from Models.BuildOrders.BuildOrderController import BuildOrderController
+from Models.BuildOrders.BuildOrdersController import BuildOrdersController
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.BuildOrders.DistributeSCV import DistributeSCV
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
@@ -93,82 +93,80 @@ class AiBot(base_agent.BaseAgent):
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         if self.next_action == "expand":
-            BuildOrderController.build_expand(self, obs, self.start_top)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.build_expand(self, obs, self.start_top)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
-            BuildOrderController.build_scv(self, obs, free_supply)
-            action = ActionSingelton().get_action()
+            UnitBuildOrdersController.build_scv(self, obs, free_supply)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
             if self.reqSteps == 0:
                 self.DistributeSCVInstance = DistributeSCV()
             self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
-            BuildOrderController.build_supplaydepot(self, obs, free_supply)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.build_supplaydepot(self, obs, free_supply)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_barracks":
-            BuildOrderController.build_barracks(self, obs)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.build_barracks(self, obs)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_refinery":
-            BuildOrderController.build_refinary(self, obs)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.build_refinery(self, obs)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "return_scv":
-            BuildOrderController.return_scv(self, obs)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.return_scv(self, obs)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_marine":
-            UnitBuildOrdersController.train_marines(self, obs, free_supply)
-            action = ActionSingelton().get_action()
+            UnitBuildOrdersController.train_marines(self, obs)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_marauder":
             UnitBuildOrdersController.train_marauder(self, obs, free_supply)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_medivac":
             UnitBuildOrdersController.train_medivac(self, obs, free_supply)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "army_count":
             ArmyControlController.count_army(self, obs)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "attack":
             ArmyControlController.attack(self, obs)
-            action = ActionSingelton().get_action()
-
+            action = ActionSingleton().get_action()
 
         elif self.doBuild =="build_factory":
-            BuildOrderController.build_factory(self,obs)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.build_factory(self, obs)
+            action = ActionSingleton().get_action()
 
         elif self.doBuild =="build_starport":
-            BuildOrderController.build_starport(self,obs)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.build_starport(self, obs)
+            action = ActionSingleton().get_action()
 
         elif self.doBuild =="expand_barracks":
-            BuildOrderController.upgrade_barracks(self,obs)
-            action = ActionSingelton().get_action()
+            BuildOrdersController.upgrade_barracks(self, obs)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "retreat":
             ArmyControlController.retreat(self, obs)
-            action = ActionSingelton().get_action()
-
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "scout":
             ArmyControlController.scout(self, obs)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "no_op":
             HelperClass.no_op(self, obs)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         return action[0]
