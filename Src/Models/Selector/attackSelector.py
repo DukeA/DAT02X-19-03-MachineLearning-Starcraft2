@@ -2,7 +2,7 @@ import random
 
 
 class AttackSelector():
-    def attackSelector(self):
+    def attackSelector(self, obs):
         if self.reqSteps == 0:
             return "army_count"
         else:
