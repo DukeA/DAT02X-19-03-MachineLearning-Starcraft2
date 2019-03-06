@@ -5,7 +5,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 
 from Models.Predefines.Coordinates import Coordinates
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 
 
 class DistributeSCV:
@@ -42,7 +42,7 @@ class DistributeSCV:
         #if self.curr_step < 200:
         #    self.curr_step += 1
         #    new_action = [actions.FUNCTIONS.no_op()]
-        #    ActionSingelton().set_action(new_action)
+        #    ActionSingleton().set_action(new_action)
         #    return
 
         pos = command_centers_pos[self.curr_CC]
@@ -244,7 +244,7 @@ class DistributeSCV:
             new_action = [actions.FUNCTIONS.no_op()]
             obj.reqSteps = 0
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
         return
 
     def get_units_by_type(self, obs, unit_type):
