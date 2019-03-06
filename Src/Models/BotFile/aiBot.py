@@ -1,5 +1,3 @@
-
-
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 
@@ -12,15 +10,6 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
-
-selectors = ['buildSelector', 'attackSelector']
-
-# Might be unnecessary depending on implementation of randomness
-attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']
-buildSelector = ['build_scv', 'build_supply_depot', "build_marine", "build_factory", "build_starport","expand_barracks",
-                 'build_barracks', 'build_refinery', 'distribute_scv', 'return_scv', 'expand', 'no_op']
-
-
 
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
@@ -49,22 +38,6 @@ class AiBot(base_agent.BaseAgent):
 
     def step(self, obs):
         super(AiBot, self).step(obs)
-        for i in range(len(obs.observation.last_actions)):
-            if obs.observation.last_actions[i] == 91:
-                print("Supply depot built at step "+str(self.steps))
-            if obs.observation.last_actions[i] == 44:
-                print("Command Center built at step "+str(self.steps))
-
-        # Basic game state test.
-
-        if self.action_finished:
-            self.action_finished = False
-            if self.selector == "attackSelector":
-                self.action_data.append((self.selector, self.doAttack,
-                                         self.steps, self.marine_count))
-                print((self.selector, self.doAttack, self.steps, self.marine_count))
-
-        # End of basic game state test.
 
         # first step
         if obs.first():
@@ -87,6 +60,7 @@ class AiBot(base_agent.BaseAgent):
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
             self.game_state = State()
+            # The command center isn't actually in the center of the screen!
             self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
         free_supply = (obs.observation.player.food_cap -
@@ -115,7 +89,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
-            BuildOrdersController.build_supplaydepot(self, obs, free_supply)
+            BuildOrdersController.build_supply_depot(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_barracks":
