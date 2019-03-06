@@ -33,25 +33,30 @@ class BuildOrders(base_agent.BaseAgent):
     def build_barracks(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        if self.reqSteps == 3:
-            self.reqSteps = 2
+        if self.reqSteps == 4:
+            self.reqSteps = 3
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)]
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
             new_action = HelperClass.select_scv(self, obs)
+
+        elif self.reqSteps == 2:    # Moves camera twice because select_scv can also move the camera.
+            self.reqSteps = 1
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
             barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 10:
+            if len(barracks) < 3:
                 if HelperClass.select_unit(self, obs, units.Terran.SCV):
                     if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
                         coordinates = BuildOrders.find_placement(
-                            self, obs, 6, maximum_searches=10, sampling_size=9)
+                            self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
                         if coordinates is not None:
                             new_action = [
                                 actions.FUNCTIONS.Build_Barracks_screen("now", coordinates)]
@@ -78,8 +83,9 @@ class BuildOrders(base_agent.BaseAgent):
                                 and finding_location:
                             x = random.randint(2, 82)
                             y = random.randint(2, 82)
-                            if BuildOrders.check_placement(self, obs, (x, y), 2):
+                            if BuildOrders.is_valid_placement(self, obs, (x, y), 2):
                                 finding_location = False
+                                print("Build supply depot issued at step "+str(self.steps))
                                 new_action = [
                                     actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
         ActionSingelton().set_action(new_action)
@@ -131,7 +137,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
             suv_units = HelperClass.get_units(self, obs, units.Terran.SCV)
-            if len(suv_units) < 15:
+            if len(suv_units) < 25:
                 if HelperClass.select_unit(self, obs, units.Terran.CommandCenter):
                     if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
                                              ) and HelperClass.not_in_queue(self, obs, units.Terran.CommandCenter
@@ -141,27 +147,54 @@ class BuildOrders(base_agent.BaseAgent):
 
     def return_scv(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
+        top_start = self.start_top
         if self.reqSteps == 0:
+            self.expo_loc = -1
             self.reqSteps = 3
 
-        elif self.reqSteps == 3:
-            self.reqSteps = 2
-            if(obs.observation.player.idle_worker_count > 0):
+        if self.reqSteps == 3:
+            if obs.observation.player.idle_worker_count > 0:
                 new_action = [actions.FUNCTIONS.select_idle_worker(
                     "select", obs, units.Terran.SCV)]
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
+        if self.reqSteps == 2:
+            target = self.base_location
             new_action = [
-                HelperClass.move_camera_to_base_location(self, obs)]
+                actions.FUNCTIONS.move_camera(target)]
 
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-            if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                minerals = HelperClass.get_units(self, obs, units.Neutral.MineralField)
-                new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
-                    "now", (HelperClass.sigma(self, minerals[0].x),
-                            HelperClass.sigma(self, minerals[0].y)))]
+        if self.reqSteps == 1:  # Check if there are minerals. If there aren't, move to the next location
+            minerals = HelperClass.get_units(self, obs, units.Neutral.MineralField) +\
+                       HelperClass.get_units(self, obs, units.Neutral.MineralField750)
+            refineries = HelperClass.get_units(self, obs, units.Terran.Refinery)
+            refineries = [refinery for refinery in refineries
+                          if refinery.alliance == 1
+                          and refinery.vespene_contents > 0
+                          and refinery.assigned_harvesters < 3]
+            if len(minerals) == 0 and len(refineries) == 0:
+                if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc + 1:
+                    self.reqSteps = 2
+                    self.expo_loc += 1
+                    if self.expo_loc < len(Coordinates.CC_LOCATIONS):
+                        target = BuildOrders.choose_location(self, top_start)
+                        new_action = [
+                            actions.FUNCTIONS.move_camera(target)]
+                    else:
+                        self.reqSteps = 1
+            else:
+                if HelperClass.select_unit(self, obs, units.Terran.SCV):
+                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                        if len(refineries) > 0:
+                            for i in range(len(refineries)):
+                                if refineries[i].assigned_harvesters < 3:
+                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                                        "now", (HelperClass.sigma(self, refineries[i].x),
+                                                HelperClass.sigma(self, refineries[i].y)))]
+                        else:
+                            new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                                "now", (HelperClass.sigma(self, minerals[0].x),
+                                        HelperClass.sigma(self, minerals[0].y)))]
+        self.reqSteps -= 1
+
         ActionSingelton().set_action(new_action)
 
     """
@@ -176,25 +209,32 @@ class BuildOrders(base_agent.BaseAgent):
     def build_factory(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        elif self.reqSteps == 3:
-            self.reqSteps = 2
+        if self.reqSteps == 4:
+            self.reqSteps = 3
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)]
 
-        elif self.reqSteps == 2:
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = HelperClass.select_scv(self, obs)
+
+        elif self.reqSteps == 2:    # Moves camera twice because select_scv can also move the camera.
             self.reqSteps = 1
-            new_action = BuildOrders.select_scv(self, obs)
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
             if HelperClass.not_in_progress(self, obs, units.Terran.Factory):
                 if HelperClass.select_unit(self, obs, units.Terran.SCV):
                     if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Factory_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
-                        new_action = [actions.FUNCTIONS.Build_Factory_screen("now", (x, y))]
+                        coordinates = BuildOrders.find_placement(
+                            self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
+                        if coordinates is not None:
+                            new_action = [
+                                actions.FUNCTIONS.Build_Factory_screen("now", coordinates)]
         ActionSingelton().set_action(new_action)
 
         """
@@ -209,25 +249,32 @@ class BuildOrders(base_agent.BaseAgent):
     def build_starport(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        elif self.reqSteps == 3:
-            self.reqSteps = 2
+        if self.reqSteps == 4:
+            self.reqSteps = 3
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)]
 
-        elif self.reqSteps == 2:
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = HelperClass.select_scv(self, obs)
+
+        elif self.reqSteps == 2:    # Moves camera twice because select_scv can also move the camera.
             self.reqSteps = 1
-            new_action = BuildOrders.select_scv(self, obs)
+            new_action = [
+                actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
             if HelperClass.not_in_progress(self, obs, units.Terran.Starport):
                 if HelperClass.select_unit(self, obs, units.Terran.SCV):
                     if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Starport_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
-                        new_action = [actions.FUNCTIONS.Build_Starport_screen("now", (x, y))]
+                        coordinates = BuildOrders.find_placement(
+                            self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
+                        if coordinates is not None:
+                            new_action = [
+                                actions.FUNCTIONS.Build_Starport_screen("now", coordinates)]
         ActionSingelton().set_action(new_action)
 
         """
@@ -265,6 +312,7 @@ class BuildOrders(base_agent.BaseAgent):
         ActionSingelton().set_action(new_action)
 
     def expand(self, obs, top_start):
+        expansion_limit = 3
         new_action = [actions.FUNCTIONS.no_op()]
         if obs.observation.player.minerals >= 400:  # check if it is possible
             if self.reqSteps == 0:
@@ -298,7 +346,7 @@ class BuildOrders(base_agent.BaseAgent):
                     if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc+1:
                         self.reqSteps = 2
                         self.expo_loc += 1
-                        if self.expo_loc < len(Coordinates.CC_LOCATIONS):
+                        if self.expo_loc < len(Coordinates.CC_LOCATIONS) and self.expo_loc < expansion_limit:
                             target = BuildOrders.choose_location(self, top_start)
                             new_action = [
                                 actions.FUNCTIONS.move_camera(target)]
@@ -308,6 +356,7 @@ class BuildOrders(base_agent.BaseAgent):
                     if HelperClass.select_unit(self, obs, units.Terran.SCV):
                         if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
                             target = BuildOrders.choose_screen_location(self, top_start)
+                            print("Build Command Center issued at step " + str(self.steps))
                             new_action = [
                                 actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
             self.reqSteps -= 1
@@ -327,7 +376,7 @@ class BuildOrders(base_agent.BaseAgent):
         else:
             return Coordinates().EXPO_LOCATIONS2[self.expo_loc]
 
-    def check_placement(self, obs, screen_coordinates, building_radius):
+    def is_valid_placement(self, obs, screen_coordinates, building_radius):
         """Checks if a location and a radius around it is a suitable place to build a building.
             Note: Air units in the desired location will return
                 :param obs: The observer.
@@ -381,7 +430,7 @@ class BuildOrders(base_agent.BaseAgent):
         if maximum_searches is None or maximum_searches > len(coordinates):
             maximum_searches = len(coordinates)
         for location_tuple in range(maximum_searches):
-            if BuildOrders.check_placement(self, obs, coordinates[location_tuple], building_radius):
+            if BuildOrders.is_valid_placement(self, obs, coordinates[location_tuple], building_radius):
                 return coordinates[location_tuple]
         return None
 
