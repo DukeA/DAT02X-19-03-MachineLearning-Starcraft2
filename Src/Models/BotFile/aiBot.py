@@ -17,9 +17,8 @@ selectors = ['buildSelector', 'attackSelector']
 
 # Might be unnecessary depending on implementation of randomness
 attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']
-buildSelector = ['build_scv', 'build_supply_depot', "build_marine", "build_factory", "build_starport","expand_barracks",
+buildSelector = ['build_scv', 'build_supply_depot', "build_marine", "build_factory", "build_starport", "expand_barracks",
                  'build_barracks', 'build_refinery', 'distribute_scv', 'return_scv', 'expand', 'no_op']
-
 
 
 class AiBot(base_agent.BaseAgent):
@@ -82,7 +81,8 @@ class AiBot(base_agent.BaseAgent):
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
             self.game_state = State()
-            self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            self.game_state.add_unit_in_progress(
+                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
@@ -145,15 +145,15 @@ class AiBot(base_agent.BaseAgent):
             ArmyControlController.attack(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.doBuild =="build_factory":
+        elif self.next_action == "build_factory":
             BuildOrdersController.build_factory(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.doBuild =="build_starport":
+        elif self.next_action == "build_starport":
             BuildOrdersController.build_starport(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.doBuild =="expand_barracks":
+        elif self.next_action == "expand_barracks":
             BuildOrdersController.upgrade_barracks(self, obs)
             action = ActionSingleton().get_action()
 
