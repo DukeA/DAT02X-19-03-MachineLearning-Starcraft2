@@ -28,9 +28,6 @@ class BuildOrderController(base_agent.BaseAgent):
     def build_barracks(self, obs):
         BuildOrders.build_barracks(self, obs)
 
-    def build_scv(self, obs, free_supply):
-        BuildOrders.build_scv(self, obs, free_supply)
-
     def return_scv(self, obs):
         BuildOrders.return_scv(self, obs)
 

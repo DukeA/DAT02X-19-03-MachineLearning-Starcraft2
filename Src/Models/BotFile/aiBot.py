@@ -88,7 +88,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingelton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
-            BuildOrderController.build_scv(self, obs, free_supply)
+            UnitBuildOrdersController.build_scv(self, obs, free_supply)
             action = ActionSingelton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
@@ -127,7 +127,6 @@ class AiBot(base_agent.BaseAgent):
             ArmyControlController.attack(self, obs)
             action = ActionSingelton().get_action()
 
-
         elif self.doBuild =="build_factory":
             BuildOrderController.build_factory(self,obs)
             action = ActionSingelton().get_action()
@@ -143,7 +142,6 @@ class AiBot(base_agent.BaseAgent):
         elif self.next_action == "retreat":
             ArmyControlController.retreat(self, obs)
             action = ActionSingelton().get_action()
-
 
         elif self.next_action == "scout":
             ArmyControlController.scout(self, obs)

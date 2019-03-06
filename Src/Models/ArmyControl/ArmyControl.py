@@ -127,7 +127,7 @@ class ArmyControl(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if HelperClass.select_unit(self, obs, units.Terran.SCV):
+            if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
                 if actions.FUNCTIONS.Move_minimap.id in obs.observation.available_actions:
                     if self.start_top:
                         self.scout_location = random.choice(Coordinates.EXPO_LOCATIONS2+[Coordinates.START_LOCATIONS[1]])
@@ -157,7 +157,7 @@ class ArmyControl(base_agent.BaseAgent):
                 self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
 
         elif self.reqSteps == 1:
-            if HelperClass.select_unit(self, obs, units.Terran.Marine):
+            if HelperClass.is_unit_selected(self, obs, units.Terran.Marine):
                 self.marine_count = 0
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Marine:

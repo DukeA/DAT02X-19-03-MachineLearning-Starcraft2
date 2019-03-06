@@ -23,3 +23,6 @@ class UnitBuildOrdersController(base_agent.BaseAgent):
 
     def train_medivac(self, obs, free_supply):
         UnitBuildOrders.build_medivac(self, obs, free_supply)
+
+    def build_scv(self, obs, free_supply):
+        UnitBuildOrders.build_scv(self, obs, free_supply)

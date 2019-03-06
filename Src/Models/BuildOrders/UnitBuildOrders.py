@@ -40,7 +40,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps=0
             if len(barracks_location) > 0:
-                if HelperClass.select_unit(self,obs,units.Terran.Barracks):
+                if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
                     if HelperClass.do_action(self,obs,actions.FUNCTIONS.Train_Marine_quick.id)\
                         and free_supply > 0:
                         new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
@@ -66,7 +66,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                                                                         HelperClass.sigma(self, barracks[0].y)))]
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if HelperClass.select_unit(self, obs, units.Terran.Barracks):
+            if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Marauder_quick.id):
                     new_action = [actions.FUNCTIONS.Train_Marauder_quick("now")]
         ActionSingelton().set_action(new_action)
@@ -90,9 +90,39 @@ class UnitBuildOrders(base_agent.BaseAgent):
                                                                         HelperClass.sigma(self, starports[0].y)))]
         elif self.reqSteps == 1:
             self.reqSteps = 0
-            if HelperClass.select_unit(self, obs, units.Terran.Starport):
+            if HelperClass.is_unit_selected(self, obs, units.Terran.Starport):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Medivac_quick.id):
                     new_action = [actions.FUNCTIONS.Train_Medivac_quick("now")]
+        ActionSingelton().set_action(new_action)
+
+
+    def build_scv(self, obs, free_supply):
+
+        new_action = [actions.FUNCTIONS.no_op()]
+        command_centers = HelperClass.get_units(self, obs, units.Terran.CommandCenter)
+        if self.reqSteps == 0:
+            self.reqSteps = 3
+
+        elif self.reqSteps == 3:
+            self.reqSteps = 2
+            new_action = [
+                HelperClass.move_camera_to_base_location(self, obs)
+            ]
+        elif self.reqSteps == 2:
+            self.reqSteps = 1
+            if len(command_centers) > 0:
+                new_action = [actions.FUNCTIONS.select_point("select",
+                                                             (HelperClass.sigma(self, command_centers[0].x),
+                                                              HelperClass.sigma(self, command_centers[0].y)))]
+        elif self.reqSteps == 1:
+            self.reqSteps = 0
+            suv_units = HelperClass.get_units(self, obs, units.Terran.SCV)
+            if len(suv_units) < 15:
+                if HelperClass.is_unit_selected(self, obs, units.Terran.CommandCenter):
+                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
+                                             ) and HelperClass.not_in_queue(self, obs, units.Terran.CommandCenter
+                                                                            ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
+                        new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
         ActionSingelton().set_action(new_action)
 
     def findall_barracks(self, obs):
