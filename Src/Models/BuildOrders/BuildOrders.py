@@ -246,9 +246,17 @@ class BuildOrders(base_agent.BaseAgent):
                         else:
                             self.reqSteps = 1
                 else:
-                    target = BuildOrders.choose_screen_location(self, top_start)
-                    new_action = HelperClass.place_building(self, obs, units.Terran.CommandCenter, target[0], target[1])
-
+                    if HelperClass.select_unit(self, obs, units.Terran.SCV):
+                        if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
+                            target = BuildOrders.choose_screen_location(self, top_start)
+                            new_action = [
+                                actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
+                            if self.base_location[0] < 32:
+                                expo_target = Coordinates.EXPO_LOCATIONS[self.expo_loc]
+                            else:
+                                expo_target = Coordinates.EXPO_LOCATIONS2[self.expo_loc]
+                            self.game_state.add_unit_in_progress(self, expo_target, (42, 42),
+                                                                 units.Terran.CommandCenter.value)
             self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 

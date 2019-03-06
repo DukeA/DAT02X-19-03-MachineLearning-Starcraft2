@@ -8,17 +8,21 @@ class Selector():
 
     def selector(self):
 
-        # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
-        if self.steps < 16*60*5/5*1.4:
-            return BuildSelector.buildSelector(self)
+        if self.reqSteps == 0 and not self.game_state_updated:
+            return "updateState"
         else:
-            if self.reqSteps == -1:    # Kollar om AttackSelectorn precis räknade armén
-                return AttackSelector.attackSelector(self)
+            self.game_state_updated = False
+            # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
+            if self.steps < 16 * 60 * 5 / 5 * 1.4:
+                return BuildSelector.buildSelector(self)
             else:
-                action = random.random()
-                if action <= 0.25:
+                if self.reqSteps == -1:  # Kollar om AttackSelectorn precis räknade armén
                     return AttackSelector.attackSelector(self)
                 else:
-                    return BuildSelector.buildSelector(self)
+                    action = random.random()
+                    if action <= 0.25:
+                        return AttackSelector.attackSelector(self)
+                    else:
+                        return BuildSelector.buildSelector(self)
 
         return BuildSelector.buildSelector(self)

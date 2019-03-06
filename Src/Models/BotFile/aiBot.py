@@ -1,22 +1,24 @@
 
 
 from pysc2.agents import base_agent
-from pysc2.lib import actions, features
+from pysc2.lib import actions, features, units
 
 from Models.BuildOrders.BuildOrdersController import BuildOrdersController
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
 from Models.BuildOrders.ActionSingleton import ActionSingleton
+from Models.BuildOrders.DistributeSCV import DistributeSCV
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
+from Models.BotFile.State import State
 
 selectors = ['buildSelector', 'attackSelector']
 
 # Might be unnecessary depending on implementation of randomness
 attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']
-buildSelector = ['build_scv', 'build_supply_depot', "build_marine","build_factory","build_starport","expand_barracks",
-                 'build_barracks', 'build_refinery', 'return_scv', 'expand', 'no_op']
+buildSelector = ['build_scv', 'build_supply_depot', "build_marine", "build_factory", "build_starport","expand_barracks",
+                 'build_barracks', 'build_refinery', 'distribute_scv', 'return_scv', 'expand', 'no_op']
 
 
 
@@ -31,6 +33,9 @@ class AiBot(base_agent.BaseAgent):
         self.doBuild = None
         self.doAttack = None
         self.new_action = None
+        self.DistributeSCVInstance = None
+        self.game_state = None
+        self.game_state_updated = False
 
         # Basic game state test variables.
 
@@ -76,12 +81,19 @@ class AiBot(base_agent.BaseAgent):
                 self.attack_coordinates = Coordinates.START_LOCATIONS[0]
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
+            self.game_state = State()
+            self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.next_action = Selector.selector(self)
+
+        if self.next_action == "updateState":
+            self.game_state.update_state(self, obs)
+            action = ActionSingelton().get_action()
 
         if self.next_action == "expand":
             BuildOrdersController.build_expand(self, obs, self.start_top)
@@ -90,6 +102,12 @@ class AiBot(base_agent.BaseAgent):
         elif self.next_action == "build_scv":  # build scv
             UnitBuildOrdersController.build_scv(self, obs, free_supply)
             action = ActionSingleton().get_action()
+
+        elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
+            if self.reqSteps == 0:
+                self.DistributeSCVInstance = DistributeSCV()
+            self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
+            action = ActionSingelton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
             BuildOrdersController.build_supplaydepot(self, obs, free_supply)

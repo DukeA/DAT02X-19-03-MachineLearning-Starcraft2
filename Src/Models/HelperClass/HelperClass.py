@@ -102,8 +102,9 @@ class HelperClass(base_agent.BaseAgent):
         if HelperClass.not_in_progress(self, obs, building_type):
             if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
                 if HelperClass.do_action(self, obs, build_screen_action.id):
-                    new_action = [build_screen_action("now",
-                                                      (HelperClass.sigma(self, coordinates[0]),
-                                                       HelperClass.sigma(self, coordinates[1])))]
+                    coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
+                    new_action = [build_screen_action("now", coordinates)]
+                    if building_type is not units.Terran.CommandCenter:
+                        self.game_state.add_unit_in_progress(self, self.base_location, coordinates, building_type.value)
 
         return new_action
