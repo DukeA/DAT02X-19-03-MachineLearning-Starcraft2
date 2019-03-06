@@ -22,3 +22,18 @@ class IsPossible(base_agent.BaseAgent):
 
     def build_command_center_possible(self, obs):
         return obs.observation.player.minerals >= 500
+
+    def build_factory_possible(self, obs):
+        return True
+
+    def build_starport_possible(self, obs):
+        return True
+
+    def upgrade_barracks_possible(self, obs):
+        return True
+
+    def build_marauder_possible(self, obs):
+        return True
+
+    def build_medivac_possible(self, obs):
+        return True

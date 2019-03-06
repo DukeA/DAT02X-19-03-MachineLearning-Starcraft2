@@ -108,7 +108,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingelton().get_action()
 
         elif self.next_action == "build_marine":
-            UnitBuildOrdersController.train_marines(self, obs, free_supply)
+            UnitBuildOrdersController.train_marines(self, obs)
             action = ActionSingelton().get_action()
 
         elif self.next_action == "build_marauder":
