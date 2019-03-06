@@ -44,6 +44,11 @@ class AiBot(base_agent.BaseAgent):
 
     def step(self, obs):
         super(AiBot, self).step(obs)
+        for i in range(len(obs.observation.last_actions)):
+            if obs.observation.last_actions[i] == 91:
+                print("Supply depot built at step "+str(self.steps))
+            if obs.observation.last_actions[i] == 44:
+                print("Command Center built at step "+str(self.steps))
 
         # Basic game state test.
 
@@ -115,8 +120,28 @@ class AiBot(base_agent.BaseAgent):
             UnitBuildOrdersController.train_marauder(self, obs, free_supply)
             action = ActionSingelton().get_action()
 
+        elif self.next_action == "build_reaper":
+            UnitBuildOrdersController.train_reaper(self, obs, free_supply)
+            action = ActionSingelton().get_action()
+
+        elif self.next_action == "build_hellion":
+            UnitBuildOrdersController.train_hellion(self, obs, free_supply)
+            action = ActionSingelton().get_action()
+
         elif self.next_action == "build_medivac":
             UnitBuildOrdersController.train_medivac(self, obs, free_supply)
+            action = ActionSingelton().get_action()
+
+        elif self.next_action == "build_viking":
+            UnitBuildOrdersController.train_viking(self, obs, free_supply)
+            action = ActionSingelton().get_action()
+
+        elif self.next_action == "transform_viking_to_ground":
+            UnitBuildOrdersController.transform_viking_to_ground(self, obs)
+            action = ActionSingelton().get_action()
+
+        elif self.next_action == "transform_viking_to_air":
+            UnitBuildOrdersController.transform_viking_to_air(self, obs)
             action = ActionSingelton().get_action()
 
         elif self.next_action == "army_count":
@@ -127,23 +152,21 @@ class AiBot(base_agent.BaseAgent):
             ArmyControlController.attack(self, obs)
             action = ActionSingelton().get_action()
 
-
-        elif self.doBuild =="build_factory":
-            BuildOrderController.build_factory(self,obs)
+        elif self.next_action == "build_factory":
+            BuildOrderController.build_factory(self, obs)
             action = ActionSingelton().get_action()
 
-        elif self.doBuild =="build_starport":
-            BuildOrderController.build_starport(self,obs)
+        elif self.next_action == "build_starport":
+            BuildOrderController.build_starport(self, obs)
             action = ActionSingelton().get_action()
 
-        elif self.doBuild =="expand_barracks":
-            BuildOrderController.upgrade_barracks(self,obs)
+        elif self.next_action == "expand_barracks":
+            BuildOrderController.upgrade_barracks(self, obs)
             action = ActionSingelton().get_action()
 
         elif self.next_action == "retreat":
             ArmyControlController.retreat(self, obs)
             action = ActionSingelton().get_action()
-
 
         elif self.next_action == "scout":
             ArmyControlController.scout(self, obs)

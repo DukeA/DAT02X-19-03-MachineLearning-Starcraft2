@@ -4,7 +4,7 @@ import random
 class BuildSelector():
     def buildSelector(self):
         possible_actions = BuildSelector.possible_build_actions(self)
-        return (random.choice(possible_actions))
+        return random.choice(possible_actions)
 
     # True ska buytas ut mot is possible metoderna
     def possible_build_actions(self):
@@ -18,7 +18,17 @@ class BuildSelector():
         if True:
             poss_actions.append("build_marauder")
         if True:
+            poss_actions.append("build_reaper")
+        if True:
+            poss_actions.append("build_hellion")
+        if True:
             poss_actions.append("build_medivac")
+        if True:
+            poss_actions.append("build_viking")
+        if True:
+            poss_actions.append("transform_viking_to_ground")
+        if True:
+            poss_actions.append("transform_viking_to_air")
         if True:
             poss_actions.append("build_barracks")
         if True:
