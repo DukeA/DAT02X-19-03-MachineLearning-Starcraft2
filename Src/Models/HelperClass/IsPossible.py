@@ -24,16 +24,19 @@ class IsPossible(base_agent.BaseAgent):
         return obs.observation.player.minerals >= 500
 
     def build_factory_possible(self, obs):
-        return True
+        return False
 
     def build_starport_possible(self, obs):
-        return True
+        return False
 
     def upgrade_barracks_possible(self, obs):
-        return True
+        return False
 
     def build_marauder_possible(self, obs):
-        return True
+        return False
 
     def build_medivac_possible(self, obs):
-        return True
+        return False
+
+    def build_techlab_possible(self, obs):
+        return False

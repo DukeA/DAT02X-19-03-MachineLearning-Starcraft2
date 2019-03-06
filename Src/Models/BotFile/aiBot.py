@@ -89,7 +89,7 @@ class AiBot(base_agent.BaseAgent):
         action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0 or self.reqSteps == -1:
-            self.next_action = Selector.selector(self)
+            self.next_action = Selector.selector(self, obs)
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
