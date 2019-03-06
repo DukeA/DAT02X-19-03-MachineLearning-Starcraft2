@@ -1,7 +1,7 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 import numpy as np
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.Predefines.Coordinates import Coordinates
 import random
 
@@ -79,7 +79,7 @@ class HelperClass(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             self.reqSteps = 0
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def place_building(self, obs, building_type, *coordinates):
 

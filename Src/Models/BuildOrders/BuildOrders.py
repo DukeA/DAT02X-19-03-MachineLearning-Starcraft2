@@ -4,7 +4,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
 from Models.Predefines.Coordinates import Coordinates
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
 from Models.HelperClass.IsPossible import IsPossible
 
@@ -51,7 +51,7 @@ class BuildOrders(base_agent.BaseAgent):
                     new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0], coordinates[1])
 
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def build_supply_depot(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -70,7 +70,7 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = HelperClass.place_building(self, obs, units.Terran.SupplyDepot)
 
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def build_refinery(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -90,7 +90,7 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = HelperClass.place_building(self, obs, units.Terran.Refinery, geyser[0].x, geyser[0].y)
 
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def return_scv(self, obs):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -115,7 +115,7 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
                     "now", (HelperClass.sigma(self, minerals[0].x),
                             HelperClass.sigma(self, minerals[0].y)))]
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     """
         @Author Adam Grandén
@@ -142,7 +142,7 @@ class BuildOrders(base_agent.BaseAgent):
             elif self.reqSteps == 1:
                 new_action = HelperClass.place_building(self, obs, units.Terran.Factory)
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
         """
             @Author Adam Grandén
@@ -170,7 +170,7 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = HelperClass.place_building(self, obs, units.Terran.Starport)
 
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
         """
             @Author Adam Grandén
@@ -203,7 +203,7 @@ class BuildOrders(base_agent.BaseAgent):
                         if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_quick.id):
                             new_action = [actions.FUNCTIONS.Build_TechLab_quick("now")]
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def expand(self, obs, top_start):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -250,7 +250,7 @@ class BuildOrders(base_agent.BaseAgent):
                     new_action = HelperClass.place_building(self, obs, units.Terran.CommandCenter, target[0], target[1])
 
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def choose_screen_location(self, top_start):  # returns a location based on the start location
         if top_start:

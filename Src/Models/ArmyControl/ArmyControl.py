@@ -1,7 +1,7 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units, features
 import numpy as np
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.Predefines.Coordinates import Coordinates
 from Models.HelperClass.HelperClass import HelperClass
 import random
@@ -76,7 +76,7 @@ class ArmyControl(base_agent.BaseAgent):
                 self.action_finished = True
                 new_action = [actions.FUNCTIONS.Attack_screen("now", screen_location)]
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def retreat(self, obs, location=None):
         """Selects all army units and issues a move order.
@@ -104,7 +104,7 @@ class ArmyControl(base_agent.BaseAgent):
                 self.action_finished = True
                 new_action = [actions.FUNCTIONS.Move_minimap("now", [location[0], location[1]])]
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def scout(self, obs):
         """Selects a random SCV and issues a move order to an enemy base.
@@ -138,7 +138,7 @@ class ArmyControl(base_agent.BaseAgent):
                     self.action_finished = True
                     new_action = [actions.FUNCTIONS.Move_minimap("now", self.scout_location)]
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def count_army(self, obs):
         """Selects all army units and counts them. Currently only counts marines.
@@ -165,4 +165,4 @@ class ArmyControl(base_agent.BaseAgent):
 
             self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)

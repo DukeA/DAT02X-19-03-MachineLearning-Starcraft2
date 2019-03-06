@@ -2,7 +2,7 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
 from Models.HelperClass.IsPossible import IsPossible
 import random
@@ -45,7 +45,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                                 new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
 
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def build_marauder(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -70,7 +70,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                         new_action = [actions.FUNCTIONS.Train_Marauder_quick("now")]
 
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def build_medivac(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -94,7 +94,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                     if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Medivac_quick.id):
                         new_action = [actions.FUNCTIONS.Train_Medivac_quick("now")]
             self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def build_scv(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
@@ -124,7 +124,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                                                  ) and HelperClass.not_in_queue(self, obs, units.Terran.CommandCenter
                                                                                 ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
                             new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     def findall_barracks(self, obs):
         barracks_location = []
