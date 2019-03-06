@@ -5,7 +5,7 @@ import statistics
 from pysc2.lib import actions, units, features
 from collections import defaultdict
 
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 
 
 class State:
@@ -113,7 +113,7 @@ class State:
                     for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
                         self.units_amount[unit_type] = unit_type_count
 
-        ActionSingelton().set_action(new_action)
+        ActionSingleton().set_action(new_action)
 
     # Method for adding placed buildings to the building queue units_in_progress. Takes current camera_coordinate
     # and the unit type of the building placed.

@@ -93,7 +93,7 @@ class AiBot(base_agent.BaseAgent):
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         if self.next_action == "expand":
             BuildOrdersController.build_expand(self, obs, self.start_top)
@@ -107,7 +107,7 @@ class AiBot(base_agent.BaseAgent):
             if self.reqSteps == 0:
                 self.DistributeSCVInstance = DistributeSCV()
             self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
-            action = ActionSingelton().get_action()
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
             BuildOrdersController.build_supplaydepot(self, obs, free_supply)

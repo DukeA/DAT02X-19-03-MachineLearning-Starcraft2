@@ -137,7 +137,7 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
             elif self.reqSteps == 2:
-                new_action = BuildOrders.select_scv(self, obs)
+                new_action = HelperClass.select_scv(self, obs)
 
             elif self.reqSteps == 1:
                 new_action = HelperClass.place_building(self, obs, units.Terran.Factory)
@@ -164,7 +164,7 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
             elif self.reqSteps == 2:
-                new_action = BuildOrders.select_scv(self, obs)
+                new_action = HelperClass.select_scv(self, obs)
 
             elif self.reqSteps == 1:
                 new_action = HelperClass.place_building(self, obs, units.Terran.Starport)
@@ -246,16 +246,13 @@ class BuildOrders(base_agent.BaseAgent):
                         else:
                             self.reqSteps = 1
                 else:
-                    if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                        if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
-                            target = BuildOrders.choose_screen_location(self, top_start)
-                            new_action = [
-                                actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
-                            if self.base_location[0] < 32:
-                                expo_target = Coordinates.EXPO_LOCATIONS[self.expo_loc]
-                            else:
-                                expo_target = Coordinates.EXPO_LOCATIONS2[self.expo_loc]
-                            self.game_state.add_unit_in_progress(self, expo_target, (42, 42),
+                    target = BuildOrders.choose_screen_location(self, top_start)
+                    new_action = HelperClass.place_building(self, obs, units.Terran.CommandCenter, target[0], target[1])
+                    if self.base_location[0] < 32:
+                        expo_target = Coordinates.EXPO_LOCATIONS[self.expo_loc]
+                    else:
+                        expo_target = Coordinates.EXPO_LOCATIONS2[self.expo_loc]
+                    self.game_state.add_unit_in_progress(self, expo_target, (42, 42),
                                                                  units.Terran.CommandCenter.value)
             self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -337,17 +334,3 @@ class BuildOrders(base_agent.BaseAgent):
             return True
 
         return False
-
-    def select_scv(self, obs):
-        new_action = [actions.FUNCTIONS.no_op()]
-        command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
-        if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
-            if (obs.observation.player.idle_worker_count > 0):
-                new_action = [actions.FUNCTIONS.select_idle_worker(
-                    "select", obs, units.Terran.SCV)]
-            else:
-                command = random.choice(command_scv)
-                new_action = [actions.FUNCTIONS.select_point(
-                    "select", (HelperClass.sigma(self, command.x),
-                               HelperClass.sigma(self, command.y)))]
-        return new_action
