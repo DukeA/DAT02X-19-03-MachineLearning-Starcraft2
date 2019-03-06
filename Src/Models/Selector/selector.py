@@ -7,7 +7,6 @@ from Models.Selector.attackSelector import AttackSelector
 class Selector():
 
     def selector(self):
-        print("hello1")
 
         # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
         if self.steps < 16*60*5/5*1.4:
