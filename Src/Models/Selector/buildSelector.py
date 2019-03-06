@@ -34,6 +34,8 @@ class BuildSelector():
         if True:
             poss_actions.append("build_refinery")
         if True:
+            poss_actions.append("distribute_scv")
+        if True:
             poss_actions.append("return_scv")
         if True:
             poss_actions.append("expand")
