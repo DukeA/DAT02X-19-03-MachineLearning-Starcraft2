@@ -8,8 +8,7 @@ class Selector():
 
     def selector(self):
 
-        #if self.reqSteps == 0:
-        if not self.game_state_updated:
+        if self.reqSteps == 0 and not self.game_state_updated:
             return "updateState"
         else:
             self.game_state_updated = False
@@ -25,10 +24,5 @@ class Selector():
                         return AttackSelector.attackSelector(self)
                     else:
                         return BuildSelector.buildSelector(self)
-            #self.game_state_updated = False
-            #if self.steps < 16*60*5/5*1.4:  # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
-            #    self.selector = 'buildSelector'
-            #else:
-            #    self.selector = random.choice(selectors)
 
         return BuildSelector.buildSelector(self)
