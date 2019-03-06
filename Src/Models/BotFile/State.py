@@ -82,8 +82,8 @@ class State:
                         self.units_in_progress[index] = curr_unit
                         # Select the unit. Random perturbation added so a slightly different point is
                         # selected each time, in case some other unit is blocking the unit found.
-                        new_action = [actions.FUNCTIONS.select_point("select", (selected_unit.x+random.randint(0, 3),
-                                                                                selected_unit.y+random.randint(0, 3)))]
+                        new_action = [actions.FUNCTIONS.select_point("select", (selected_unit.x+random.randint(0, 5),
+                                                                                selected_unit.y+random.randint(0, 5)))]
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 0:
                     if curr_unit[3]:  # Check if the current unit was found in the previous step
                         # If it was found but the type is wrong, go back to the previous step and select again
@@ -126,10 +126,10 @@ class State:
             print("Type of unit_type must be an integer.")
             return False
         else:  # Everything of correct type. Add to building queue
-            if screen_coordinate[1] > 42:
-                old_camera_coordinate = camera_coordinate
-                camera_coordinate = [coord for coord in old_camera_coordinate]
-                camera_coordinate[1] = camera_coordinate[1] + 3
+            old_camera_coordinate = camera_coordinate
+            camera_coordinate = [coord for coord in old_camera_coordinate]
+            camera_coordinate[0] = camera_coordinate[0] + (screen_coordinate[0]-42) / 84 * 7
+            camera_coordinate[1] = camera_coordinate[1] + (screen_coordinate[1] - 42) / 84 * 7
             self.units_in_progress.append([camera_coordinate, unit_type, bot_obj.steps, False])
             return True
 
