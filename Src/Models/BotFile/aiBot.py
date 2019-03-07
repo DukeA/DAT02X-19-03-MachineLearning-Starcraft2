@@ -1,5 +1,3 @@
-
-
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 
@@ -12,14 +10,6 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
-
-selectors = ['buildSelector', 'attackSelector']
-
-# Might be unnecessary depending on implementation of randomness
-attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']
-buildSelector = ['build_scv', 'build_supply_depot', "build_marine", "build_factory", "build_starport", "expand_barracks",
-                 'build_barracks', 'build_refinery', 'distribute_scv', 'return_scv', 'expand', 'no_op']
-
 
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
@@ -49,17 +39,6 @@ class AiBot(base_agent.BaseAgent):
     def step(self, obs):
         super(AiBot, self).step(obs)
 
-        # Basic game state test.
-
-        if self.action_finished:
-            self.action_finished = False
-            if self.selector == "attackSelector":
-                self.action_data.append((self.selector, self.doAttack,
-                                         self.steps, self.marine_count))
-                print((self.selector, self.doAttack, self.steps, self.marine_count))
-
-        # End of basic game state test.
-
         # first step
         if obs.first():
             # Räknaren resettas inte mellan games/episoder. Vet ej om detta är en bra lösning.
@@ -81,8 +60,8 @@ class AiBot(base_agent.BaseAgent):
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
             self.game_state = State()
-            self.game_state.add_unit_in_progress(
-                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            # The command center isn't actually in the center of the screen!
+            self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
@@ -100,7 +79,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
-            UnitBuildOrdersController.build_scv(self, obs, free_supply)
+            UnitBuildOrdersController.build_scv(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
@@ -110,7 +89,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
-            BuildOrdersController.build_supplaydepot(self, obs, free_supply)
+            BuildOrdersController.build_supply_depot(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_barracks":
@@ -130,11 +109,23 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_marauder":
-            UnitBuildOrdersController.train_marauder(self, obs, free_supply)
+            UnitBuildOrdersController.train_marauder(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "build_reaper":
+            UnitBuildOrdersController.train_reaper(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "build_hellion":
+            UnitBuildOrdersController.train_hellion(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_medivac":
-            UnitBuildOrdersController.train_medivac(self, obs, free_supply)
+            UnitBuildOrdersController.train_medivac(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "build_viking":
+            UnitBuildOrdersController.train_viking(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "army_count":
@@ -163,6 +154,14 @@ class AiBot(base_agent.BaseAgent):
 
         elif self.next_action == "scout":
             ArmyControlController.scout(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "transform_vikings_to_ground":
+            ArmyControlController.transform_vikings_to_ground(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "transform_vikings_to_air":
+            ArmyControlController.transform_vikings_to_air(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "no_op":
