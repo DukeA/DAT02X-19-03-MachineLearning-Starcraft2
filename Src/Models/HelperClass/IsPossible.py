@@ -31,7 +31,7 @@ class IsPossible(base_agent.BaseAgent):
     def build_starport_possible(self, obs):
         return obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
 
-    def upgrade_barracks_possible(self, obs):
+    def build_techlab_possible(self, obs):
         return obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 25
 
     def build_marauder_possible(self, obs):
@@ -63,6 +63,3 @@ class IsPossible(base_agent.BaseAgent):
                and obs.observation.player.vespene >= 100\
                and (obs.observation.player.food_cap -
                     obs.observation.player.food_used) >= 2
-
-    def build_techlab_possible(self, obs):
-        return False

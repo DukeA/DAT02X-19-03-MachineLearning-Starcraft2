@@ -57,7 +57,7 @@ class BuildSelector():
             poss_actions.append("build_starport")
 
         if IsPossible.build_techlab_possible(self, obs):
-            poss_actions.append("build_tech_lab")
+            poss_actions.append("build_tech_lab_barracks")
 
         if True:
             poss_actions.append("no_op")

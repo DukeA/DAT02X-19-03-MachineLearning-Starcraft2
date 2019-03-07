@@ -40,5 +40,5 @@ class BuildOrdersController(base_agent.BaseAgent):
     def build_factory(self, obs):
         BuildOrders.build_factory(self, obs)
 
-    def upgrade_barracks(self, obs):
-        BuildOrders.upgrade_barracks(self, obs)
+    def build_tech_lab_barracks(self, obs):
+        BuildOrders.build_tech_lab_barracks(self, obs)

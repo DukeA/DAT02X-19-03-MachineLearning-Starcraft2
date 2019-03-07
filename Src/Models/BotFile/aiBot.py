@@ -55,12 +55,7 @@ class AiBot(base_agent.BaseAgent):
             # The command center isn't actually in the center of the screen!
             self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
-        free_supply = (obs.observation.player.food_cap -
-                       obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
-
-        print(self.reqSteps)
-        print(self.next_action)
 
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.earlier_action = self.next_action
@@ -140,8 +135,8 @@ class AiBot(base_agent.BaseAgent):
             BuildOrdersController.build_starport(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.next_action == "expand_barracks":
-            BuildOrdersController.upgrade_barracks(self, obs)
+        elif self.next_action == "build_tech_lab_barracks":
+            BuildOrdersController.build_tech_lab_barracks(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "retreat":

@@ -31,6 +31,28 @@ class State:
         self.units_amounts_updated = False
         self.unit_weight = 50
 
+        # Constants
+        # Action space of actions whose success is easily evaluated with observation.last_actions[0].
+        self.action_space = {
+            42: "build_barracks",
+            91: "build_supply_depot",
+            79: "build_refinery",
+            44: "expand",
+            76: "build_factory",
+            89: "build_starport",
+            94: "build_tech_lab_barracks",
+            477: "build_marine",
+            476: "build_marauder",
+            488: "build_reaper",
+            470: "build_hellion",
+            478: "build_medivac",
+            498: "build_viking",
+            490: "build_scv",
+            0: "no_op"
+        }
+        # For reference, the rest of the action space is:
+        # attack, retreat, scout, distribute_scv, transform_vikings_to_ground and transform_vikings_to_air
+
     def update_state(self, bot_obj, obs):
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
 
@@ -49,8 +71,17 @@ class State:
 
             # Find latest issued action
             if bot_obj.action_finished:
+                # This catches everything in ArmyControl, return_scv() and distribute_scv()
                 bot_obj.action_finished = False
                 self.action_issued = bot_obj.earlier_action
+            else:
+                # This catches the rest
+                if len(obs.observation.last_actions) > 0:
+                    self.action_issued = self.action_space.get(obs.observation.last_actions[0], "no_op")
+
+            # TODO: When was the high-level action actually issued by the bot?
+            # Ideas: Hard code it.
+            # Other idea: a step counter that starts when reqSteps = 0 and terminates when reqSteps = 0 again.
 
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \
