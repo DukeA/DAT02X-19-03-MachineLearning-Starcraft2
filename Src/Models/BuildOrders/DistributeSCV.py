@@ -230,7 +230,8 @@ class DistributeSCV:
                                     self.first_scv_selected = False
 
                     #  Check if all Command Centers have less than maximum amount of mineral harvesting SCV:s
-                    elif abs(self.num_CC_minerals_checked) == self.num_command_centers:
+                    elif abs(self.num_CC_minerals_checked) == self.num_command_centers\
+                            and self.curr_step >= 2*len(command_centers_pos):
                         self.all_CC_checked = True
 
         self.curr_step += 1
