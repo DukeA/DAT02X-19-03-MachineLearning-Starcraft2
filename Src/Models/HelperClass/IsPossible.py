@@ -20,8 +20,7 @@ class IsPossible(base_agent.BaseAgent):
         return obs.observation.player.minerals >= 150
 
     def build_refinery_possible(self, obs):
-        refineries = HelperClass.get_units(self, obs, units.Terran.Refinery)
-        return obs.observation.player.minerals >= 75 and len(refineries) < 2
+        return obs.observation.player.minerals >= 75
 
     def build_command_center_possible(self, obs):
         return obs.observation.player.minerals >= 400

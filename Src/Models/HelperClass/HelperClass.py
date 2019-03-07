@@ -72,6 +72,22 @@ class HelperClass(base_agent.BaseAgent):
         return [unit for unit in obs.observation.feature_units
                 if unit.unit_type == unit_type]
 
+    def get_current_minimap_location(self, obs):
+        """
+        Gets the current minimap location (which corresponds to the move_camera coordinate)
+        """
+        x = []
+        y = []
+        for i in range(64):
+            for j in range(64):
+                if obs.observation.feature_minimap.camera[j][i] == 1:
+                    x.append(i)
+                    y.append(j)
+
+        # Why +4? Because move_camera(x, y) moves the camera so that it covers the minimap coordinates from
+        # x-4 to x+2 and y-4 to y+2. Why? No idea.
+        return min(x)+4, min(y)+4
+
     def no_op(self, obs):
 
         new_action = [actions.FUNCTIONS.no_op()]
@@ -110,6 +126,7 @@ class HelperClass(base_agent.BaseAgent):
                 coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
                 new_action = [build_screen_action("now", coordinates)]
                 if building_type is not units.Terran.CommandCenter:
-                    self.game_state.add_unit_in_progress(self, self.base_location, coordinates, building_type.value)
+                    self.game_state.add_unit_in_progress(
+                        self, HelperClass.get_current_minimap_location(self, obs), coordinates, building_type.value)
 
         return new_action

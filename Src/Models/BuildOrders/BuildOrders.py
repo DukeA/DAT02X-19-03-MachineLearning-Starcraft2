@@ -65,6 +65,7 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         if self.reqSteps == 2:
+            HelperClass.get_current_minimap_location(self, obs)
             new_action = HelperClass.select_scv(self, obs)
 
         elif self.reqSteps == 1:
@@ -82,28 +83,45 @@ class BuildOrders(base_agent.BaseAgent):
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.expo_loc = -1
+            self.reqSteps = 4
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 4:
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
-        elif self.reqSteps == 2:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_scv(self, obs)
 
-        elif self.reqSteps == 1:
+        if self.reqSteps == 2:
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+
+        if self.reqSteps == 1:
             geyser = HelperClass.get_units(self, obs, units.Neutral.VespeneGeyser)
             refineries = HelperClass.get_units(self, obs, units.Terran.Refinery)
             if len(refineries) == 0:
-                new_action = HelperClass.place_building(self, obs, units.Terran.Refinery, geyser[0].x, geyser[0].y)
-            if len(refineries) == 1:
-                geyser_loc_1 = (geyser[0].x, geyser[0].y)
-                geyser_loc_2 = (geyser[1].x, geyser[1].y)
-                if geyser_loc_1[0] == refineries[0].x and geyser_loc_1[1] == refineries[0].y:
-                    new_action = HelperClass.place_building(
-                        self, obs, units.Terran.Refinery, geyser_loc_2[0], geyser_loc_2[1])
-                else:
-                    new_action = HelperClass.place_building(
-                        self, obs, units.Terran.Refinery, geyser_loc_1[0], geyser_loc_1[1])
+                if len(HelperClass.get_units(self, obs, units.Terran.CommandCenter)) > 0:
+                    new_action = HelperClass.place_building(self, obs, units.Terran.Refinery, geyser[0].x, geyser[0].y)
+            if len(refineries) == 1 and len(geyser) == 2:
+                if len(HelperClass.get_units(self, obs, units.Terran.CommandCenter)) > 0:
+                    geyser_loc_1 = (geyser[0].x, geyser[0].y)
+                    geyser_loc_2 = (geyser[1].x, geyser[1].y)
+                    if geyser_loc_1[0] == refineries[0].x and geyser_loc_1[1] == refineries[0].y:
+                        new_action = HelperClass.place_building(
+                            self, obs, units.Terran.Refinery, geyser_loc_2[0], geyser_loc_2[1])
+                    else:
+                        new_action = HelperClass.place_building(
+                            self, obs, units.Terran.Refinery, geyser_loc_1[0], geyser_loc_1[1])
+            # In case there's only one visible geyser/refinery on the screen:
+            if len(refineries) == 2 or (len(refineries) == 1 and len(geyser) == 1):
+                if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc + 1:
+                    self.reqSteps = 2
+                    self.expo_loc += 1
+                    if self.expo_loc < len(Coordinates.CC_LOCATIONS):
+                        target = BuildOrders.choose_location(self, self.start_top)
+                        new_action = [
+                            actions.FUNCTIONS.move_camera(target)]
+                    else:
+                        self.reqSteps = 1
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -121,9 +139,7 @@ class BuildOrders(base_agent.BaseAgent):
                     "select", obs, units.Terran.SCV)]
 
         if self.reqSteps == 2:
-            target = self.base_location
-            new_action = [
-                actions.FUNCTIONS.move_camera(target)]
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         if self.reqSteps == 1:  # Check if there are minerals. If there aren't, move to the next location
             minerals = HelperClass.get_units(self, obs, units.Neutral.MineralField) +\
@@ -152,10 +168,12 @@ class BuildOrders(base_agent.BaseAgent):
                                     new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
                                         "now", (HelperClass.sigma(self, refineries[i].x),
                                                 HelperClass.sigma(self, refineries[i].y)))]
+                                    self.action_finished = True
                         else:
                             new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
                                 "now", (HelperClass.sigma(self, minerals[0].x),
                                         HelperClass.sigma(self, minerals[0].y)))]
+                            self.action_finished = True
         self.reqSteps -= 1
 
         ActionSingleton().set_action(new_action)
@@ -299,7 +317,7 @@ class BuildOrders(base_agent.BaseAgent):
             else:
                 target = BuildOrders.choose_screen_location(self, top_start)
                 new_action = HelperClass.place_building(self, obs, units.Terran.CommandCenter, target[0], target[1])
-                minimap_location = BuildOrders.choose_location(self, self.start_top)
+                minimap_location = HelperClass.get_current_minimap_location(self, obs)
                 self.game_state.add_unit_in_progress(self, minimap_location, target,
                                                      units.Terran.CommandCenter.value)
 
