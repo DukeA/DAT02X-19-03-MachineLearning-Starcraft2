@@ -51,7 +51,7 @@ class State:
             0: "no_op"
         }
         # For reference, the rest of the action space is:
-        # attack, retreat, scout, distribute_scv, transform_vikings_to_ground and transform_vikings_to_air
+        # {attack, retreat, scout, distribute_scv, transform_vikings_to_ground, transform_vikings_to_air}
 
     def update_state(self, bot_obj, obs):
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
