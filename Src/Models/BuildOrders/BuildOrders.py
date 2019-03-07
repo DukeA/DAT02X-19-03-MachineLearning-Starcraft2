@@ -51,10 +51,6 @@ class BuildOrders(base_agent.BaseAgent):
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 
-            self.reqSteps -= 1
-
-        ActionSingelton().set_action(new_action)
-
     def build_supply_depot(self, obs, free_supply):
 
         new_action = [actions.FUNCTIONS.no_op()]
