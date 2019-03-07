@@ -1,6 +1,8 @@
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
 
+from Models.HelperClass.HelperClass import HelperClass
+
 class IsPossible(base_agent.BaseAgent):
 
     def build_marines_possible(self, obs):
@@ -18,7 +20,8 @@ class IsPossible(base_agent.BaseAgent):
         return obs.observation.player.minerals >= 150
 
     def build_refinery_possible(self, obs):
-        return obs.observation.player.minerals >= 75
+        refineries = HelperClass.get_units(self, obs, units.Terran.Refinery)
+        return obs.observation.player.minerals >= 75 and len(refineries) < 2
 
     def build_command_center_possible(self, obs):
         return obs.observation.player.minerals >= 400

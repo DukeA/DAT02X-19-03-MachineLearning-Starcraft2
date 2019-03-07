@@ -4,7 +4,6 @@ from pysc2.lib import actions, units
 
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
-from Models.HelperClass.IsPossible import IsPossible
 import random
 
 """
@@ -45,26 +44,25 @@ class UnitBuildOrders(base_agent.BaseAgent):
     def build_marauder(self, obs, free_supply):
         new_action = [actions.FUNCTIONS.no_op()]
 
-        if IsPossible.build_marauder_possible(self, obs):
-            if self.reqSteps == 0:
-                self.reqSteps = 3
+        if self.reqSteps == 0:
+            self.reqSteps = 3
 
-            if self.reqSteps == 3:
-                # or maybe another location if we have one for barracks
-                new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+        if self.reqSteps == 3:
+            # or maybe another location if we have one for barracks
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
-            elif self.reqSteps == 2:
-                barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
-                if len(barracks) > 0:
-                    new_action = \
-                        [actions.FUNCTIONS.select_point("select_all_type", (HelperClass.sigma(self, barracks[0].x),
-                                                                            HelperClass.sigma(self, barracks[0].y)))]
-            elif self.reqSteps == 1:
-                if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Marauder_quick.id):
-                        new_action = [actions.FUNCTIONS.Train_Marauder_quick("now")]
+        elif self.reqSteps == 2:
+            barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
+            if len(barracks) > 0:
+                new_action = \
+                    [actions.FUNCTIONS.select_point("select_all_type", (HelperClass.sigma(self, barracks[0].x),
+                                                                        HelperClass.sigma(self, barracks[0].y)))]
+        elif self.reqSteps == 1:
+            if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
+                if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Marauder_quick.id):
+                    new_action = [actions.FUNCTIONS.Train_Marauder_quick("now")]
 
-            self.reqSteps -= 1
+        self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 
     def build_reaper(self, obs, free_supply):

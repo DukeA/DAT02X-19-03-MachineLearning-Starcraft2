@@ -6,6 +6,7 @@ from pysc2.lib import actions, units, features
 from collections import defaultdict
 
 from Models.BuildOrders.ActionSingleton import ActionSingleton
+from Models.HelperClass.HelperClass import HelperClass
 
 
 class State:
@@ -85,8 +86,8 @@ class State:
                         self.units_in_progress[index] = curr_unit
                         # Select the unit. Random perturbation added so a slightly different point is
                         # selected each time, in case some other unit is blocking the unit found.
-                        new_action = [actions.FUNCTIONS.select_point("select", (selected_unit.x+random.randint(0, 5),
-                                                                                selected_unit.y+random.randint(0, 5)))]
+                        new_action = [actions.FUNCTIONS.select_point("select", (HelperClass.sigma(self, selected_unit.x+random.randint(0, 5)),
+                                                                                HelperClass.sigma(self, selected_unit.y+random.randint(0, 5))))]
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 0:
                     if curr_unit[3]:  # Check if the current unit was found in the previous step
                         # If it was found but the type is wrong, go back to the previous step and select again

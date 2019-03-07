@@ -144,15 +144,15 @@ class AiBot(base_agent.BaseAgent):
             ArmyControlController.attack(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.next_action =="build_factory":
+        elif self.next_action == "build_factory":
             BuildOrdersController.build_factory(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.next_action =="build_starport":
+        elif self.next_action == "build_starport":
             BuildOrdersController.build_starport(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.next_action =="expand_barracks":
+        elif self.next_action == "expand_barracks":
             BuildOrdersController.upgrade_barracks(self, obs)
             action = ActionSingleton().get_action()
 
