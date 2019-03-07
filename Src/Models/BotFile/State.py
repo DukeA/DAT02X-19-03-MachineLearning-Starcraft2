@@ -19,6 +19,7 @@ class State:
         self.vespene = 0
         self.score = 0
         self.reward = 0
+        self.action_issued = None
 
         # Variables required for updating the game state
 
@@ -45,6 +46,11 @@ class State:
             oldScore = self.score
             self.score = self.minerals + self.vespene + sum(self.units_amount.values()) * self.unit_weight
             self.reward = self.score - oldScore
+
+            # Find latest issued action
+            if bot_obj.action_finished:
+                bot_obj.action_finished = False
+                self.action_issued = bot_obj.earlier_action
 
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \
@@ -82,7 +88,10 @@ class State:
                     found_units = [unit for unit in obs.observation.feature_units
                                    if unit.unit_type == curr_unit[1] and not unit.is_selected]
                     if len(found_units) > 0:  # If units are found, select the first one (arbitrarily, could choose any)
-                        selected_unit = found_units[0]
+                        unit_squared_center_distances = [(unit.x - 42) ** 2 + (unit.y - 42) ** 2 for unit in
+                                                         found_units]
+                        unit_index = unit_squared_center_distances.index(min(unit_squared_center_distances))
+                        selected_unit = found_units[unit_index]
                         curr_unit[3] = True  # Set the unit as "found" so it can be added in the next step
                         self.units_in_progress[index] = curr_unit
                         # Select the unit. Random perturbation added so a slightly different point is

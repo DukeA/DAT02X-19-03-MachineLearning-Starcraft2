@@ -21,20 +21,12 @@ class AiBot(base_agent.BaseAgent):
         self.selector = None
         self.doBuild = None
         self.doAttack = None
-        self.new_action = None
+        self.next_action = None
+        self.earlier_action = None
         self.DistributeSCVInstance = None
         self.game_state = None
         self.game_state_updated = False
-
-        # Basic game state test variables.
-
-        self.last_scout = 0        # Maybe for ML
-        self.marine_count = 0      # Maybe for ML
         self.action_finished = False
-        # Does this persist between loops? It's a tuple (selector, action, steps, marine_count)
-        self.action_data = []
-
-        # End of basic game state test variables.
 
     def step(self, obs):
         super(AiBot, self).step(obs)
@@ -67,7 +59,11 @@ class AiBot(base_agent.BaseAgent):
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
 
+        print(self.reqSteps)
+        print(self.next_action)
+
         if self.reqSteps == 0 or self.reqSteps == -1:
+            self.earlier_action = self.next_action
             self.next_action = Selector.selector(self, obs)
 
         if self.next_action == "updateState":
