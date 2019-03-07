@@ -83,7 +83,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Reaper_quick.id):
-                    new_action = [actions.FUNCTIONS.Train_Marine_quick("now")]
+                    new_action = [actions.FUNCTIONS.Train_Reaper_quick("now")]
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 
