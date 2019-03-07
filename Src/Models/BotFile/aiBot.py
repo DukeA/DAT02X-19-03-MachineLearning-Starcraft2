@@ -79,7 +79,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
-            UnitBuildOrdersController.build_scv(self, obs, free_supply)
+            UnitBuildOrdersController.build_scv(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
@@ -109,31 +109,23 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_marauder":
-            UnitBuildOrdersController.train_marauder(self, obs, free_supply)
+            UnitBuildOrdersController.train_marauder(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_reaper":
-            UnitBuildOrdersController.train_reaper(self, obs, free_supply)
+            UnitBuildOrdersController.train_reaper(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_hellion":
-            UnitBuildOrdersController.train_hellion(self, obs, free_supply)
+            UnitBuildOrdersController.train_hellion(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_medivac":
-            UnitBuildOrdersController.train_medivac(self, obs, free_supply)
+            UnitBuildOrdersController.train_medivac(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_viking":
-            UnitBuildOrdersController.train_viking(self, obs, free_supply)
-            action = ActionSingleton().get_action()
-
-        elif self.next_action == "transform_viking_to_ground":
-            UnitBuildOrdersController.transform_viking_to_ground(self, obs)
-            action = ActionSingleton().get_action()
-
-        elif self.next_action == "transform_viking_to_air":
-            UnitBuildOrdersController.transform_viking_to_air(self, obs)
+            UnitBuildOrdersController.train_viking(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "army_count":
@@ -162,6 +154,14 @@ class AiBot(base_agent.BaseAgent):
 
         elif self.next_action == "scout":
             ArmyControlController.scout(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "transform_vikings_to_ground":
+            ArmyControlController.transform_vikings_to_ground(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "transform_vikings_to_air":
+            ArmyControlController.transform_vikings_to_air(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "no_op":

@@ -35,12 +35,6 @@ class BuildSelector():
         if IsPossible.build_viking_possible(self, obs):
             poss_actions.append("build_viking")
 
-        if True:
-            poss_actions.append("transform_viking_to_ground")
-
-        if True:
-            poss_actions.append("transform_viking_to_air")
-
         if IsPossible.build_barracks_possible(self, obs):
             poss_actions.append("build_barracks")
 
