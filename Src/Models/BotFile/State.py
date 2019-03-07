@@ -78,7 +78,9 @@ class State:
                     found_units = [unit for unit in obs.observation.feature_units
                                    if unit.unit_type == curr_unit[1] and not unit.is_selected]
                     if len(found_units) > 0:  # If units are found, select the first one (arbitrarily, could choose any)
-                        selected_unit = found_units[0]
+                        unit_squared_center_distances = [(unit.x - 42)**2 + (unit.y - 42)**2 for unit in found_units]
+                        unit_index = unit_squared_center_distances.index(min(unit_squared_center_distances))
+                        selected_unit = found_units[unit_index]
                         curr_unit[3] = True  # Set the unit as "found" so it can be added in the next step
                         self.units_in_progress[index] = curr_unit
                         # Select the unit. Random perturbation added so a slightly different point is
