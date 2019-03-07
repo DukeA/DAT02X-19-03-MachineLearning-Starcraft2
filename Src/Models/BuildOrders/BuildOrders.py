@@ -32,6 +32,9 @@ class BuildOrders(base_agent.BaseAgent):
         """
 
     def build_barracks(self, obs):
+        """
+            Builds a barracks.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
@@ -56,6 +59,9 @@ class BuildOrders(base_agent.BaseAgent):
         ActionSingleton().set_action(new_action)
 
     def build_supply_depot(self, obs):
+        """
+            Builds a supply depot.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
@@ -80,6 +86,9 @@ class BuildOrders(base_agent.BaseAgent):
         ActionSingleton().set_action(new_action)
 
     def build_refinery(self, obs):
+        """
+            Builds a refinery in any base with a command center.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
@@ -127,6 +136,10 @@ class BuildOrders(base_agent.BaseAgent):
         ActionSingleton().set_action(new_action)
 
     def return_scv(self, obs):
+        """
+            Returns an idle SCV to mining. It tries to populate refineries first. Checks other bases if the main base
+            has depleted its resources.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
         top_start = self.start_top
         if self.reqSteps == 0:
@@ -188,6 +201,9 @@ class BuildOrders(base_agent.BaseAgent):
     """
 
     def build_factory(self, obs):
+        """
+            Builds a factory.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
@@ -221,6 +237,9 @@ class BuildOrders(base_agent.BaseAgent):
         """
 
     def build_starport(self, obs):
+        """
+            Builds a starport.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
@@ -252,6 +271,9 @@ class BuildOrders(base_agent.BaseAgent):
         """
 
     def upgrade_barracks(self, obs):
+        """
+            Builds a tech lab addon at a barracks.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
         barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
 
@@ -276,6 +298,9 @@ class BuildOrders(base_agent.BaseAgent):
         ActionSingleton().set_action(new_action)
 
     def expand(self, obs, top_start):
+        """
+            Builds a command center at a suitable, empty base.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
             self.expo_loc = 0
