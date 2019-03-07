@@ -6,10 +6,10 @@ from Models.BuildOrders.Singleton import Singelton
 The class is a singelton pattern to get the actions to the ai robot.
 """
 
-class ActionSingelton(metaclass=Singelton):
+class ActionSingleton(metaclass=Singelton):
 
     def __init__(self):
-        super(ActionSingelton, self).__init__()
+        super(ActionSingleton, self).__init__()
         self.new_action = None
 
     def get_action(self):
