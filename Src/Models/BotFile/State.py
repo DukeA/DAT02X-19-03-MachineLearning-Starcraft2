@@ -20,6 +20,7 @@ class State:
         self.score = 0
         self.reward = 0
         self.action_issued = None
+        self.state_tuple = []
 
         # Variables required for updating the game state
 
@@ -53,22 +54,17 @@ class State:
         # For reference, the rest of the action space is:
         # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
 
+    def get_state(self):
+        """
+        :return: A list containing all the tuples (minerals, vespene, unit_amount, action_issued, bot_obj.steps)
+         since the start of the game
+        """
+        return self.state_tuple
+
     def update_state(self, bot_obj, obs):
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
 
         if bot_obj.reqSteps == 0:
-            # Update any state that doesn't require actions
-            self.minerals = obs.observation.player.minerals
-            self.vespene = obs.observation.player.vespene
-            self.units_amount[units.Terran.Marine.value] = obs.observation.player.army_count  # Temporary solution
-            # The following line might actually count SCVs in construction.
-            self.units_amount[units.Terran.SCV.value] = obs.observation.player.food_workers
-
-            # Update the score and reward
-            oldScore = self.score
-            self.score = self.minerals + self.vespene + sum(self.units_amount.values()) * self.unit_weight
-            self.reward = self.score - oldScore
-
             # Find latest issued action
             if bot_obj.action_finished:
                 # This catches everything in ArmyControl, return_scv() and distribute_scv()
@@ -80,6 +76,22 @@ class State:
                     self.action_issued = self.action_space.get(obs.observation.last_actions[0], "no_op")
                 else:
                     self.action_issued = "no_op"
+
+            # Saves last state and last action in a tuple
+            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount),
+                                     self.action_issued, bot_obj.steps))
+
+            # Update any state that doesn't require actions
+            self.minerals = obs.observation.player.minerals
+            self.vespene = obs.observation.player.vespene
+            self.units_amount[units.Terran.Marine.value] = obs.observation.player.army_count  # Temporary solution
+            # The following line might actually count SCVs in construction.
+            self.units_amount[units.Terran.SCV.value] = obs.observation.player.food_workers
+
+            # Update the score and reward
+            oldScore = self.score
+            self.score = self.minerals + self.vespene + sum(self.units_amount.values()) * self.unit_weight
+            self.reward = self.score - oldScore
 
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \
