@@ -85,14 +85,6 @@ class State:
                 else:
                     self.action_issued = "no_op"
 
-            # Saves all data in a tuple
-            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount), self.action_issued))
-
-            # TODO: When was the high-level action actually issued by the bot?
-            # Ideas: Hard code it.
-            # Other idea: a step counter that starts when reqSteps = 0 and terminates when reqSteps = 0 again.
-            # Actually, it corresponds to the last state
-
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \
                     sum(self.units_amount.values())\
