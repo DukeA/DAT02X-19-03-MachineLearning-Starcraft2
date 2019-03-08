@@ -20,6 +20,7 @@ class State:
         self.score = 0
         self.reward = 0
         self.action_issued = None
+        self.state_tuple = []
 
         # Variables required for updating the game state
 
@@ -51,7 +52,10 @@ class State:
             0: "no_op"
         }
         # For reference, the rest of the action space is:
-        # {attack, retreat, scout, distribute_scv, transform_vikings_to_ground, transform_vikings_to_air}
+        # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
+
+    def get_state(self):
+        return self.state_tuple
 
     def update_state(self, bot_obj, obs):
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
@@ -78,10 +82,16 @@ class State:
                 # This catches the rest
                 if len(obs.observation.last_actions) > 0:
                     self.action_issued = self.action_space.get(obs.observation.last_actions[0], "no_op")
+                else:
+                    self.action_issued = "no_op"
+
+            # Saves all data in a tuple
+            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount), self.action_issued))
 
             # TODO: When was the high-level action actually issued by the bot?
             # Ideas: Hard code it.
             # Other idea: a step counter that starts when reqSteps = 0 and terminates when reqSteps = 0 again.
+            # Actually, it corresponds to the last state
 
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \
