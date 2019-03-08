@@ -243,6 +243,7 @@ class DistributeSCV:
 
         if self.all_CC_checked:  # or self.curr_step > 600
             new_action = [actions.FUNCTIONS.no_op()]
+            obj.action_finished = True
             obj.reqSteps = 0
 
         ActionSingleton().set_action(new_action)

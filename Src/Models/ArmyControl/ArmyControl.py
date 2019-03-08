@@ -172,6 +172,7 @@ class ArmyControl(base_agent.BaseAgent):
                            if vikings.unit_type == units.Terran.VikingFighter]
             if len(vikings_air) > 0:
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Morph_VikingAssaultMode_quick.id):
+                    self.action_finished = True
                     new_action = [actions.FUNCTIONS.Morph_VikingAssaultMode_quick("now")]
 
         ActionSingleton().set_action(new_action)
@@ -208,6 +209,7 @@ class ArmyControl(base_agent.BaseAgent):
                               if vikings.unit_type == units.Terran.VikingAssault]
             if len(vikings_ground) > 0:
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Morph_VikingFighterMode_quick.id):
+                    self.action_finished = True
                     new_action = [actions.FUNCTIONS.Morph_VikingFighterMode_quick("now")]
 
         ActionSingleton().set_action(new_action)

@@ -270,7 +270,7 @@ class BuildOrders(base_agent.BaseAgent):
             an  techlab when the building is built.
         """
 
-    def upgrade_barracks(self, obs):
+    def build_tech_lab_barracks(self, obs):
         """
             Builds a tech lab addon at a barracks.
         """
@@ -292,8 +292,8 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 1:
             if len(barracks) > 0:
                 if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_quick.id):
-                        new_action = [actions.FUNCTIONS.Build_TechLab_quick("now")]
+                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_Barracks_quick.id):
+                        new_action = [actions.FUNCTIONS.Build_TechLab_Barracks_quick("now")]
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 

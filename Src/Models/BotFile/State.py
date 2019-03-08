@@ -19,6 +19,8 @@ class State:
         self.vespene = 0
         self.score = 0
         self.reward = 0
+        self.action_issued = None
+        self.state_tuple = []
 
         # Variables required for updating the game state
 
@@ -30,10 +32,55 @@ class State:
         self.units_amounts_updated = False
         self.unit_weight = 50
 
+        # Constants
+        # Action space of actions whose success is easily evaluated with observation.last_actions[0].
+        self.action_space = {
+            42: "build_barracks",
+            91: "build_supply_depot",
+            79: "build_refinery",
+            44: "expand",
+            76: "build_factory",
+            89: "build_starport",
+            94: "build_tech_lab_barracks",
+            477: "build_marine",
+            476: "build_marauder",
+            488: "build_reaper",
+            470: "build_hellion",
+            478: "build_medivac",
+            498: "build_viking",
+            490: "build_scv",
+            0: "no_op"
+        }
+        # For reference, the rest of the action space is:
+        # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
+
+    def get_state(self):
+        """
+        :return: A list containing all the tuples (minerals, vespene, unit_amount, action_issued, bot_obj.steps)
+         since the start of the game
+        """
+        return self.state_tuple
+
     def update_state(self, bot_obj, obs):
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
 
         if bot_obj.reqSteps == 0:
+            # Find latest issued action
+            if bot_obj.action_finished:
+                # This catches everything in ArmyControl, return_scv() and distribute_scv()
+                bot_obj.action_finished = False
+                self.action_issued = bot_obj.earlier_action
+            else:
+                # This catches the rest
+                if len(obs.observation.last_actions) > 0:
+                    self.action_issued = self.action_space.get(obs.observation.last_actions[0], "no_op")
+                else:
+                    self.action_issued = "no_op"
+
+            # Saves last state and last action in a tuple
+            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount),
+                                     self.action_issued, bot_obj.steps))
+
             # Update any state that doesn't require actions
             self.minerals = obs.observation.player.minerals
             self.vespene = obs.observation.player.vespene
@@ -82,7 +129,8 @@ class State:
                     found_units = [unit for unit in obs.observation.feature_units
                                    if unit.unit_type == curr_unit[1] and not unit.is_selected]
                     if len(found_units) > 0:  # If units are found, select the first one (arbitrarily, could choose any)
-                        unit_squared_center_distances = [(unit.x - 42)**2 + (unit.y - 42)**2 for unit in found_units]
+                        unit_squared_center_distances = [(unit.x - 42) ** 2 + (unit.y - 42) ** 2 for unit in
+                                                         found_units]
                         unit_index = unit_squared_center_distances.index(min(unit_squared_center_distances))
                         selected_unit = found_units[unit_index]
                         curr_unit[3] = True  # Set the unit as "found" so it can be added in the next step
