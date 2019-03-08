@@ -20,7 +20,6 @@ class State:
         self.score = 0
         self.reward = 0
         self.action_issued = None
-        self.state_tuple = []
 
         # Variables required for updating the game state
 
