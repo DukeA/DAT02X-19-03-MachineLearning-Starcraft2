@@ -7,6 +7,9 @@ class Coordinates():
 
     FACTORY_X =80
     FACTORY_Y =30
+    # minimap locations. The first tuple is the top-left start location and the second is the bottom-right start.
+    # Not entirely accurate (i.e. Command Center isn't centered).
+    START_LOCATIONS = [(13, 17), (51.5, 49.0)]
 
     STARPORT_X = 80
     STARPORT_Y = 20
@@ -21,3 +24,6 @@ class Coordinates():
                 (36, 37), (46, 36), (37, 42), (47, 41), (38, 38), (41, 41), (39, 40), (40, 38), (41, 34)]
     EXPO_LOCATIONS2 = list(reversed(EXPO_LOCATIONS))
     CC_LOCATIONS2 = list(reversed(CC_LOCATIONS))
+
+    # change to better coordinates if possible
+    CAMERA_STANDARD_LOCATION = (0, 0)
