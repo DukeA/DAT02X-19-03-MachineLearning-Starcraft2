@@ -80,15 +80,18 @@ class BuildModelGather:
 
     def set_locations(self, obs):
         viewlist = self.set_buildmap()
-        units = []
+        build_units = []
         for i in range(self.buildlocation):
-            units.append(self.get_unit_location(obs, i))
+            build_units.append(self.get_unit_location(obs, i))
         for j in range(self.neutralLocation):
-            units.append(self.get_unit_location(obs, j))
-        return ""
+            build_units.append(self.get_unit_location(obs, j))
+
+        for unit in build_units:
+            viewlist
+
+        return viewlist
 
 
-    def 
 
 
     def get_unit_location(self, obs,buildType):

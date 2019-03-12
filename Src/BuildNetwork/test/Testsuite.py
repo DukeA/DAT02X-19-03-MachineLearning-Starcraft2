@@ -2,6 +2,8 @@
 import unittest
 
 from BuildNetwork.BuildModelGather import BuildModelGather
+import numpy as np
+import numpy.testing as npt
 from BuildNetwork.BuildingNeutral import BuildingsNeutral
 from BuildNetwork.BuildingTerranQueue import BuildingTerranQueue
 
@@ -15,9 +17,12 @@ class TestSuite(unittest.TestCase):
             list = BuildModelGather.set_buildmap(self)
             assert len(list) == x
             assert len(list[0]) == y
+            newList = np.full((81,81),0)
+            npt.assert_array_equal(list, newList)
+            print("Test Size being Created to true")
 
         def testBuildModle(self):
-           list = BuildModelGather.set_locations()
+          list = BuildModelGather.set_locations(self)
 
 
 
