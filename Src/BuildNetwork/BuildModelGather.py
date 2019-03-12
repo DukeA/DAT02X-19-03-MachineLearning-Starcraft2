@@ -9,7 +9,8 @@ from collections import defaultdict
 
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
-from BuildNetwork.BuildingQueue import BuildingQueue
+from BuildNetwork.BuildingTerranQueue import BuildingTerranQueue
+from BuildNetwork.BuildingNeutral import BuildingsNeutral
 
 """
     The class is a wrapper class for the 
@@ -23,13 +24,31 @@ class BuildModelGather:
         self.reward = State.reward
         self.units_in_progress =State.units_in_progress
         self.buildlocation = []
-        self.buildings =[BuildingQueue.commandcenter,
-                         BuildingQueue.supply_depot,
-                         BuildingQueue.barracks,
-                         BuildingQueue.barracks_techlab,
-                         BuildingQueue.factory,
-                         BuildingQueue.refinary,
-                         BuildingQueue.starPort]
+        self.buildings =[
+            BuildingTerranQueue.commandcenter,
+            BuildingTerranQueue.supply_depot,
+            BuildingTerranQueue.barracks,
+            BuildingTerranQueue.barracks_techlab,
+            BuildingTerranQueue.factory,
+            BuildingTerranQueue.refinary,
+            BuildingTerranQueue.starPort
+        ]
+        self.neutralLocation = [
+                BuildingsNeutral.Vaspane_Gas,
+            BuildingsNeutral.Rich_Vaspane_Gas,
+            BuildingsNeutral.Minerals,
+            BuildingsNeutral.Minerals_750Field,
+            BuildingsNeutral.Minerals_BattlestationField,
+            BuildingsNeutral.Minerals_750BattlestationField,
+            BuildingsNeutral.Minerals_LabMineral,
+            BuildingsNeutral.Minerals_750LabMineral,
+            BuildingsNeutral.Minerals_PurifiedField,
+            BuildingsNeutral.Minerals_750PurifiedField,
+            BuildingsNeutral.Minerals_RichField,
+            BuildingsNeutral.Minerals_750RichField,
+            BuildingsNeutral.Ramp_Left,
+            BuildingsNeutral.Ramp_Right
+        ]
 
 
     def __getattr__(self, item):
@@ -59,26 +78,27 @@ class BuildModelGather:
                         self.buildlocation.append(building)
         return self.buildlocation
 
-    def set_locations(self,obs):
-        n = obs.observation.feature_minmap
-        viewlist = [[0]*n for i in range(n)]
-        for i in range(n):
-            for j in range(n):
-                if i > 0 and j < 0 :
-                    viewlist.append(0)
-                elif i > 50 and j < 50:
-                    viewlist.append(1)
-        for row in viewlist:
-          matrix = [str(elem) for elem in row]
-        return matrix
+    def set_locations(self, obs):
+        viewlist = self.set_buildmap()
+        units = []
+        for i in range(self.buildlocation):
+            units.append(self.get_unit_location(obs, i))
+        for j in range(self.neutralLocation):
+            units.append(self.get_unit_location(obs, j))
+        return ""
 
 
+    def 
+
+
+    def get_unit_location(self, obs,buildType):
+        unit_location = [unit for unit in obs.observation.feature_units
+             if unit.unit_type == buildType]
+        return unit_location
 
     def set_buildmap(self):
-        viewlist = [[0]*81 for i in range(81)]
+        viewlist = np.full((81, 81), 0)
         return viewlist
 
 
 
-
-    def

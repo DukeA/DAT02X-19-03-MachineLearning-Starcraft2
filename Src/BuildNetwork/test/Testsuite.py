@@ -1,15 +1,24 @@
 
 import unittest
 
-from BuildNetwork.BuildingQueue import BuildingQueue
 from BuildNetwork.BuildModelGather import BuildModelGather
+from BuildNetwork.BuildingNeutral import BuildingsNeutral
+from BuildNetwork.BuildingTerranQueue import BuildingTerranQueue
+
+
 
 class TestSuite(unittest.TestCase):
 
         def testModule(self):
-           m = BuildModelGather.set_buildmap(self)
-           assert len(m) == 10
-           assert len(m[0]) == 10
+            x = 81
+            y = 81
+            list = BuildModelGather.set_buildmap(self)
+            assert len(list) == x
+            assert len(list[0]) == y
+
+        def testBuildModle(self):
+           list = BuildModelGather.set_locations()
+
 
 
 
