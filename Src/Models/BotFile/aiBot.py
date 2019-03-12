@@ -10,6 +10,7 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Network.BuildAgent import BuildAgent
 
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
@@ -27,12 +28,14 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
+        self.BuildAgent = None
 
     def step(self, obs):
         super(AiBot, self).step(obs)
 
         # first step
         if obs.first():
+            self.BuildAgent = BuildAgent()
             # Räknaren resettas inte mellan games/episoder. Vet ej om detta är en bra lösning.
             self.steps = 0
             start_y, start_x = (obs.observation.feature_minimap.player_relative
@@ -60,6 +63,7 @@ class AiBot(base_agent.BaseAgent):
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.earlier_action = self.next_action
             self.next_action = Selector.selector(self, obs)
+
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
@@ -158,5 +162,8 @@ class AiBot(base_agent.BaseAgent):
         elif self.next_action == "no_op":
             HelperClass.no_op(self, obs)
             action = ActionSingleton().get_action()
+
+        print(self.next_action)
+        print(self.reqSteps)
 
         return action[0]

@@ -1,12 +1,35 @@
 import random
-
 from Models.HelperClass.IsPossible import IsPossible
 
 
 class BuildSelector():
-    def buildSelector(self, obs):
-        possible_actions = BuildSelector.possible_build_actions(self, obs)
-        return (random.choice(possible_actions))
+    def buildSelector(self, obs, agent):
+        agent_or_not = random.random()
+        print("Test")
+        if agent_or_not < 0.95:
+            return agent.predict(self.game_state.get_state())
+        else:
+            possible_actions = BuildSelector.possible_build_actions(self, obs)
+            selection = random.random()
+            if selection < 0:
+                action = possible_actions[1]    # build scv
+            elif selection < 0:
+                action = possible_actions[2]    # build supply depot
+            elif selection < 0.9:
+                action = possible_actions[3]    # build marine
+            elif selection < 1:
+                action = possible_actions[9]    # build barracks
+            elif selection < 1:
+                action = possible_actions[10]    # build refinery
+            elif selection < 1:
+                action = possible_actions[11]    # distribute scv
+            elif selection < 1:
+                action = possible_actions[12]    # return scv
+            else:
+                action = possible_actions[17]    # no op
+
+            action = random.choice(possible_actions)
+            return action
 
     # True ska buytas ut mot is possible metoderna
     def possible_build_actions(self, obs):

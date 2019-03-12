@@ -8,6 +8,8 @@ import pickle
 def main(unused_argv):
     agent = AiBot()
     episode = 0
+    file_name_offset = 202
+    save_data = True
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
@@ -18,7 +20,7 @@ def main(unused_argv):
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True),
                 step_mul=5,  #about 200 APM
-                game_steps_per_episode=16 * 60 * 0 * 1.4,  # Ends after 13 minutes (real-time)
+                game_steps_per_episode=16 * 60 * 6 * 1.4,
                 #save_replay_episodes=1, #How often do you save replays
                 #replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
                 visualize=True,
@@ -32,14 +34,14 @@ def main(unused_argv):
 
                 while True:
                     step_actions = [agent.step(timesteps[0])]
-                    print(agent.game_state.units_amount[units.Terran.SCV.value])
-                    if agent.game_state.units_amount[units.Terran.SCV.value] == 17:
-                        print("17 SCVs at agent step "+str(agent.steps))
-                        with open("test"+str(episode)+".data", 'wb') as filehandle:
-                            pickle.dump(agent.game_state.get_state(), filehandle)
-                        with open("test"+str(episode)+".data", 'rb') as filehandle:
-                            testing = pickle.load(filehandle)
-                            print(testing)
+                    if agent.game_state.units_amount[units.Terran.Marine.value] >= 5 and\
+                            agent.game_state.units_amount[units.Terran.SCV.value] >= 20:
+                        print("5 marines at agent step "+str(agent.steps))
+                        if save_data:
+                            with open("C:/Users/Edvin/Documents/Python/SC2MachineLearning/" +
+                                      "DAT02X-19-03-MachineLearning-Starcraft2/Src/TrainingData/marinetestII" +
+                                      str(episode+file_name_offset)+".data", 'wb') as filehandle:
+                                pickle.dump(agent.game_state.get_state(), filehandle)
                         break
                     if timesteps[0].last():
                         break
