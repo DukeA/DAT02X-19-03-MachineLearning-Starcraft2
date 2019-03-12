@@ -85,7 +85,6 @@ class State:
             self.minerals = obs.observation.player.minerals
             self.vespene = obs.observation.player.vespene
             self.units_amount[units.Terran.Marine.value] = obs.observation.player.army_count  # Temporary solution
-            # The following line might actually count SCVs in construction.
             self.units_amount[units.Terran.SCV.value] = obs.observation.player.food_workers
 
             # Update the score and reward
