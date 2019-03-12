@@ -65,16 +65,19 @@ class BuildOrders(base_agent.BaseAgent):
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 4:
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 3:
             HelperClass.get_current_minimap_location(self, obs)
             new_action = HelperClass.select_scv(self, obs)
 
-        elif self.reqSteps == 1:
+        if self.reqSteps == 2:
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+
+        if self.reqSteps == 1:
             for loop in range(20):
                 x = random.randint(2, 82)
                 y = random.randint(2, 82)
