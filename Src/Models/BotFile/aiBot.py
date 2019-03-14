@@ -12,6 +12,7 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Models.HelperClass.FindEnemyUnits import FindEnemyUnits
 
 selectors = ['buildSelector', 'attackSelector']
 
@@ -35,6 +36,22 @@ class AiBot(base_agent.BaseAgent):
         self.DistributeSCVInstance = None
         self.game_state = None
         self.game_state_updated = False
+
+        self.enemy_units = 0
+        self.minimap_locations = []
+        self.top_enemy_screen_location = [0,0]
+
+        self.screen_size = []
+        self.screen_height = 0
+        self.screen_width = 0
+
+        self.minimap_size = []
+        self.minimap_height = 0
+        self.minimap_width = 0
+
+        self.camera_width = 7
+        self.camera_height = 7
+        self.left_jumps = 1
 
         # Basic game state test variables.
 
@@ -84,12 +101,21 @@ class AiBot(base_agent.BaseAgent):
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
+            self.screen_size = obs.observation['feature_screen'].shape
+            self.screen_height = self.screen_size[1]
+            self.screen_width = self.screen_size[2]
+
+            self.minimap_size = obs.observation['feature_minimap'].shape
+            self.minimap_height = self.minimap_size[1]
+            self.minimap_width = self.minimap_size[2]
+
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
         action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0 or self.reqSteps == -1:
-            self.next_action = Selector.selector(self, obs)
+            #self.next_action = Selector.selector(self, obs)
+            self.next_action = "countEnemyUnits"
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
@@ -163,6 +189,10 @@ class AiBot(base_agent.BaseAgent):
 
         elif self.next_action == "scout":
             ArmyControlController.scout(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "countEnemyUnits":
+            FindEnemyUnits.count_enemy_army(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "no_op":
