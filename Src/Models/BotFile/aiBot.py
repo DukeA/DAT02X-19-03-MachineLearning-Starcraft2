@@ -10,6 +10,11 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Models.Selector.QLearningTable import QLearningTable
+
+import os
+import pandas as pd
+
 
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
@@ -27,6 +32,10 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
+
+        self.previous_action = None
+        self.previous_state = None
+        self.qlearn = None
 
     def step(self, obs):
         super(AiBot, self).step(obs)
@@ -53,7 +62,29 @@ class AiBot(base_agent.BaseAgent):
 
             self.game_state = State()
             # The command center isn't actually in the center of the screen!
-            self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            self.game_state.add_unit_in_progress(
+                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+
+        if obs.last():
+            barracks = self.game_state.units_amount[units.Terran.Barracks.value]
+            workers = obs.observation.player.food_workers
+
+            if barracks >= 2 and workers >= 25:
+                reward = 1
+            else:
+                reward = -1
+
+            print(reward)
+
+            self.qlearn.learn(str(self.previous_state), self.previous_action, reward, 'terminal')
+
+            self.qlearn.q_table.to_pickle('Qlearning' + '.gz', 'gzip')
+            self.qlearn.q_table.to_csv('Qlearning' + '.csv')
+
+            self.previous_action = None
+            self.previous_state = None
+
+            return actions.FUNCTIONS.no_op()
 
         action = [actions.FUNCTIONS.no_op()]
 
