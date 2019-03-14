@@ -6,7 +6,6 @@ from pysc2.lib import actions, units
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
-from Models.HelperClass.IsPossible import IsPossible
 
 """
 The Class belongs to the Build Order request
