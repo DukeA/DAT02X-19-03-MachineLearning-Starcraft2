@@ -6,6 +6,7 @@ from pysc2.lib import actions, units, features
 
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
+from Models.HelperClass.HelperClass import HelperClass
 
 
 class DistributeSCV:
@@ -109,8 +110,10 @@ class DistributeSCV:
                         #  If the right amount of SCV:s are selected, assign these to harvest at the refinery
                         elif num_units_selected == abs(refinery_scv_ideal_diff):
                             if refinery.x > 0 and refinery.y > 0 and refinery.x < 84 and refinery.y < 84:
-                                new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (refinery.x, refinery.y))]
-                                self.first_scv_selected = False
+                                if HelperClass.do_action(obj, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (refinery.x, refinery.y))]
+                                    print("Row 115")
+                                    self.first_scv_selected = False
 
                     #  Check if this refinery has too many SCV:s
                     elif refinery_scv_ideal_diff > 0:
@@ -144,9 +147,14 @@ class DistributeSCV:
                         #  Check if the number of SCV:s selected is the amount too many. If so, send to harvest minerals
                         elif num_units_selected == refinery_scv_ideal_diff:
                             minerals_on_screen = self.get_units_by_type(obs, units.Neutral.MineralField)
-                            mineral = random.choice(minerals_on_screen)
-                            new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (mineral.x, mineral.y))]
-                            self.first_scv_selected = False
+                            if len(minerals_on_screen) > 0:
+                                mineral = random.choice(minerals_on_screen)
+                                if HelperClass.do_action(obj, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (mineral.x, mineral.y))]
+                                    print("Row 154")
+                                    self.first_scv_selected = False
+                            else:
+                                print("Crash prevented")
                     #  If refinery has the right amount of SCV:s, reset the first selected variable
                     else:
                         self.first_scv_selected = False
@@ -222,12 +230,16 @@ class DistributeSCV:
                                 elif num_units_selected > 0:
 
                                     minerals_on_screen = self.get_units_by_type(obs, units.Neutral.MineralField)
-                                    mineral = random.choice(minerals_on_screen)
+                                    if len(minerals_on_screen) > 0:
+                                        mineral = random.choice(minerals_on_screen)
+                                        if HelperClass.do_action(obj, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                                            new_action = [
+                                                actions.FUNCTIONS.Harvest_Gather_screen("now", [mineral.x, mineral.y])]
+                                            print("Row 238")
 
-                                    new_action = [
-                                        actions.FUNCTIONS.Harvest_Gather_screen("now", [mineral.x, mineral.y])]
-
-                                    self.first_scv_selected = False
+                                            self.first_scv_selected = False
+                                    else:
+                                        print("Crash prevented")
 
                     #  Check if all Command Centers have less than maximum amount of mineral harvesting SCV:s
                     elif abs(self.num_CC_minerals_checked) == self.num_command_centers\
