@@ -3,12 +3,14 @@ import pickle
 from pysc2.lib import units
 from collections import defaultdict
 import numpy as np
+import random
 import os
 import h5py
+import matplotlib.pyplot as plt
 
 
 def main():
-    number_of_games = 300
+    number_of_games = 1000
     states = []
     actions = []
     all_length = []
@@ -16,14 +18,13 @@ def main():
     is_training_session = True
     good_games = 0
     total_games = 0
+
     # Load data and format it correctly
-    #names = ["marinetest_random", "marinetest_scvagent"]
-    #names = ["marinetest_random"]
-    #names = ["marinetestII"]
+    names = ["random_game"]
     for j in range(len(names)):
         for i in range(number_of_games):
             path = "C:/Users/Edvin/Documents/Python/SC2MachineLearning/" + \
-                   "DAT02X-19-03-MachineLearning-Starcraft2/Src/TrainingData/" +\
+                   "DAT02X-19-03-MachineLearning-Starcraft2/Src/TrainingData/10Marines/" +\
                     names[j] + str(i+1) + ".data"
             if os.path.isfile(path):
                 next_states, next_actions, next_length = fetch_data(path)
@@ -39,32 +40,209 @@ def main():
     print("Total good games = "+str(good_games))
     states = np.asarray(states)
     actions = np.asarray(actions)
-    #print(actions.shape)
-    #print(states.shape)
-    print("Mean game length = "+str(sum(all_length)/len(all_length)))
+
+    m_g_length = sum(all_length)/len(all_length) * 5 / (1.4 * 60 * 16)
+
+    print("Mean game length = "+str((int(m_g_length)))+"m"+str(round(60*(m_g_length-int(m_g_length))))+"s")
     if len(good_length) > 0:
-        print("Mean good game length = "+str(sum(good_length)/len(good_length)))
+        m_g_g_length = sum(good_length) / len(good_length) * 5 / (1.4 * 60 * 16)
+        print("Mean good game length = "+str((int(m_g_g_length)))+"m"+str(round(60*(m_g_g_length-int(m_g_g_length))))+"s")
 
     if is_training_session:
+        # It can either build a model from scratch or train an existing model. Not sure if the latter is advised.
         network = build_model()
         #network = models.load_model("C:/Users/Edvin/Documents/Python/SC2MachineLearning/" +
         #                            "DAT02X-19-03-MachineLearning-Starcraft2/Src/TrainingData/" +
         #                            "baselinescvproductions.h5")
-        #network.fit(states, actions, epochs=10)
-        #network.save("C:/Users/Edvin/Documents/Python/SC2MachineLearning/DAT02X-19-03-MachineLearning-Starcraft2/" +
-        #             "Src/TrainingData/quickmarinetest.h5")
-        #test_state = np.asarray([0.5, 0, 0.1, 0/30, 0, 0/30, 0, 0, 0.06, 0])
-        #test_state = test_state.reshape(1, 10)
-        #prediction = network.predict(test_state)
-        #print(prediction.shape)
-        #print(prediction)
-        #print(sum(sum(prediction)))
+
+        states, actions = shuffle(states, actions)
+
+        validation_amount = 2000
+        states_val = states[:validation_amount]
+        states_train = states[validation_amount:]
+        actions_val = actions[:validation_amount]
+        actions_train = actions[validation_amount:]
+        history = network.fit(states_train,
+                              actions_train,
+                              epochs=10,
+                              batch_size=512,
+                              validation_data=(states_val, actions_val))
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
+
+        epochs = range(1, len(loss) + 1)
+
+        plt.figure(0)
+        plt.plot(epochs, loss, 'bo', label='Training loss')
+        plt.plot(epochs, val_loss, 'b', label='Validation loss')
+        plt.title('Training and validation loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend()
+
+        plt.figure(1)
+
+        acc = history.history['acc']
+        val_acc = history.history['val_acc']
+        plt.plot(epochs, acc, 'bo', label='Training acc')
+        plt.plot(epochs, val_acc, 'b', label='Validation acc')
+        plt.title('Training and validation accuracy')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend()
+
+        plt.show()
+
+        network.save("C:/Users/Edvin/Documents/Python/SC2MachineLearning/DAT02X-19-03-MachineLearning-Starcraft2/" +
+                     "Src/TrainingData/10Marines/10Marines_sub4m50s.h5")
+
+
+def shuffle(states, actions):
+    """
+    A very naive shuffling algorithm. Probably can be done a lot better without the shuffler list, but I don't care.
+    :param states: the states
+    :param actions: the actions
+    :return: states, actions
+    """
+    shuffler = list(range(len(states)))
+    new_states1 = np.array([states[shuffler[0]]])
+    new_actions1 = np.array([actions[shuffler[0]]])
+    if len(shuffler) >= 10000:
+        new_states2 = np.array([states[shuffler[10000]]])
+        new_actions2 = np.array([actions[shuffler[10000]]])
+    if len(shuffler) >= 20000:
+        new_states3 = np.array([states[shuffler[20000]]])
+        new_actions3 = np.array([actions[shuffler[20000]]])
+    if len(shuffler) >= 30000:
+        new_states4 = np.array([states[shuffler[30000]]])
+        new_actions4 = np.array([actions[shuffler[30000]]])
+    if len(shuffler) >= 40000:
+        new_states5 = np.array([states[shuffler[40000]]])
+        new_actions5 = np.array([actions[shuffler[40000]]])
+    if len(shuffler) >= 50000:
+        new_states6 = np.array([states[shuffler[50000]]])
+        new_actions6 = np.array([actions[shuffler[50000]]])
+    if len(shuffler) >= 60000:
+        new_states7 = np.array([states[shuffler[60000]]])
+        new_actions7 = np.array([actions[shuffler[60000]]])
+    if len(shuffler) >= 70000:
+        new_states8 = np.array([states[shuffler[70000]]])
+        new_actions8 = np.array([actions[shuffler[70000]]])
+    random.shuffle(shuffler)
+    for i in range(len(shuffler)):
+        print("Shuffling index "+str(i)+" out of "+str(len(shuffler))+".")
+        if 0 < i < 10000:
+            new_states1 = np.append(new_states1, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions1 = np.append(new_actions1, actions[shuffler[i]].reshape(1, 17), axis=0)
+        elif 10000 < i < 20000:
+            new_states2 = np.append(new_states2, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions2 = np.append(new_actions2, actions[shuffler[i]].reshape(1, 17), axis=0)
+        elif 20000 < i < 30000:
+            new_states3 = np.append(new_states3, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions3 = np.append(new_actions3, actions[shuffler[i]].reshape(1, 17), axis=0)
+        elif 30000 < i < 40000:
+            new_states4 = np.append(new_states4, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions4 = np.append(new_actions4, actions[shuffler[i]].reshape(1, 17), axis=0)
+        elif 40000 < i < 50000:
+            new_states5 = np.append(new_states5, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions5 = np.append(new_actions5, actions[shuffler[i]].reshape(1, 17), axis=0)
+        elif 50000 < i < 60000:
+            new_states6 = np.append(new_states6, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions6 = np.append(new_actions6, actions[shuffler[i]].reshape(1, 17), axis=0)
+        elif 60000 < i < 70000:
+            new_states7 = np.append(new_states7, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions7 = np.append(new_actions7, actions[shuffler[i]].reshape(1, 17), axis=0)
+        elif i > 70000:
+            new_states8 = np.append(new_states8, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_actions8 = np.append(new_actions8, actions[shuffler[i]].reshape(1, 17), axis=0)
+    if len(shuffler) < 10000:
+        states = new_states1
+        actions = new_actions1
+    if len(shuffler) >= 10000:
+        states = np.append(new_states1, new_states2, axis=0)
+        actions = np.append(new_actions1, new_actions2, axis=0)
+    if len(shuffler) >= 20000:
+        states = np.append(states, new_states3, axis=0)
+        actions = np.append(actions, new_actions3, axis=0)
+    if len(shuffler) >= 30000:
+        states = np.append(states, new_states4, axis=0)
+        actions = np.append(actions, new_actions4, axis=0)
+    if len(shuffler) >= 40000:
+        states = np.append(states, new_states5, axis=0)
+        actions = np.append(actions, new_actions5, axis=0)
+    if len(shuffler) >= 50000:
+        states = np.append(states, new_states6, axis=0)
+        actions = np.append(actions, new_actions6, axis=0)
+    if len(shuffler) >= 60000:
+        states = np.append(states, new_states7, axis=0)
+        actions = np.append(actions, new_actions7, axis=0)
+    if len(shuffler) >= 70000:
+        states = np.append(states, new_states8, axis=0)
+        actions = np.append(actions, new_actions8, axis=0)
+
+    return states, actions
+
+
+def filter_data(states, actions):
+    """
+    Filters the state/action pairs by
+    removing some excess no_ops for states that also have corresponding non-no_ops actions.
+    :param states: the states
+    :param actions: the actions
+    :return: states, actions
+    """
+    no_op_indices = []
+    for i in range(len(actions)):
+        if actions[i][0] == 1:
+            no_op_indices.append(i)
+    print(len(no_op_indices))
+    print(len(states))
+
+    checked_indices = []
+    indices_to_remove = []
+
+    new_states = np.zeros((1, 10))
+    new_actions = np.zeros((1, 17))
+
+    for j in range(len(no_op_indices)):
+        nbr_of_same_state = []
+        nbr_of_no_op = []
+        for i in range(no_op_indices[j], len(states)):
+            if np.array_equal(states[i], states[no_op_indices[j]]) and i not in checked_indices:
+                nbr_of_same_state.append(i)
+                checked_indices.append(i)
+                if actions[i][0] == 1:
+                    nbr_of_no_op.append(i)
+                # Note: want to pair as many no_op actions with the state as there are non-no_op actions.
+        difference = len(nbr_of_same_state)-len(nbr_of_no_op)
+        if difference > 0:
+            indices_to_remove = indices_to_remove+nbr_of_no_op[0:difference]
+
+        # print(checked_indices)
+        # print("Same state: "+str(nbr_of_same_state))
+        # print("No_ops: "+str(nbr_of_no_op))
+        print("Iteration: "+str(j)+"/"+str(len(no_op_indices)))
+        print("Removing: "+str(len(indices_to_remove)))
+
+    for i in range(len(states)):
+        if i not in indices_to_remove:
+            new_states = np.append(new_states, states[i].reshape(1, 10), axis=0)
+            new_actions = np.append(new_actions, actions[i].reshape(1, 17), axis=0)
+    np.save('C:/Users/Edvin/Documents/Python/SC2MachineLearning/DAT02X-19-03-MachineLearning-Starcraft2/Src' +
+            '/TrainingData/10Marines/new_states.npy', new_states)
+    np.save('C:/Users/Edvin/Documents/Python/SC2MachineLearning/DAT02X-19-03-MachineLearning-Starcraft2/Src' +
+            '/TrainingData/10Marines/new_actions.npy', new_actions)
+    return new_states, new_actions
 
 
 def build_model():
+    """
+    Builds the neural network model
+    :return: the network
+    """
     network = models.Sequential()
     network.add(layers.Dense(128, activation='relu', input_shape=(10,)))
-    network.add(layers.Dense(52, activation='relu'))
+    network.add(layers.Dense(32, activation='relu'))
     network.add(layers.Dense(17, activation='softmax'))
     #network.summary()
     network.compile(loss='categorical_crossentropy',
@@ -145,7 +323,7 @@ def is_good_data(data):
     :param data: the data to be evaluated
     :return: boolean
     """
-    maximum_game_length = 3.2    # in minutes
+    maximum_game_length = 4.83333333    # in minutes. For reference, 16 (17) SCVs and 10 marines took 2m40s.
     if data[len(data)-1][4] < (16*60*maximum_game_length*1.4/5):
         return True
     else:
