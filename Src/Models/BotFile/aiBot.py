@@ -64,7 +64,6 @@ class AiBot(base_agent.BaseAgent):
             self.earlier_action = self.next_action
             self.next_action = Selector.selector(self, obs)
 
-
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
             action = ActionSingleton().get_action()
@@ -162,8 +161,5 @@ class AiBot(base_agent.BaseAgent):
         elif self.next_action == "no_op":
             HelperClass.no_op(self, obs)
             action = ActionSingleton().get_action()
-
-        print(self.next_action)
-        print(self.reqSteps)
 
         return action[0]
