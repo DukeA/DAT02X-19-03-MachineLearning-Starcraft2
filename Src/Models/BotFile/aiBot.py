@@ -10,6 +10,7 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Models.Selector.HardCodedSelector import HardCodedSelector
 
 import os
 import pickle
@@ -71,7 +72,7 @@ class AiBot(base_agent.BaseAgent):
 
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.earlier_action = self.next_action
-            self.next_action = Selector.selector(self, obs)
+            self.next_action = HardCodedSelector.hardCodedSelector(self, obs)
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
