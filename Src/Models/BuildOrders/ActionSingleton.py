@@ -1,6 +1,6 @@
 
 
-from Models.BuildOrders.Singleton import Singelton
+from Models.HelperClass.Singleton import Singelton
 
 """
 The class is a singelton pattern to get the actions to the ai robot.

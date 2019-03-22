@@ -4,7 +4,7 @@ from pysc2.lib import actions, features, units
 from Models.BuildOrders.BuildOrdersController import BuildOrdersController
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
 from Models.BuildOrders.ActionSingleton import ActionSingleton
-from Models.BuildOrders.DistributeSCV import DistributeSCV
+from Models.BuildNetwork.BuildFacade import BuildFacade
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
@@ -73,13 +73,14 @@ class AiBot(base_agent.BaseAgent):
             UnitBuildOrdersController.build_scv(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
-            if self.reqSteps == 0:
-                self.DistributeSCVInstance = DistributeSCV()
-            self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
-            action = ActionSingleton().get_action()
+        #elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
+         #   if self.reqSteps == 0:
+          #      self.DistributeSCVInstance = DistributeSCV()
+           # self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
+           # action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
+            BuildFacade.set_up(self, obs)
             BuildOrdersController.build_supply_depot(self, obs)
             action = ActionSingleton().get_action()
 

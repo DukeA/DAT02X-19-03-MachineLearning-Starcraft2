@@ -1,5 +1,7 @@
 
-
+"""
+    A Metaclass for other singletons to inheritance from the class
+"""
 
 class Singelton(type):
     def __init__(cls, name, bases, attrs, **kwargs):
