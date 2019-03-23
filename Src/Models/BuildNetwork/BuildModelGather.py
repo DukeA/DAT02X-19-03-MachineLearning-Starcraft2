@@ -45,6 +45,7 @@ class BuildModelGather:
         self.reward = state.reward
         self.units_in_progress = state.units_in_progress
 
+
     def __getattr__(self, item):
         orig_attr = self.State.__getattribute__(item)
         if callable(orig_attr):
@@ -76,26 +77,34 @@ class BuildModelGather:
         viewlist = BuildModelGather.set_buildmap(self)
         build_units_list = []
         for i in BuildModelGather.buildings:
-            build_units_list.append(BuildModelGather.get_units_location(self, obs, i))
+            build_units_list.append(BuildModelGather.get_units_infrastructre_location(self, obs, i))
         for j in BuildModelGather.neutral_location:
-            build_units_list.append(BuildModelGather.get_units_location(self, obs, j))
+            build_units_list.append(BuildModelGather.get_neutral_object_location(self, obs, j))
         for units in build_units_list:
-            for unit in units:
-
-                viewlist.
-
+            if (units != None):
+                for unit in units:
+                 viewlist = viewlist[unit[0], unit[1]] = unit[2]
         return viewlist
 
-    def get_units_location(self, obs, building_type):
-        unit = [unit for unit in obs.observation.feature_units
-                if unit.unit_type == building_type]
-        if(not unit):
+    def get_units_infrastructre_location(self, obs, building_type):
+        units = [unit for unit in obs.observation.feature_units
+                 if unit.unit_type == building_type]
+        if not units:
             return
         coordinates = []
-        for i in unit:
-            coordinates.append((i.x, i.y))
+        for unit in units:
+            coordinates.append((unit.x, unit.y, building_type[0]))
         return coordinates
 
+    def get_neutral_object_location(self,obs,neutral_type):
+        neutral_units = [unit for unit in obs.observation.feature_units
+                 if unit.unit_type == neutral_type]
+        if not neutral_units:
+            return
+        neutral_coordinates = []
+        for unit in neutral_units:
+            neutral_coordinates.append((unit.x, unit.y, neutral_type))
+        return neutral_coordinates
 
     def set_buildmap(self):
         viewlist = np.full((81, 81), 0)
