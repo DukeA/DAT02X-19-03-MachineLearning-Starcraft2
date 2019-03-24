@@ -80,6 +80,7 @@ class AiBot(base_agent.BaseAgent):
            # action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
+            HelperClass.move_camera_to_base_location(self, obs)
             BuildFacade.set_up(self, obs)
             BuildOrdersController.build_supply_depot(self, obs)
             action = ActionSingleton().get_action()

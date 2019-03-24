@@ -83,7 +83,7 @@ class BuildModelGather:
         for units in build_units_list:
             if (units != None):
                 for unit in units:
-                 viewlist = viewlist[unit[0], unit[1]] = unit[2]
+                 viewlist[unit[0], unit[1]] = unit[2]
         return viewlist
 
     def get_units_infrastructre_location(self, obs, building_type):
@@ -93,10 +93,11 @@ class BuildModelGather:
             return
         coordinates = []
         for unit in units:
-            coordinates.append((unit.x, unit.y, building_type[0]))
+            unit_shape = unit
+            coordinates.append((unit.x, unit.y, building_type[0].value))
         return coordinates
 
-    def get_neutral_object_location(self,obs,neutral_type):
+    def get_neutral_object_location(self, obs, neutral_type):
         neutral_units = [unit for unit in obs.observation.feature_units
                  if unit.unit_type == neutral_type]
         if not neutral_units:
@@ -107,5 +108,5 @@ class BuildModelGather:
         return neutral_coordinates
 
     def set_buildmap(self):
-        viewlist = np.full((81, 81), 0)
+        viewlist = np.full((82, 82), 0)
         return viewlist
