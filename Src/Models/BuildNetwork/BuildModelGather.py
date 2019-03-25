@@ -80,10 +80,17 @@ class BuildModelGather:
             build_units_list.append(BuildModelGather.get_units_infrastructre_location(self, obs, i))
         for j in BuildModelGather.neutral_location:
             build_units_list.append(BuildModelGather.get_neutral_object_location(self, obs, j))
-        for units in build_units_list:
-            if (units != None):
-                for unit in units:
-                 viewlist[unit[0], unit[1]] = unit[2]
+        for build_units in build_units_list:
+            if (build_units != None):
+                for unit in build_units:
+                    for value in unit:
+                        value_x = value[0]
+                        value_y = value[1]
+                        if isinstance(value[2], tuple):
+                            value_type = value[2][0]
+                        else:
+                            value_type = value[2]
+                        viewlist[value_x, value_y] = value_type
         return viewlist
 
     def get_units_infrastructre_location(self, obs, building_type):
@@ -113,16 +120,16 @@ class BuildModelGather:
                 )
         return neutral_coordinates
 
-    def set_setsourdingvalues(self,unit_x,unit_y, unit_shape, type ):
-        x = unit_x
-        y = unit_y
+    def set_setsourdingvalues(self, unit_x, unit_y, unit_shape, type):
+        radius = unit_shape
+        x = unit_x-radius
+        y = unit_y-radius
+        diameter = radius
         coordinates_radius = []
-        for i in range(unit_shape):
-            if i <= 9 :
-                coordinates_radius.append((x+i,y+i,type))
-                coordinates_radius.append((x+),type)
-            else :
-
+        for i in range(diameter):
+            for j in range(diameter):
+                coordinates_radius.append((x+i, y+j, type))
+        return coordinates_radius
 
     def set_buildmap(self):
         viewlist = np.full((82, 82), 0)
