@@ -93,8 +93,10 @@ class BuildModelGather:
             return
         coordinates = []
         for unit in units:
-            unit_shape = unit
-            coordinates.append((unit.x, unit.y, building_type[0].value))
+            unit_shape = unit.radius * 2
+            coordinates.append(
+                BuildModelGather.set_setsourdingvalues(self, unit.x , unit.y, unit_shape, building_type)
+            )
         return coordinates
 
     def get_neutral_object_location(self, obs, neutral_type):
@@ -104,8 +106,23 @@ class BuildModelGather:
             return
         neutral_coordinates = []
         for unit in neutral_units:
-            neutral_coordinates.append((unit.x, unit.y, neutral_type))
+            unit_shape = unit.radius*2
+            for i in range(unit.radius):
+                neutral_coordinates.append(
+                    BuildModelGather.set_setsourdingvalues(self, unit.x , unit.y, unit_shape, neutral_type)
+                )
         return neutral_coordinates
+
+    def set_setsourdingvalues(self,unit_x,unit_y, unit_shape, type ):
+        x = unit_x
+        y = unit_y
+        coordinates_radius = []
+        for i in range(unit_shape):
+            if i <= 9 :
+                coordinates_radius.append((x+i,y+i,type))
+                coordinates_radius.append((x+),type)
+            else :
+
 
     def set_buildmap(self):
         viewlist = np.full((82, 82), 0)
