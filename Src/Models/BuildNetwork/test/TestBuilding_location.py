@@ -30,9 +30,51 @@ class test_build_location(unittest.TestCase):
         assert len(list[0]) == y
         assert list[41][43] == 345
         assert list[20][20] != 10
-        list = BuildModelLocations.set_building_location(self,list)
+        list = BuildModelLocations.set_building_location(self ,list)
         assert list[20][20] == 10
         print("The value changed")
+
+    def test_check_the_start_location(self):
+        x = 82
+        y = 82
+        list = BuildModelLocations.set_buildlocations(self)
+        for i in range(41,44):
+            for j in range(41,44):
+                list[i][j] = 345
+        assert len(list) == x
+        assert len(list[0]) == y
+        assert BuildModelLocations.check_startLocation_Of_Base(self, list) == True
+        print("The value was passed")
+
+    def test_check_start_location_to_be_false(self):
+        x = 82
+        y = 82
+        list = BuildModelLocations.set_buildlocations(self)
+        for i in range(21,24):
+            for j in range(21,24):
+                list[i][j] = 345
+        assert len(list) == x
+        assert len(list[0]) == y
+        assert BuildModelLocations.check_startLocation_Of_Base(self,list) == False
+        print("The value did returned false")
+
+    def test_check_value_of_map_to_be_the_other(self):
+        x = 82
+        y = 82
+        list = BuildModelLocations.set_buildlocations(self)
+        for i in range(21, 24):
+            for j in range(21, 24):
+                list[i][j] = 345
+        assert len(list) == x
+        assert len(list[0]) == y
+        list2 = BuildModelLocations.set_building_location(self,list)
+        value = list2
+        npt.assert_array_equal(list2,value)
+        assert value[41][20] == 5
+        assert value[60][60] == 10
+        assert value[31][60] == 5
+        print("The value returned correct")
+
 
 
 
