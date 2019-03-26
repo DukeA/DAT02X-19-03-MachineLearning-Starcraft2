@@ -8,6 +8,12 @@ from keras.optimizers import Adam
 
 class DQN:
     def __init__(self, state_size, action_size):
+        """Initializes the network
+
+                :param action_size: The size of the action space.
+                :param state_size: The number of different state variables
+                """
+
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
@@ -21,6 +27,11 @@ class DQN:
 
 
     def _build_model(self):
+        """Builds the network with the desired layout
+
+                returns: the network
+                """
+
         # Neural Net for Deep-Q learning Model
         model = Sequential()
         model.add(Dense(24, input_dim=self.state_size, activation='relu'))
@@ -31,15 +42,33 @@ class DQN:
         return model
 
     def remember(self, state, action, reward, next_state, done):
+        """Adds a entry to the memory
+
+                :param state: The state.
+                :param action: The action taken.
+                :param reward: Reward received from the action
+                :param next_state: The following state
+                :param done: A bool indicating if its the last step
+                """
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
+        """Takes an action either based on the state or at random.
+
+                :param state: The current state
+                """
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])  # returns action
 
     def replay(self, batch_size):
+        """trains the network based on its memory
+
+                :param batch_size: How big the random batch is to be that is used in fitting the network.
+                """
+
+
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in minibatch:
             target = reward
@@ -55,7 +84,15 @@ class DQN:
             self.epsilon *= self.epsilon_decay
 
     def load(self, name):
+        """Loads a network from file
+
+                :param name: The path to the file
+                """
         self.model.load_weights(name)
 
     def save(self, name):
+        """saves a network to file
+
+                :param name: The path to the file
+                """
         self.model.save_weights(name)

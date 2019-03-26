@@ -10,9 +10,8 @@ from Models.Selector.dqn import DQN
 
 
 
-actions = ["no_op", "build_scv", "build_supply_depot", "build_marine", "build_marauder", "build_reaper",
-           "build_hellion", "build_medivac", "build_viking", "build_barracks", "build_refinery",
-           "return_scv", "expand", "build_factory", "build_starport", "build_tech_lab_barracks"]
+actions = ["no_op", "build_scv", "build_supply_depot", "build_marine", "build_barracks",
+           "return_scv"]
 
 
 class BuildSelector():
@@ -22,11 +21,10 @@ class BuildSelector():
     def buildSelector(self, obs):
 
         state = BuildSelector.format_state(self, obs)
-        state = np.reshape(state, [1, 4])
-        s = state[0, :]
+        state = np.reshape(state, [1, 5])
 
         if self.agent is None:
-            self.agent = DQN(state_size = 4, action_size=len(actions))
+            self.agent = DQN(state_size = 5, action_size=len(actions))
             if os.path.isfile('shortgames.h5'):
                 self.agent.load('shortgames.h5')
 
@@ -47,24 +45,13 @@ class BuildSelector():
         return translatedaction
 
     def format_state(self, obs):
-        current_state = np.zeros(4)
+        current_state = np.zeros(5)
 
-        if self.game_state.units_amount[units.Terran.CommandCenter.value] > 3:
-            current_state[0] = 3
-        else:
-            current_state[0] = self.game_state.units_amount[units.Terran.CommandCenter.value]
-
-        if self.game_state.units_amount[units.Terran.SupplyDepot.value] > 5:
-            current_state[1] = 5
-        else:
-            current_state[1] = self.game_state.units_amount[units.Terran.SupplyDepot.value]
-
-        if self.game_state.units_amount[units.Terran.Barracks.value] > 3:
-            current_state[2] = 3
-        else:
-            current_state[2] = self.game_state.units_amount[units.Terran.Barracks.value]
-
-        current_state[3] = BuildSelector.myround(obs.observation.player.food_workers)
+        current_state[0] = self.game_state.units_amount[units.Terran.CommandCenter.value]
+        current_state[1] = self.game_state.units_amount[units.Terran.SupplyDepot.value]
+        current_state[2] = self.game_state.units_amount[units.Terran.Barracks.value]
+        current_state[3] = obs.observation.player.food_workers
+        current_state[4] = self.game_state.units_amount[units.Terran.Marine.value]
 
 
 

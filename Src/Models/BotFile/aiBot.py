@@ -65,29 +65,6 @@ class AiBot(base_agent.BaseAgent):
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
-        if obs.last():
-            barracks = self.game_state.units_amount[units.Terran.Barracks.value]
-            workers = obs.observation.player.food_workers
-
-            if barracks >= 2 and workers >= 25:
-                reward = 1
-            else:
-                reward = -1
-
-            print(reward)
-
-            self.agent.remember(self.previous_state, self.previous_action, reward, self.previous_state, True)
-
-            self.agent.save('shortgames.h5')
-
-            self.previous_action = None
-            self.previous_state = None
-
-            if len(self.agent.memory) > 32:
-                self.agent.replay(32)
-
-            return actions.FUNCTIONS.no_op()
-
         action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0 or self.reqSteps == -1:
