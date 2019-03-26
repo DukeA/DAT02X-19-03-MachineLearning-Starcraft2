@@ -6,10 +6,9 @@ from pysc2.lib import units
 
 
 from Models.HelperClass.IsPossible import IsPossible
-from Models.Selector.QLearningTable import QLearningTable
+from Models.Selector.dqn import DQN
 
 
-DATA_FILE = 'QLearning'
 
 actions = ["no_op", "build_scv", "build_supply_depot", "build_marine", "build_marauder", "build_reaper",
            "build_hellion", "build_medivac", "build_viking", "build_barracks", "build_refinery",
@@ -21,11 +20,33 @@ class BuildSelector():
         return int(base * round(float(x)/base))
 
     def buildSelector(self, obs):
-        if self.qlearn is None:
-            self.qlearn = QLearningTable(actions=list(range(len(actions))))
-            if os.path.isfile('Qlearning' + '.gz'):
-                self.qlearn.q_table = pd.read_pickle('Qlearning' + '.gz', compression='gzip')
 
+        state = BuildSelector.format_state(self, obs)
+        state = np.reshape(state, [1, 4])
+        s = state[0, :]
+
+        if self.agent is None:
+            self.agent = DQN(state_size = 4, action_size=len(actions))
+            if os.path.isfile('shortgames.h5'):
+                self.agent.load('shortgames.h5')
+
+        action = self.agent.act(state)
+
+
+
+        self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
+
+
+        self.previous_state = state
+        self.previous_action = action
+
+        translatedaction = actions[action]
+
+        if len(self.agent.memory) > 32:
+            self.agent.replay(32)
+        return translatedaction
+
+    def format_state(self, obs):
         current_state = np.zeros(4)
 
         if self.game_state.units_amount[units.Terran.CommandCenter.value] > 3:
@@ -45,20 +66,11 @@ class BuildSelector():
 
         current_state[3] = BuildSelector.myround(obs.observation.player.food_workers)
 
-        excluded_actions = BuildSelector.excluded_actions(self, obs)
 
-        if self.previous_action is not None and self.qlearn is not None:
-            self.qlearn.learn(str(self.previous_state),
-                              self.previous_action, 0, str(current_state))
-        rl_action = 0
-        if self.qlearn is not None:
-            rl_action = self.qlearn.choose_action(str(current_state), excluded_actions)
 
-        self.previous_state = current_state
-        self.previous_action = rl_action
 
-        action = actions[rl_action]
-        return action
+        return current_state
+
 
     # True ska buytas ut mot is possible metoderna
     def excluded_actions(self, obs):

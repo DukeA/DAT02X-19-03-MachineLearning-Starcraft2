@@ -10,7 +10,7 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
-from Models.Selector.QLearningTable import QLearningTable
+from Models.Selector.dqn import DQN
 
 import os
 import pandas as pd
@@ -35,7 +35,7 @@ class AiBot(base_agent.BaseAgent):
 
         self.previous_action = None
         self.previous_state = None
-        self.qlearn = None
+        self.agent = None
 
     def step(self, obs):
         super(AiBot, self).step(obs)
@@ -76,13 +76,15 @@ class AiBot(base_agent.BaseAgent):
 
             print(reward)
 
-            self.qlearn.learn(str(self.previous_state), self.previous_action, reward, 'terminal')
+            self.agent.remember(self.previous_state, self.previous_action, reward, self.previous_state, True)
 
-            self.qlearn.q_table.to_pickle('Qlearning' + '.gz', 'gzip')
-            self.qlearn.q_table.to_csv('Qlearning' + '.csv')
+            self.agent.save('shortgames.h5')
 
             self.previous_action = None
             self.previous_state = None
+
+            if len(self.agent.memory) > 32:
+                self.agent.replay(32)
 
             return actions.FUNCTIONS.no_op()
 

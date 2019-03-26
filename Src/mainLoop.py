@@ -18,7 +18,7 @@ def main(unused_argv):
                 game_steps_per_episode=4500,  # Ends after 13 minutes (real-time)
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
-                visualize=False,
+                visualize=True,
                 disable_fog=True) as env:
             while True:
                 agent.setup(env.observation_spec(), env.action_spec())
