@@ -4,7 +4,7 @@ from keras.initializers import normal, identity
 from keras.models import model_from_json, load_model
 #from keras.engine.training import collect_trainable_weights
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Input, merge, Lambda, Activation
+from keras.layers import Dense, Flatten, Input, merge, Lambda, Activation, Add
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 import keras.backend as K
@@ -38,21 +38,22 @@ class CriticNetwork(object):
     def target_train(self):
         critic_weights = self.model.get_weights()
         critic_target_weights = self.target_model.get_weights()
-        for i in xrange(len(critic_weights)):
+        for i in range(len(critic_weights)):
             critic_target_weights[i] = self.TAU * critic_weights[i] + (1 - self.TAU)* critic_target_weights[i]
         self.target_model.set_weights(critic_target_weights)
 
-    def create_critic_network(self, state_size,action_dim):
+    def create_critic_network(self, state_size, action_dim):
         print("Now we build the model")
         S = Input(shape=[state_size])  
         A = Input(shape=[action_dim],name='action2')   
         w1 = Dense(HIDDEN1_UNITS, activation='relu')(S)
         a1 = Dense(HIDDEN2_UNITS, activation='linear')(A) 
         h1 = Dense(HIDDEN2_UNITS, activation='linear')(w1)
-        h2 = merge([h1,a1],mode='sum')    
+        #h2 = merge([h1, a1], mode='sum')
+        h2 = Add()([h1, a1])
         h3 = Dense(HIDDEN2_UNITS, activation='relu')(h2)
         V = Dense(action_dim,activation='linear')(h3)   
-        model = Model(input=[S,A],output=V)
+        model = Model(input=[S, A], output=V)
         adam = Adam(lr=self.LEARNING_RATE)
         model.compile(loss='mse', optimizer=adam)
         return model, A, S 

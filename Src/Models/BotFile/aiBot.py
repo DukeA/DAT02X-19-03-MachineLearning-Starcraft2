@@ -12,6 +12,7 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 
 selectors = ['buildSelector', 'attackSelector']
 
@@ -33,8 +34,10 @@ class AiBot(base_agent.BaseAgent):
         self.doAttack = None
         self.new_action = None
         self.DistributeSCVInstance = None
+        self.actor_critic_agent = None
         self.game_state = None
         self.game_state_updated = False
+        self.num_actions = len(attackSelector) + len(buildSelector)
 
         # Basic game state test variables.
 
@@ -83,6 +86,7 @@ class AiBot(base_agent.BaseAgent):
             self.game_state = State()
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            self.actor_critic_agent = ActorCriticAgent(self.num_actions, 2, buildSelector+attackSelector)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)

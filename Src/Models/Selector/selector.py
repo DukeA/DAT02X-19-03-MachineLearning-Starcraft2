@@ -9,7 +9,6 @@ class Selector:
 
     def __init__(self):
         super(Selector, self).__init__()
-        self.actor_critic_agent = ActorCriticAgent()
 
     def selector(self, obs):
 
