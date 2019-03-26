@@ -70,10 +70,31 @@ class test_build_location(unittest.TestCase):
         list2 = BuildModelLocations.set_building_location(self,list)
         value = list2
         npt.assert_array_equal(list2,value)
-        assert value[41][20] == 5
-        assert value[60][60] == 10
-        assert value[31][60] == 5
+        assert list2[41][20] == 5
+        assert list2[60][60] == 10
+        assert list2[31][60] == 5
         print("The value returned correct")
+
+
+    def test_check_value_of_map_to_be_other(self):
+        x = 82
+        y = 82
+        list = BuildModelLocations.set_buildlocations(self)
+        for i in range(41, 44):
+            for j in range(41, 44):
+                list[i][j] = 345
+        assert len(list) == x
+        assert len(list[0]) == y
+        list2 = BuildModelLocations.set_building_location(self,list)
+        value = list2
+        npt.assert_array_equal(list2,value)
+        assert list2[0][20] == 10
+        assert list2[41][60] == 5
+        assert list2[81][30] == 5
+        print ("The value is correct for the given output")
+
+
+
 
 
 
