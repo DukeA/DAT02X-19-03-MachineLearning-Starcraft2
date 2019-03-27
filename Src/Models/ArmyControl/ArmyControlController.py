@@ -28,6 +28,12 @@ class ArmyControlController(base_agent.BaseAgent):
     def scout(self, obs):
         ArmyControl.scout(self, obs)
 
+    def transform_vikings_to_ground(self, obs):
+        ArmyControl.transform_vikings_to_ground(self, obs)
+
+    def transform_vikings_to_air(self, obs):
+        ArmyControl.transform_vikings_to_air(self, obs)
+
     def count_army(self, obs):
         ArmyControl.count_army(self, obs)
 

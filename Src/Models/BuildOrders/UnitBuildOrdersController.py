@@ -18,11 +18,20 @@ class UnitBuildOrdersController(base_agent.BaseAgent):
     def train_marines(self, obs):
         UnitBuildOrders.build_marines(self, obs)
 
-    def train_marauder(self, obs, free_supply):
-        UnitBuildOrders.build_marauder(self, obs, free_supply)
+    def train_marauder(self, obs):
+        UnitBuildOrders.build_marauder(self, obs)
 
-    def train_medivac(self, obs, free_supply):
-        UnitBuildOrders.build_medivac(self, obs, free_supply)
+    def train_reaper(self, obs,):
+        UnitBuildOrders.build_reaper(self, obs)
 
-    def build_scv(self, obs, free_supply):
-        UnitBuildOrders.build_scv(self, obs, free_supply)
+    def train_hellion(self, obs):
+        UnitBuildOrders.build_hellion(self, obs)
+
+    def train_medivac(self, obs):
+        UnitBuildOrders.build_medivac(self, obs)
+
+    def build_scv(self, obs):
+        UnitBuildOrders.build_scv(self, obs)
+
+    def train_viking(self, obs):
+        UnitBuildOrders.build_viking(self, obs)

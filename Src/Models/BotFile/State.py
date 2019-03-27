@@ -6,6 +6,7 @@ from pysc2.lib import actions, units, features
 from collections import defaultdict
 
 from Models.BuildOrders.ActionSingleton import ActionSingleton
+from Models.HelperClass.HelperClass import HelperClass
 
 
 class State:
@@ -18,6 +19,8 @@ class State:
         self.vespene = 0
         self.score = 0
         self.reward = 0
+        self.action_issued = None
+        self.state_tuple = []
 
         # Variables required for updating the game state
 
@@ -29,14 +32,61 @@ class State:
         self.units_amounts_updated = False
         self.unit_weight = 50
 
+        # Constants
+        # Action space of actions whose success is easily evaluated with observation.last_actions[0].
+        self.action_space = {
+            42: "build_barracks",
+            91: "build_supply_depot",
+            79: "build_refinery",
+            44: "expand",
+            76: "build_factory",
+            89: "build_starport",
+            94: "build_tech_lab_barracks",
+            477: "build_marine",
+            476: "build_marauder",
+            488: "build_reaper",
+            470: "build_hellion",
+            478: "build_medivac",
+            498: "build_viking",
+            490: "build_scv",
+            0: "no_op"
+        }
+        # For reference, the rest of the action space is:
+        # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
+
+    def get_state(self):
+        """
+        :return: A list containing all the tuples (minerals, vespene, unit_amount, action_issued, bot_obj.steps)
+         since the start of the game
+        """
+        return self.state_tuple
+
     def update_state(self, bot_obj, obs):
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
 
         if bot_obj.reqSteps == 0:
+            # Find latest issued action
+            if bot_obj.action_finished:
+                # This catches everything in ArmyControl, return_scv() and distribute_scv()
+                bot_obj.action_finished = False
+                self.action_issued = bot_obj.earlier_action
+            else:
+                # This catches the rest
+                if len(obs.observation.last_actions) > 0:
+                    self.action_issued = self.action_space.get(obs.observation.last_actions[0], "no_op")
+                else:
+                    self.action_issued = "no_op"
+
+            # Saves last state and last action in a tuple
+            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount),
+                                     self.action_issued, bot_obj.steps))
+
             # Update any state that doesn't require actions
             self.minerals = obs.observation.player.minerals
             self.vespene = obs.observation.player.vespene
             self.units_amount[units.Terran.Marine.value] = obs.observation.player.army_count  # Temporary solution
+            # The following line might actually count SCVs in construction.
+            self.units_amount[units.Terran.SCV.value] = obs.observation.player.food_workers
 
             # Update the score and reward
             oldScore = self.score
@@ -45,7 +95,9 @@ class State:
 
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \
-                    sum(self.units_amount.values()) - obs.observation.player.army_count:
+                    sum(self.units_amount.values())\
+                    - obs.observation.player.army_count\
+                    - obs.observation.player.food_workers:
                 new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]
                 bot_obj.reqSteps = 1
             else:
@@ -70,20 +122,35 @@ class State:
                     new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]  # Select control group
 
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 2:
-                    new_action = [actions.FUNCTIONS.move_camera(curr_unit[0])]  # Move camera
+                    camera_coord = curr_unit[0]
+                    #minimap_player_relative = obs.observation.feature_minimap[5]
+                    #minimap_screen_area_rows = minimap_player_relative[(camera_coord[1]-4):(camera_coord[1]+2)]
+                    #screen = [row[(camera_coord[0]-4):(camera_coord[0]+2)] for row in minimap_screen_area_rows]
+                    #screen = np.array(screen)
+                    #itemindex = np.where(screen == 1)
+
+                    units_found = HelperClass.check_minimap_for_units(self, obs, camera_coord)
+
+                    if not units_found:
+                        print('test')
+                    else:
+                        new_action = [actions.FUNCTIONS.move_camera(curr_unit[0])]  # Move camera
 
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 1:
                     # Look for units of the right type that aren't already in the selected control group.
                     found_units = [unit for unit in obs.observation.feature_units
                                    if unit.unit_type == curr_unit[1] and not unit.is_selected]
                     if len(found_units) > 0:  # If units are found, select the first one (arbitrarily, could choose any)
-                        selected_unit = found_units[0]
+                        unit_squared_center_distances = [(unit.x - 42) ** 2 + (unit.y - 42) ** 2 for unit in
+                                                         found_units]
+                        unit_index = unit_squared_center_distances.index(min(unit_squared_center_distances))
+                        selected_unit = found_units[unit_index]
                         curr_unit[3] = True  # Set the unit as "found" so it can be added in the next step
                         self.units_in_progress[index] = curr_unit
                         # Select the unit. Random perturbation added so a slightly different point is
                         # selected each time, in case some other unit is blocking the unit found.
-                        new_action = [actions.FUNCTIONS.select_point("select", (selected_unit.x+random.randint(0, 5),
-                                                                                selected_unit.y+random.randint(0, 5)))]
+                        new_action = [actions.FUNCTIONS.select_point("select", (HelperClass.sigma(self, selected_unit.x+random.randint(-5, 5)),
+                                                                                HelperClass.sigma(self, selected_unit.y+random.randint(-5, 5))))]
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 0:
                     if curr_unit[3]:  # Check if the current unit was found in the previous step
                         # If it was found but the type is wrong, go back to the previous step and select again
