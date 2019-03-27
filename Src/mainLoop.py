@@ -30,7 +30,7 @@ def main(unused_argv):
                     step_actions = [agent.step(timesteps[0])]
                     if timesteps[0].last():
                         # Game state test
-                        print(agent.action_data)
+                        # print(agent.action_data)
                         result = timesteps[0][1]
                         print("Result: "+str(result))
                         # End of game state test
