@@ -15,16 +15,16 @@ actions = ["no_op", "build_scv", "build_supply_depot", "build_marine", "build_ba
 
 
 class BuildSelector():
-    def myround(x, base=5):
+    def myround(x, base=50):
         return int(base * round(float(x)/base))
 
     def buildSelector(self, obs):
 
         state = BuildSelector.format_state(self, obs)
-        state = np.reshape(state, [1, 5])
+        state = np.reshape(state, [1, 7])
 
         if self.agent is None:
-            self.agent = DQN(state_size = 5, action_size=len(actions))
+            self.agent = DQN(state_size = 7, action_size=len(actions))
             if os.path.isfile('shortgames.h5'):
                 self.agent.load('shortgames.h5')
 
@@ -45,13 +45,17 @@ class BuildSelector():
         return translatedaction
 
     def format_state(self, obs):
-        current_state = np.zeros(5)
+        current_state = np.zeros(7)
 
         current_state[0] = self.game_state.units_amount[units.Terran.CommandCenter.value]
         current_state[1] = self.game_state.units_amount[units.Terran.SupplyDepot.value]
         current_state[2] = self.game_state.units_amount[units.Terran.Barracks.value]
         current_state[3] = obs.observation.player.food_workers
         current_state[4] = self.game_state.units_amount[units.Terran.Marine.value]
+        current_state[5] = obs.observation.player.food_cap - obs.observation.player.food_used
+        current_state[6] = BuildSelector.myround(obs.observation.player.minerals)
+
+
 
 
 
