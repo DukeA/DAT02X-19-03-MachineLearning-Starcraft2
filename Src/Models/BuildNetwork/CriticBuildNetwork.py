@@ -1,3 +1,10 @@
+import numpy  as np
+from kreas.models import Sequential
+from keras.layers import Dense, Reshape,Flatten
+from keras.optimizers import  Adam
+import tensorflow as tf
+import json
+
 
 
 class CriticBuildNetwork:
@@ -8,3 +15,7 @@ class CriticBuildNetwork:
         self.batch_size = batch_size
         self.tau = tau
         self.learning_rate = learning_rate
+
+    def build_model(self):
+        model = Sequential()
+        model.add

@@ -1,7 +1,7 @@
 import numpy as np
 from keras.initilizers import normal, identity
-from keras.models import model_from_json,load_model
-from keras.models import Sequential
+from keras.models import model_from_json,load_model,Sequential
+
 
 
 class BuildNetwork:
