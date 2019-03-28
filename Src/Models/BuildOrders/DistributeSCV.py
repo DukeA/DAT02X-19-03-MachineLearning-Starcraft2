@@ -6,6 +6,7 @@ from pysc2.lib import actions, units, features
 
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
+from Models.HelperClass.HelperClass import HelperClass
 
 
 class DistributeSCV:
@@ -23,31 +24,30 @@ class DistributeSCV:
         self.all_refineries_checked = False
         self.all_CC_checked = False
         self.num_CC_minerals_incremented = False
-        self.num_command_centers = 0
+        self.num_command_centers = 1
+        self.all_command_centers_found = False
+        self.command_centers_pos = []
+        self.command_center_counting_index = 0
 
-    def distribute_scv(self, obj, obs, base_location, num_expansions):  # Use State class to get num expansions later
+    def distribute_scv(self, obj, obs, base_location):  # Use State class to get num expansions later
+
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
         steps_needed = 2  # Actions needed at each Command Center
-
-        command_centers_pos = [base_location]
-
-        if base_location[0] < 32:  # Check which side of the map the starting base is located
-            command_centers_pos.extend(Coordinates.EXPO_LOCATIONS[0:num_expansions])
-        else:
-            command_centers_pos.extend(Coordinates.EXPO_LOCATIONS2[0:num_expansions])
 
         if obj.reqSteps == 0:
             obj.reqSteps = 1
 
-        #if self.curr_step < 200:
-        #    self.curr_step += 1
-        #    new_action = [actions.FUNCTIONS.no_op()]
-        #    ActionSingleton().set_action(new_action)
-        #    return
+        self.num_command_centers = obj.game_state.units_amount[units.Terran.CommandCenter.value]
 
-        pos = command_centers_pos[self.curr_CC]
+        if not self.all_command_centers_found:
+            all_expo_locations = [base_location] + Coordinates.EXPO_LOCATIONS
 
-        command_centers = self.get_units_by_type(obs, units.Terran.CommandCenter)
+            self.find_all_command_centers(obs, all_expo_locations)
+
+            if not self.all_command_centers_found:
+                return
+
+        pos = self.command_centers_pos[self.curr_CC]
 
         if self.curr_step % steps_needed == 0:  # If all actions for this Command Center are performed, move the
             if not self.camera_moved:               # camera and increment/reset required variables
@@ -61,108 +61,118 @@ class DistributeSCV:
             elif self.camera_moved:
                 self.camera_moved = False
                 #  If on the first loop through expo locations and there is a command center, add this to the total num
-                if self.curr_step < 2*len(command_centers_pos) and len(command_centers) > 0:
-                    self.num_command_centers += 1
+                #if self.curr_step < 2*len(command_centers_pos) and len(command_centers) > 0:
+                    #self.num_command_centers += 1
 
         elif self.curr_step % steps_needed == 1:  #
+
+            command_centers = self.get_units_by_type(obs, units.Terran.CommandCenter)
 
             if len(command_centers) > 0:  # Check that command center exists
                 command_center = command_centers[0]
 
-                refineries = self.get_units_by_type(obs, units.Terran.Refinery)
+                if not self.all_refineries_checked:
 
-                refineries_not_ideal = [refinery for refinery in refineries  # Get refineries with non-desired amount of SCV:s
-                                        if refinery.assigned_harvesters != self.refinery_desired_harvesters
-                                        and refinery.build_progress == 100]
+                    refineries = self.get_units_by_type(obs, units.Terran.Refinery)
 
-                if len(refineries_not_ideal) > 0:
-                    refinery = refineries_not_ideal[0]  # Pick one of the refineries
+                    refineries_not_ideal = [refinery for refinery in refineries  # Get refineries with non-desired amount of SCV:s
+                                            if refinery.assigned_harvesters != self.refinery_desired_harvesters
+                                            and refinery.build_progress == 100]
 
-                    #  Calculate the difference between the current amount of SCV:s and the desired amount
-                    refinery_scv_ideal_diff = refinery.assigned_harvesters - self.refinery_desired_harvesters
+                    if len(refineries_not_ideal) > 0:
 
-                    #  Check how many units are selected currently
-                    units_selected = [unit for unit in obs.observation.feature_units if unit.is_selected]
-                    num_units_selected = len(units_selected)
+                        refinery = refineries_not_ideal[0]  # Pick one of the refineries
 
-                    #  Check if this refinery has too few SCV:s
-                    if refinery_scv_ideal_diff < 0 and command_center.assigned_harvesters > self.min_num_mineral_harvesters:
+                        #  Calculate the difference between the current amount of SCV:s and the desired amount
+                        refinery_scv_ideal_diff = refinery.assigned_harvesters - self.refinery_desired_harvesters
 
-                        #  If fewer than the number of SCV:s missing are selected, select from mineral line
-                        if num_units_selected < abs(refinery_scv_ideal_diff) or not self.first_scv_selected:
+                        #  Check how many units are selected currently
+                        units_selected = [unit for unit in obs.observation.feature_units if unit.is_selected]
+                        num_units_selected = len(units_selected)
 
-                            #  Check if first SCV for this refinery has been selected.
-                            #  If so, use "toggle", otherwise "select".
-                            if not self.first_scv_selected:
-                                action_type = "select"
-                                self.first_scv_selected = True
-                            else:
-                                action_type = "toggle"
+                        #  Check if this refinery has too few SCV:s
+                        if refinery_scv_ideal_diff < 0 and command_center.assigned_harvesters > self.min_num_mineral_harvesters:
 
-                            new_action = self.select_single_scv_at_minerals(obs, action_type, (refinery.x, refinery.y))
+                            #  If fewer than the number of SCV:s missing are selected, select from mineral line
+                            if num_units_selected < abs(refinery_scv_ideal_diff) or not self.first_scv_selected:
 
-                        #  If more than the number of SCV:s missing are selected, deselect at index 0 (first position)
-                        elif num_units_selected > abs(refinery_scv_ideal_diff):
-                            new_action = self.deselect_at_index(obs, 0)
-                            self.first_scv_selected = False
+                                #  Check if first SCV for this refinery has been selected.
+                                #  If so, use "toggle", otherwise "select".
+                                if not self.first_scv_selected:
+                                    action_type = "select"
+                                    self.first_scv_selected = True
+                                else:
+                                    action_type = "toggle"
 
-                        #  If the right amount of SCV:s are selected, assign these to harvest at the refinery
-                        elif num_units_selected == abs(refinery_scv_ideal_diff):
-                            if refinery.x > 0 and refinery.y > 0 and refinery.x < 84 and refinery.y < 84:
-                                new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (refinery.x, refinery.y))]
+                                new_action = self.select_single_scv_at_minerals(obs, action_type, (refinery.x, refinery.y))
+
+                            #  If more than the number of SCV:s missing are selected, deselect at index 0 (first position)
+                            elif num_units_selected > abs(refinery_scv_ideal_diff):
+                                new_action = self.deselect_at_index(obs, 0)
                                 self.first_scv_selected = False
 
-                    #  Check if this refinery has too many SCV:s
-                    elif refinery_scv_ideal_diff > 0:
+                            #  If the right amount of SCV:s are selected, assign these to harvest at the refinery
+                            elif num_units_selected == abs(refinery_scv_ideal_diff):
+                                if refinery.x > 0 and refinery.y > 0 and refinery.x < 84 and refinery.y < 84:
+                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (refinery.x, refinery.y))]
+                                    self.first_scv_selected = False
 
-                        #  Check if the number of SCV:s selected is fewer than the amount too many.
-                        #  Also check if the first SCV from this refinery has been selected, otherwise select it.
-                        if num_units_selected < refinery_scv_ideal_diff or self.first_scv_selected:
+                        #  Check if this refinery has too many SCV:s
+                        elif refinery_scv_ideal_diff > 0:
 
-                            #  To make sure SCV:s harvesting at the refinery are selected, select the closest SCV
-                            scvs_on_screen = self.get_units_by_type(obs, units.Terran.SCV)
-                            min_dist = 100
-                            scv_selected = None
-                            for scv in scvs_on_screen:
-                                dist = (scv.x - refinery.x) ** 2 + (scv.y - refinery.y) ** 2
-                                if dist < min_dist:
-                                    min_dist = dist
-                                    scv_selected = scv
+                            #  Check if the number of SCV:s selected is fewer than the amount too many.
+                            #  Also check if the first SCV from this refinery has been selected, otherwise select it.
+                            if num_units_selected < refinery_scv_ideal_diff or self.first_scv_selected:
 
-                            #  Check if first SCV for this refinery has been selected.
-                            #  If so, use "toggle", otherwise "select".
-                            if not self.first_scv_selected:
-                                action_type = "select"
-                                self.first_scv_selected = True
-                            else:
-                                action_type = "toggle"
-                            new_action = [actions.FUNCTIONS.select_point(action_type, (scv_selected.x, scv_selected.y))]
-                        # Check if the number of SCV:s selected is more than the amount too many. If so, deselect.
-                        elif num_units_selected > refinery_scv_ideal_diff:
-                            new_action = self.deselect_at_index(obs, 0)
+                                #  To make sure SCV:s harvesting at the refinery are selected, select the closest SCV
+                                scvs_on_screen = self.get_units_by_type(obs, units.Terran.SCV)
+                                min_dist = 100
+                                scv_selected = None
+                                for scv in scvs_on_screen:
+                                    dist = (scv.x - refinery.x) ** 2 + (scv.y - refinery.y) ** 2
+                                    if dist < min_dist:
+                                        min_dist = dist
+                                        scv_selected = scv
+
+                                #  Check if first SCV for this refinery has been selected.
+                                #  If so, use "toggle", otherwise "select".
+                                if not self.first_scv_selected:
+                                    action_type = "select"
+                                    self.first_scv_selected = True
+                                else:
+                                    action_type = "toggle"
+                                new_action = [actions.FUNCTIONS.select_point(action_type, (scv_selected.x, scv_selected.y))]
+                            # Check if the number of SCV:s selected is more than the amount too many. If so, deselect.
+                            elif num_units_selected > refinery_scv_ideal_diff:
+                                new_action = self.deselect_at_index(obs, 0)
+                                self.first_scv_selected = False
+                            #  Check if the number of SCV:s selected is the amount too many. If so, send to harvest minerals
+                            elif num_units_selected == refinery_scv_ideal_diff:
+                                minerals_on_screen = self.get_units_by_type(obs, units.Neutral.MineralField)
+                                mineral = random.choice(minerals_on_screen)
+                                new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (mineral.x, mineral.y))]
+                                self.first_scv_selected = False
+                        #  If refinery has the right amount of SCV:s, reset the first selected variable
+                        else:
                             self.first_scv_selected = False
-                        #  Check if the number of SCV:s selected is the amount too many. If so, send to harvest minerals
-                        elif num_units_selected == refinery_scv_ideal_diff:
-                            minerals_on_screen = self.get_units_by_type(obs, units.Neutral.MineralField)
-                            mineral = random.choice(minerals_on_screen)
-                            new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (mineral.x, mineral.y))]
-                            self.first_scv_selected = False
-                    #  If refinery has the right amount of SCV:s, reset the first selected variable
-                    else:
-                        self.first_scv_selected = False
 
-                    #  If code gets here, this section needs to be repeated at least one more time, so subtract 1
-                    #  from the iteration variable
-                    self.curr_step -= 1
+                        #  If code gets here, this section needs to be repeated at least one more time, so subtract 1
+                        #  from the iteration variable
+                        if refinery_scv_ideal_diff > 0 or command_center.assigned_harvesters > self.min_num_mineral_harvesters:
+                            self.curr_step -= 1
 
-                #  Check if all refineries are checked for the current Command Center
-                elif len(refineries_not_ideal) == 0 and not self.all_refineries_checked:
-                    self.num_CC_refineries_checked += 1
+                    #  Check if all refineries are checked for the current Command Center
+                    if (len(refineries_not_ideal) == 0 or
+                          command_center.assigned_harvesters <= self.min_num_mineral_harvesters) \
+                            and not self.all_refineries_checked:
+                        self.num_CC_refineries_checked += 1
 
-                #  Check if all refineries are checked for all Command Centers
-                if len(refineries_not_ideal) == 0 and self.num_CC_refineries_checked == self.num_command_centers \
-                        and not self.all_refineries_checked:
-                    self.all_refineries_checked = True
+                    #  Check if all refineries are checked for all Command Centers
+                    if (len(refineries_not_ideal) == 0
+                        or command_center.assigned_harvesters <= self.min_num_mineral_harvesters) \
+                            and self.num_CC_refineries_checked >= self.num_command_centers \
+                            and not self.all_refineries_checked:
+                        self.all_refineries_checked = True
 
                 #  Check if all refineries for all Command Centers are checked. If so, start distributing mineral SCV:s
                 if self.all_refineries_checked:
@@ -231,14 +241,14 @@ class DistributeSCV:
 
                     #  Check if all Command Centers have less than maximum amount of mineral harvesting SCV:s
                     elif abs(self.num_CC_minerals_checked) == self.num_command_centers\
-                            and self.curr_step >= 2*len(command_centers_pos):
+                            and self.curr_step >= 2*len(self.command_centers_pos):
                         self.all_CC_checked = True
 
         self.curr_step += 1
 
         if self.curr_step % steps_needed == 0:
             self.curr_CC += 1
-            if self.curr_CC == len(command_centers_pos):
+            if self.curr_CC == len(self.command_centers_pos):
                 self.curr_CC = 0
 
         if self.all_CC_checked:  # or self.curr_step > 600
@@ -269,24 +279,27 @@ class DistributeSCV:
 
                 scvs_at_minerals = [scv for scv in scvs_on_screen if
                                     scv.x > x_min and scv.x < x_max and scv.y > y_min and scv.y < y_max and not scv.is_selected]
-                if closest_to_point == "any":
-                    scv = random.choice(scvs_at_minerals)
-                else:
-                    if closest_to_point == "mean":
-                        point = [np.mean([o.x for o in minerals_on_screen]), np.mean([o.y for o in minerals_on_screen])]
-                    else:
-                        point = closest_to_point
-                    min_dist = 84 ** 2
-                    closest_scv = random.choice(scvs_at_minerals)
-                    for scv in scvs_at_minerals:
-                        scv_dist = (scv.x - point[0]) ** 2 + (scv.y - point[1]) ** 2
-                        if scv_dist < min_dist:
-                            # if scv.is_selected == 0:
-                            min_dist = scv_dist
-                            closest_scv = scv
-                    scv = closest_scv
 
-                action = [actions.FUNCTIONS.select_point(select_type, (scv.x, scv.y))]
+                if len(scvs_at_minerals) > 0:
+
+                    if closest_to_point == "any":
+                        scv = random.choice(scvs_at_minerals)
+                    else:
+                        if closest_to_point == "mean":
+                            point = [np.mean([o.x for o in minerals_on_screen]), np.mean([o.y for o in minerals_on_screen])]
+                        else:
+                            point = closest_to_point
+                        min_dist = 84 ** 2
+                        closest_scv = random.choice(scvs_at_minerals)
+                        for scv in scvs_at_minerals:
+                            scv_dist = (scv.x - point[0]) ** 2 + (scv.y - point[1]) ** 2
+                            if scv_dist < min_dist:
+                                # if scv.is_selected == 0:
+                                min_dist = scv_dist
+                                closest_scv = scv
+                        scv = closest_scv
+
+                    action = [actions.FUNCTIONS.select_point(select_type, (scv.x, scv.y))]
 
         return action
 
@@ -347,3 +360,39 @@ class DistributeSCV:
                 )]
 
         return action
+
+    def find_all_command_centers(self, obs, expo_locations):
+
+        if len(self.command_centers_pos) == 0:
+            for camera_coord in expo_locations:
+                if HelperClass.check_minimap_for_units(self, obs, camera_coord):
+                    self.command_centers_pos.append(camera_coord)
+
+        if len(self.command_centers_pos) != self.num_command_centers:
+
+            if self.camera_moved:
+                if len(HelperClass.get_units(self, obs, units.Terran.CommandCenter)) == 0:
+                    del self.command_centers_pos[self.command_center_counting_index]
+                else:
+                    self.command_center_counting_index += 1
+
+            if not self.camera_moved:
+                self.camera_moved = True
+
+            if len(self.command_centers_pos) == self.num_command_centers \
+                    or self.command_center_counting_index >= len(self.command_centers_pos):
+                self.all_command_centers_found = True
+                self.camera_moved = False
+
+            else:
+                camera_coord = self.command_centers_pos[self.command_center_counting_index]
+
+                new_action = [actions.FUNCTIONS.move_camera(camera_coord)]
+                ActionSingleton().set_action(new_action)
+
+        else:
+            self.all_command_centers_found = True
+
+        return
+
+

@@ -122,7 +122,19 @@ class State:
                     new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]  # Select control group
 
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 2:
-                    new_action = [actions.FUNCTIONS.move_camera(curr_unit[0])]  # Move camera
+                    camera_coord = curr_unit[0]
+                    #minimap_player_relative = obs.observation.feature_minimap[5]
+                    #minimap_screen_area_rows = minimap_player_relative[(camera_coord[1]-4):(camera_coord[1]+2)]
+                    #screen = [row[(camera_coord[0]-4):(camera_coord[0]+2)] for row in minimap_screen_area_rows]
+                    #screen = np.array(screen)
+                    #itemindex = np.where(screen == 1)
+
+                    units_found = HelperClass.check_minimap_for_units(self, obs, camera_coord)
+
+                    if not units_found:
+                        print('test')
+                    else:
+                        new_action = [actions.FUNCTIONS.move_camera(curr_unit[0])]  # Move camera
 
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 1:
                     # Look for units of the right type that aren't already in the selected control group.
@@ -137,8 +149,8 @@ class State:
                         self.units_in_progress[index] = curr_unit
                         # Select the unit. Random perturbation added so a slightly different point is
                         # selected each time, in case some other unit is blocking the unit found.
-                        new_action = [actions.FUNCTIONS.select_point("select", (HelperClass.sigma(self, selected_unit.x+random.randint(0, 5)),
-                                                                                HelperClass.sigma(self, selected_unit.y+random.randint(0, 5))))]
+                        new_action = [actions.FUNCTIONS.select_point("select", (HelperClass.sigma(self, selected_unit.x+random.randint(-5, 5)),
+                                                                                HelperClass.sigma(self, selected_unit.y+random.randint(-5, 5))))]
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 0:
                     if curr_unit[3]:  # Check if the current unit was found in the previous step
                         # If it was found but the type is wrong, go back to the previous step and select again
