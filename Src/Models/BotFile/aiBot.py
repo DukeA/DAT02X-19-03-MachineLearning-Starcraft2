@@ -1,5 +1,3 @@
-
-
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 
@@ -14,14 +12,6 @@ from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
 from Models.HelperClass.FindEnemyUnits import FindEnemyUnits
 
-selectors = ['buildSelector', 'attackSelector']
-
-# Might be unnecessary depending on implementation of randomness
-attackSelector = ['attack', 'retreat', 'scout', 'count_army', 'no_op']
-buildSelector = ['build_scv', 'build_supply_depot', "build_marine", "build_factory", "build_starport", "expand_barracks",
-                 'build_barracks', 'build_refinery', 'distribute_scv', 'return_scv', 'expand', 'no_op']
-
-
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
         super(AiBot, self).__init__()
@@ -32,7 +22,8 @@ class AiBot(base_agent.BaseAgent):
         self.selector = None
         self.doBuild = None
         self.doAttack = None
-        self.new_action = None
+        self.next_action = None
+        self.earlier_action = None
         self.DistributeSCVInstance = None
         self.game_state = None
         self.game_state_updated = False
@@ -58,24 +49,9 @@ class AiBot(base_agent.BaseAgent):
         self.last_scout = 0        # Maybe for ML
         self.marine_count = 0      # Maybe for ML
         self.action_finished = False
-        # Does this persist between loops? It's a tuple (selector, action, steps, marine_count)
-        self.action_data = []
-
-        # End of basic game state test variables.
 
     def step(self, obs):
         super(AiBot, self).step(obs)
-
-        # Basic game state test.
-
-        if self.action_finished:
-            self.action_finished = False
-            if self.selector == "attackSelector":
-                self.action_data.append((self.selector, self.doAttack,
-                                         self.steps, self.marine_count))
-                print((self.selector, self.doAttack, self.steps, self.marine_count))
-
-        # End of basic game state test.
 
         # first step
         if obs.first():
@@ -98,8 +74,8 @@ class AiBot(base_agent.BaseAgent):
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
             self.game_state = State()
-            self.game_state.add_unit_in_progress(
-                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            # The command center isn't actually in the center of the screen!
+            self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
             self.screen_size = obs.observation['feature_screen'].shape
             self.screen_height = self.screen_size[1]
@@ -116,6 +92,7 @@ class AiBot(base_agent.BaseAgent):
         if self.reqSteps == 0 or self.reqSteps == -1:
             #self.next_action = Selector.selector(self, obs)
             self.next_action = "countEnemyUnits"
+            self.earlier_action = self.next_action
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
@@ -126,7 +103,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
-            UnitBuildOrdersController.build_scv(self, obs, free_supply)
+            UnitBuildOrdersController.build_scv(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
@@ -136,7 +113,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
-            BuildOrdersController.build_supplaydepot(self, obs, free_supply)
+            BuildOrdersController.build_supply_depot(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_barracks":
@@ -156,11 +133,23 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_marauder":
-            UnitBuildOrdersController.train_marauder(self, obs, free_supply)
+            UnitBuildOrdersController.train_marauder(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "build_reaper":
+            UnitBuildOrdersController.train_reaper(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "build_hellion":
+            UnitBuildOrdersController.train_hellion(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_medivac":
-            UnitBuildOrdersController.train_medivac(self, obs, free_supply)
+            UnitBuildOrdersController.train_medivac(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "build_viking":
+            UnitBuildOrdersController.train_viking(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "army_count":
@@ -179,8 +168,8 @@ class AiBot(base_agent.BaseAgent):
             BuildOrdersController.build_starport(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.next_action == "expand_barracks":
-            BuildOrdersController.upgrade_barracks(self, obs)
+        elif self.next_action == "build_tech_lab_barracks":
+            BuildOrdersController.build_tech_lab_barracks(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "retreat":
@@ -193,6 +182,14 @@ class AiBot(base_agent.BaseAgent):
 
         elif self.next_action == "countEnemyUnits":
             FindEnemyUnits.count_enemy_army(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "transform_vikings_to_ground":
+            ArmyControlController.transform_vikings_to_ground(self, obs)
+            action = ActionSingleton().get_action()
+
+        elif self.next_action == "transform_vikings_to_air":
+            ArmyControlController.transform_vikings_to_air(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "no_op":

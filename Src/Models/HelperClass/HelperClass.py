@@ -11,6 +11,12 @@ class HelperClass(base_agent.BaseAgent):
     def move_camera_to_base_location(self, obs):
         return actions.FUNCTIONS.move_camera(self.base_location)
 
+    def select_all_buildings(self, obs):
+        if obs.observation.control_groups[9][1] > 0:
+            return [actions.FUNCTIONS.select_control_group("recall", 9)]
+        else:
+            return [actions.FUNCTIONS.no_op()]
+
     def sigma(self, num):
         if num <= 0:
             return 0
@@ -66,6 +72,22 @@ class HelperClass(base_agent.BaseAgent):
         return [unit for unit in obs.observation.feature_units
                 if unit.unit_type == unit_type]
 
+    def get_current_minimap_location(self, obs):
+        """
+        Gets the current minimap location (which corresponds to the move_camera coordinate)
+        """
+        x = []
+        y = []
+        for i in range(64):
+            for j in range(64):
+                if obs.observation.feature_minimap.camera[j][i] == 1:
+                    x.append(i)
+                    y.append(j)
+
+        # Why +4? Because move_camera(x, y) moves the camera so that it covers the minimap coordinates from
+        # x-4 to x+2 and y-4 to y+2. Why? No idea.
+        return min(x)+4, min(y)+4
+
     def no_op(self, obs):
 
         new_action = [actions.FUNCTIONS.no_op()]
@@ -99,12 +121,12 @@ class HelperClass(base_agent.BaseAgent):
 
         build_screen_action = action_types.get(building_type, actions.FUNCTIONS.Build_SupplyDepot_screen)
 
-        if HelperClass.not_in_progress(self, obs, building_type):
-            if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
-                if HelperClass.do_action(self, obs, build_screen_action.id):
-                    coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
-                    new_action = [build_screen_action("now", coordinates)]
-                    if building_type is not units.Terran.CommandCenter:
-                        self.game_state.add_unit_in_progress(self, self.base_location, coordinates, building_type.value)
+        if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
+            if HelperClass.do_action(self, obs, build_screen_action.id):
+                coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
+                new_action = [build_screen_action("now", coordinates)]
+                if building_type is not units.Terran.CommandCenter:
+                    self.game_state.add_unit_in_progress(
+                        self, HelperClass.get_current_minimap_location(self, obs), coordinates, building_type.value)
 
         return new_action
