@@ -15,8 +15,10 @@ class State:
         # Game state
 
         self.units_amount = defaultdict(lambda: 0)  # Amount of each unit. Set to 0 by default
-        self.minerals = 0
+        self.minerals = 50
         self.vespene = 0
+        self.food_used = 12
+        self.food_cap = 15
         self.score = 0
         self.reward = 0
         self.action_issued = None
@@ -79,11 +81,13 @@ class State:
 
             # Saves last state and last action in a tuple
             self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount),
-                                     self.action_issued, bot_obj.steps))
+                                     self.action_issued, bot_obj.steps, self.food_used, self.food_cap))
 
             # Update any state that doesn't require actions
             self.minerals = obs.observation.player.minerals
             self.vespene = obs.observation.player.vespene
+            self.food_used = obs.observation.player.food_used
+            self.food_cap = obs.observation.player.food_cap
             self.units_amount[units.Terran.Marine.value] = obs.observation.player.army_count  # Temporary solution
             self.units_amount[units.Terran.SCV.value] = obs.observation.player.food_workers
 

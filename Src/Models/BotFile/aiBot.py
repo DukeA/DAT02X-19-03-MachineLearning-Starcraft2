@@ -10,10 +10,9 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
-from Network.BuildAgent import BuildAgent
 
 class AiBot(base_agent.BaseAgent):
-    def __init__(self):
+    def __init__(self, build_agent):
         super(AiBot, self).__init__()
         self.base_location = None
         self.start_top = None
@@ -28,14 +27,17 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
-        self.BuildAgent = None
+
+        # Deep learning stuff
+
+        self.build_agent = build_agent
+        self.predicted_this_step = False
 
     def step(self, obs):
         super(AiBot, self).step(obs)
 
         # first step
         if obs.first():
-            self.BuildAgent = BuildAgent()
             # Räknaren resettas inte mellan games/episoder. Vet ej om detta är en bra lösning.
             self.steps = 0
             start_y, start_x = (obs.observation.feature_minimap.player_relative
@@ -59,10 +61,11 @@ class AiBot(base_agent.BaseAgent):
             self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
         action = [actions.FUNCTIONS.no_op()]
-
+        self.predicted_this_step = False
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.earlier_action = self.next_action
             self.next_action = Selector.selector(self, obs)
+            self.predicted_this_step = True
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)

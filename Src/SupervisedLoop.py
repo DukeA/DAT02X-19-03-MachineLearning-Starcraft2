@@ -4,7 +4,6 @@ from Models.BotFile.aiBot import AiBot
 from absl import app
 import pickle
 
-
 def main(unused_argv):
     agent = AiBot()
     episode = 0
@@ -39,7 +38,7 @@ def main(unused_argv):
                         print(">=10 marines, >=16 SCVs at agent step "+str(agent.steps))
                         if save_data:
                             with open("C:/Users/Edvin/Documents/Python/SC2MachineLearning/" +
-                                      "DAT02X-19-03-MachineLearning-Starcraft2/Src/TrainingData/10Marines/random_game" +
+                                      "DAT02X-19-03-MachineLearning-Starcraft2/Src/TrainingData/10Marines/LSTM_ops_B" +
                                       str(episode+file_name_offset)+".data", 'wb') as filehandle:
                                 pickle.dump(agent.game_state.get_state(), filehandle)
                         break

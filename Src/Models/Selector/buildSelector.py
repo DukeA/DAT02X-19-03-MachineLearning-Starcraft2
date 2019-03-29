@@ -5,8 +5,8 @@ from Models.HelperClass.IsPossible import IsPossible
 class BuildSelector():
     def buildSelector(self, obs, agent):
         agent_or_not = random.random()
-        if agent_or_not < -1:    # This is random now.
-            return agent.predict(self.game_state.get_state())
+        if agent_or_not < 2:
+            return agent.predict_lstm(self.game_state.get_state())
         else:
             possible_actions = BuildSelector.possible_build_actions(self, obs)
             selection = random.random()

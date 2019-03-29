@@ -20,7 +20,9 @@ def main():
     total_games = 0
 
     # Load data and format it correctly
-    names = ["random_game"]
+    #names = ["sub4m00sPII"]
+    #names = ["3m18sPII"]
+    names = ["StateIIIB"]
     for j in range(len(names)):
         for i in range(number_of_games):
             path = "C:/Users/Edvin/Documents/Python/SC2MachineLearning/" + \
@@ -54,8 +56,9 @@ def main():
         #network = models.load_model("C:/Users/Edvin/Documents/Python/SC2MachineLearning/" +
         #                            "DAT02X-19-03-MachineLearning-Starcraft2/Src/TrainingData/" +
         #                            "baselinescvproductions.h5")
-
+        # states, actions = remove_no_ops(states, actions, 0.5)
         states, actions = shuffle(states, actions)
+        #network.fit(states, actions, epochs=10, batch_size=4)
 
         validation_amount = 2000
         states_val = states[:validation_amount]
@@ -88,13 +91,13 @@ def main():
         plt.plot(epochs, val_acc, 'b', label='Validation acc')
         plt.title('Training and validation accuracy')
         plt.xlabel('Epochs')
-        plt.ylabel('Loss')
+        plt.ylabel('Accuracy')
         plt.legend()
 
         plt.show()
 
         network.save("C:/Users/Edvin/Documents/Python/SC2MachineLearning/DAT02X-19-03-MachineLearning-Starcraft2/" +
-                     "Src/TrainingData/10Marines/10Marines_sub4m50s.h5")
+                     "Src/TrainingData/10Marines/test.h5")
 
 
 def shuffle(states, actions):
@@ -104,6 +107,7 @@ def shuffle(states, actions):
     :param actions: the actions
     :return: states, actions
     """
+    states_space_len = 11
     shuffler = list(range(len(states)))
     new_states1 = np.array([states[shuffler[0]]])
     new_actions1 = np.array([actions[shuffler[0]]])
@@ -132,28 +136,28 @@ def shuffle(states, actions):
     for i in range(len(shuffler)):
         print("Shuffling index "+str(i)+" out of "+str(len(shuffler))+".")
         if 0 < i < 10000:
-            new_states1 = np.append(new_states1, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states1 = np.append(new_states1, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions1 = np.append(new_actions1, actions[shuffler[i]].reshape(1, 17), axis=0)
         elif 10000 < i < 20000:
-            new_states2 = np.append(new_states2, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states2 = np.append(new_states2, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions2 = np.append(new_actions2, actions[shuffler[i]].reshape(1, 17), axis=0)
         elif 20000 < i < 30000:
-            new_states3 = np.append(new_states3, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states3 = np.append(new_states3, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions3 = np.append(new_actions3, actions[shuffler[i]].reshape(1, 17), axis=0)
         elif 30000 < i < 40000:
-            new_states4 = np.append(new_states4, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states4 = np.append(new_states4, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions4 = np.append(new_actions4, actions[shuffler[i]].reshape(1, 17), axis=0)
         elif 40000 < i < 50000:
-            new_states5 = np.append(new_states5, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states5 = np.append(new_states5, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions5 = np.append(new_actions5, actions[shuffler[i]].reshape(1, 17), axis=0)
         elif 50000 < i < 60000:
-            new_states6 = np.append(new_states6, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states6 = np.append(new_states6, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions6 = np.append(new_actions6, actions[shuffler[i]].reshape(1, 17), axis=0)
         elif 60000 < i < 70000:
-            new_states7 = np.append(new_states7, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states7 = np.append(new_states7, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions7 = np.append(new_actions7, actions[shuffler[i]].reshape(1, 17), axis=0)
         elif i > 70000:
-            new_states8 = np.append(new_states8, states[shuffler[i]].reshape(1, 10), axis=0)
+            new_states8 = np.append(new_states8, states[shuffler[i]].reshape(1, states_space_len), axis=0)
             new_actions8 = np.append(new_actions8, actions[shuffler[i]].reshape(1, 17), axis=0)
     if len(shuffler) < 10000:
         states = new_states1
@@ -181,6 +185,39 @@ def shuffle(states, actions):
         actions = np.append(actions, new_actions8, axis=0)
 
     return states, actions
+
+
+def remove_no_ops(states, actions, fraction):
+    """
+    Removes no_op actions. The amount removed is specified by 'fraction'
+    :param states: the states
+    :param actions: the actions
+    :param fraction: the fraction of no_ops to remove
+    :return: states, actions
+    """
+    no_op_indices = []
+    for i in range(len(actions)):
+        if actions[i][0] == 1:
+            no_op_indices.append(i)
+
+    nbr_of_states, nbr_of_state_elements = states.shape
+    nbr_of_actions, nbr_of_action_elements = actions.shape
+
+    new_states = np.zeros((nbr_of_states-int(len(no_op_indices)*fraction), nbr_of_state_elements))
+    new_actions = np.zeros((nbr_of_actions-int(len(no_op_indices)*fraction), nbr_of_action_elements))
+
+    random.shuffle(no_op_indices)
+    no_op_indices = no_op_indices[0:int(len(no_op_indices)*fraction)]
+
+    k = 0
+    for i in range(len(states)):
+        print(i)
+        if i not in no_op_indices:
+            new_states[k] = states[i]
+            new_actions[k] = actions[i]
+            k += 1
+
+    return new_states, new_actions
 
 
 def filter_data(states, actions):
@@ -241,7 +278,7 @@ def build_model():
     :return: the network
     """
     network = models.Sequential()
-    network.add(layers.Dense(128, activation='relu', input_shape=(10,)))
+    network.add(layers.Dense(128, activation='relu', input_shape=(11,)))
     network.add(layers.Dense(32, activation='relu'))
     network.add(layers.Dense(17, activation='softmax'))
     #network.summary()
@@ -278,16 +315,36 @@ def fetch_data(path):
                     gas = 40
                 gas = gas/40
                 command_centers = units_amount[units.Terran.CommandCenter.value]/10
-                supply_depot = units_amount[units.Terran.SupplyDepot.value]/30
-                refineries = units_amount[units.Terran.Refinery.value]/30
-                barracks = units_amount[units.Terran.Barracks.value]/30
-                factories = units_amount[units.Terran.Factory.value]/30
-                starports = units_amount[units.Terran.Starport.value]/30
-                scvs = units_amount[units.Terran.SCV.value]/200
-                marines = units_amount[units.Terran.Marine.value]/200
+                if command_centers > 1:
+                    command_centers = 1
+                supply_depots = units_amount[units.Terran.SupplyDepot.value]/25
+                if supply_depots > 1:
+                    supply_depots = 1
+                refineries = units_amount[units.Terran.Refinery.value]/24
+                if refineries > 1:
+                    refineries = 1
+                barracks = units_amount[units.Terran.Barracks.value]/15
+                if barracks > 1:
+                    barracks = 1
+                factories = units_amount[units.Terran.Factory.value]/15
+                if factories > 1:
+                    factories = 1
+                starports = units_amount[units.Terran.Starport.value]/15
+                if starports > 1:
+                    starports = 1
+                scvs = units_amount[units.Terran.SCV.value]/100
+                if scvs > 1:
+                    scvs = 1
+                marines = units_amount[units.Terran.Marine.value]/100
+                if marines > 1:
+                    marines = 1
+                step = int(imported_data[i][4]*5/(16*1.4*5))    # Binning steps to 5 second intervals.
+                step = step/134    # Equivalent to about 11 minutes
+                if step > 1:
+                    step = 1
 
-                state.append([minerals, gas, command_centers, supply_depot, refineries, barracks,
-                             factories, starports, scvs, marines])
+                state.append([minerals, gas, command_centers, supply_depots, refineries, barracks,
+                             factories, starports, scvs, marines, step])
 
                 # Formats the action array
                 action_space = {
@@ -323,7 +380,7 @@ def is_good_data(data):
     :param data: the data to be evaluated
     :return: boolean
     """
-    maximum_game_length = 4.83333333    # in minutes. For reference, 16 (17) SCVs and 10 marines took 2m40s.
+    maximum_game_length = 4    # in minutes. For reference, 16 (17) SCVs and 10 marines took 2m40s.
     if data[len(data)-1][4] < (16*60*maximum_game_length*1.4/5):
         return True
     else:
