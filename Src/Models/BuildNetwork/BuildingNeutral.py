@@ -4,7 +4,8 @@ from enum import Enum
 from pysc2.lib import units
 
 """
-The class is an enum class for all the neutral buildings in the enviorment
+The class is an enum class for all 
+the neutral buildings in the environment
 """
 class BuildingsNeutral(Enum):
     Minerals = units.Neutral.MineralField.value

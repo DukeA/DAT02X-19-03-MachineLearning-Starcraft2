@@ -2,7 +2,7 @@
 from Models.HelperClass.Singleton import Singelton
 
 """
-An singelton class for getting the 
+    An singelton class for getting the x and y coordinates
 """
 
 class Buildsingelton( metaclass=Singelton):

@@ -3,9 +3,9 @@ from enum import  Enum
 from pysc2.lib import units
 
 """
-The class is an  collection of all the  units which the  ai is able to build
+The class is an  collection of all the  
+enum values  from the pysc2 library
 """
-
 
 class BuildingTerranQueue(Enum):
     commandcenter = units.Terran.CommandCenter.value,

@@ -7,7 +7,8 @@ from Models.HelperClass.HelperClass import HelperClass
 
 """
     The class is a wrapper class for the 
-    State of the building location which checks all the 
+    State of the building location which checks the environment and 
+    places them in a grid structure.
     
 """
 
@@ -46,32 +47,12 @@ class BuildModelGather:
         self.units_in_progress = state.units_in_progress
 
 
-    def __getattr__(self, item):
-        orig_attr = self.State.__getattribute__(item)
-        if callable(orig_attr):
-            def wrapped(*args, **kwargs):
-                result = orig_attr(*args, **kwargs)
-                if result == self.State:
-                    return self
-                return result
-
-            return wrapped
-        else:
-            return orig_attr
-
-    def set_observable_location(self, obs):
-        for buildings_type in self.buildings:
-
-            buildings_type = HelperClass.get_units(self, obs, buildings_type)
-
-            if len(buildings_type) != 0:
-                for building in buildings_type:
-                    building_coordinate = building[0]
-                    coordinates_on_screen = obs.observation.feature_minmap.player_relative[
-                        int(round(building_coordinate[1]))][int(round(building_coordinate[0]))]
-                    if coordinates_on_screen == 1:
-                        self.buildlocation.append(building)
-        return self.buildlocation
+    """
+        :param The parameter of the observable universe
+        The method takes the  environment and sets  the value of the environment in that place.
+        With the  new value which was supposed to be the value of the  building.
+        
+    """
 
     def set_locations(self, obs):
         viewlist = BuildModelGather.set_buildmap(self)
@@ -93,6 +74,13 @@ class BuildModelGather:
                         viewlist[value_x, value_y] = value_type
         return viewlist
 
+    """
+        :param obs - The seen environment form the model the 
+        :param building_type - The  set type of the terran buildings 
+        in the game from the Enum class
+        The class gets the radius for each of the coordinates for each of the building
+    """
+
     def get_units_infrastructre_location(self, obs, building_type):
         units = [unit for unit in obs.observation.feature_units
                  if unit.unit_type == building_type]
@@ -105,6 +93,12 @@ class BuildModelGather:
                 BuildModelGather.set_setsourdingvalues(self, unit.x , unit.y, unit_shape, building_type)
             )
         return coordinates
+
+    """
+         :param obs - The seen environment for the 
+         :param neutral_type - The set of the neutral buildings which are part of the enum class
+         The class returns the location of the coordinates for the neutral objects
+     """
 
     def get_neutral_object_location(self, obs, neutral_type):
         neutral_units = [unit for unit in obs.observation.feature_units
@@ -120,6 +114,14 @@ class BuildModelGather:
                 )
         return neutral_coordinates
 
+    """
+        :param unit_x - The x location for the type
+        :param unit_y - The y location for the type
+        :param unit_shape - The shape of the unit
+        :param type - The value of the unit type
+        The method sets the surrounding variables to be the same as the type of building and sets it to that place
+    """
+
     def set_setsourdingvalues(self, unit_x, unit_y, unit_shape, type):
         radius = unit_shape
         x = unit_x-radius
@@ -131,6 +133,9 @@ class BuildModelGather:
                 coordinates_radius.append((x+i, y+j, type))
         return coordinates_radius
 
+    """
+        An method which builds up an array which has the size of 82  arrays with the size 82
+    """
     def set_buildmap(self):
         viewlist = np.full((82, 82), 0)
         return viewlist

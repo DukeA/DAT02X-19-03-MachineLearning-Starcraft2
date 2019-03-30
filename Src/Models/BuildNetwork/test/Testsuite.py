@@ -8,6 +8,10 @@ import numpy.testing as npt
 
 class test_build_model(unittest.TestCase):
 
+        """
+            Checks to see if the location for the array is correctly built.
+        """
+
         def testModule(self):
             x = 82
             y = 82
@@ -17,6 +21,11 @@ class test_build_model(unittest.TestCase):
             _list = np.full((81, 81), 0)
             npt.assert_array_equal(list, _list)
             print("Test Size being Created to true")
+
+
+        """
+            Test to see that the location for a building radius have been set correctly
+        """
 
         def test_buildModule(self):
             x = 3
@@ -31,6 +40,10 @@ class test_build_model(unittest.TestCase):
             list3 = [(0, 0, 1), (0, 1, 1), (0, 2, 1), (1, 0, 1), (1, 1, 1), (1, 2, 1), (2, 0, 1), (2, 1, 1), (2, 2, 1)]
             npt.assert_array_almost_equal(list2,list3)
             print("The arrays are equal to each other")
+
+        """
+            borderCase see if the location is correct for builidng which is smaller
+        """
 
         def test_build_sourndings(self):
             x = 1
@@ -47,9 +60,3 @@ class test_build_model(unittest.TestCase):
             print("The arrays are equal to each other")
 
 
-
-
-
-
-if __name__=='__main__':
-    unittest.main()
