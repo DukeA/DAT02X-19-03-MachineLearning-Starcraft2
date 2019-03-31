@@ -211,7 +211,7 @@ class State:
         else:  # Everything of correct type. Add to building queue
             old_camera_coordinate = camera_coordinate
             camera_coordinate = [coord for coord in old_camera_coordinate]
-            camera_coordinate[0] = camera_coordinate[0] + (screen_coordinate[0]-42) / 84 * 7
+            camera_coordinate[0] = camera_coordinate[0] + (screen_coordinate[0] - 42) / 84 * 7
             camera_coordinate[1] = camera_coordinate[1] + (screen_coordinate[1] - 42) / 84 * 7
             self.units_in_progress.append([camera_coordinate, unit_type, bot_obj.steps, False])
             return True

@@ -11,11 +11,13 @@ class HelperClass(base_agent.BaseAgent):
     def move_camera_to_base_location(self, obs):
         return actions.FUNCTIONS.move_camera(self.base_location)
 
-    def select_all_buildings(self, obs):
+    @staticmethod
+    def select_all_buildings(obs):
         if obs.observation.control_groups[9][1] > 0:
             return [actions.FUNCTIONS.select_control_group("recall", 9)]
         else:
             return [actions.FUNCTIONS.no_op()]
+
     @staticmethod
     def sigma(num):
         if num <= 0:
@@ -118,14 +120,9 @@ class HelperClass(base_agent.BaseAgent):
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
-            self.reqSteps = 2
+            self.reqSteps = 4
 
-        if self.reqSteps == 2:
-            self.reqSteps = 1
-
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-
+        self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 
     def place_building(self, obs, building_type, *coordinates):

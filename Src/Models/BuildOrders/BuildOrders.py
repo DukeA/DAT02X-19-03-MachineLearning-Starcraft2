@@ -92,10 +92,10 @@ class BuildOrders(base_agent.BaseAgent):
         """
             Builds a refinery in any base with a command center.
         """
+        # TODO: Maybe should check for depleted geysers
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
-            self.expo_loc = -1
             self.reqSteps = 4
 
         if self.reqSteps == 4:
@@ -104,36 +104,77 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 3:
             new_action = HelperClass.select_scv(self, obs)
 
+        # This step finds a vacant vespene geyser near a command center and moves the camera there.
+        # The center of a Command Center must be about 8 in-game units away from a geyser.
+        # The feature screen is 24x24 in-game units or 84x84 screen units.
+        # With a margin, a geyser will be less than 9.5 * 84/24 screen units from its Command Center (or half a screen)
+        # That's how this code judges if a geyser belongs to a base.
         if self.reqSteps == 2:
-            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+            geyser_distance = (9.5*84/24)**2
+            all_geysers = [u for u in obs.observation.raw_units
+                           if u.unit_type == units.Neutral.VespeneGeyser]
+            all_refineries = [u for u in obs.observation.raw_units
+                              if u.unit_type == units.Terran.Refinery
+                              and u.alliance == 1]
+            all_command_centers = [u for u in obs.observation.raw_units
+                                   if u.unit_type == units.Terran.CommandCenter
+                                   and u.alliance == 1]
+            selected_geyser = []
 
+            if len(all_command_centers) > 0:
+                cc_pos = [(cc.x, cc.y) for cc in all_command_centers]
+                if len(all_refineries) > 0:
+                    refinery_pos = [(ref.x, ref.y) for ref in all_refineries]
+                    # Find CCs with at least one vacant geyser
+                    for i in range(len(all_command_centers)):
+                        cc = cc_pos[i]
+                        base_refineries = 0
+                        # Finds the number of refineries belonging to a CC
+                        for j in range(len(all_refineries)):
+                            if (cc[0] - refinery_pos[j][0]) ** 2 + (cc[1] - refinery_pos[j][1]) ** 2 < geyser_distance:
+                                base_refineries += 1
+                                if base_refineries == 2:
+                                    break
+                        # Equivalent to there being a vacant geyser near the CC
+                        if base_refineries < 2:
+                            geyser_pos = [(geyser.x, geyser.y) for geyser in all_geysers]
+                            for j in range(len(all_geysers)):
+                                if (cc[0] - geyser_pos[j][0]) ** 2 + (cc[1] - geyser_pos[j][1]) ** 2 < geyser_distance:
+                                    selected_geyser = geyser_pos[j]
+                                    break
+                        if selected_geyser:
+                            break
+
+                # Trivial case: there are no refineries so just pick any suitable geyser
+                else:
+                    cc = random.choice(cc_pos)
+                    if len(all_geysers) > 0:
+                        geyser_pos = [(geyser.x, geyser.y) for geyser in all_geysers]
+                        for i in range(len(all_geysers)):
+                            if (cc[0]-geyser_pos[i][0])**2+(cc[1]-geyser_pos[i][1])**2 < geyser_distance:
+                                selected_geyser = geyser_pos[i]
+
+            if selected_geyser:
+                new_action = HelperClass.move_screen(obs, selected_geyser)
+
+        # At this point there should be a vacant geyser on the screen (or none at all if last step failed).
         if self.reqSteps == 1:
-            geyser = HelperClass.get_units(self, obs, units.Neutral.VespeneGeyser)
-            refineries = HelperClass.get_units(self, obs, units.Terran.Refinery)
-            if len(refineries) == 0:
-                if len(HelperClass.get_units(self, obs, units.Terran.CommandCenter)) > 0:
-                    new_action = HelperClass.place_building(self, obs, units.Terran.Refinery, geyser[0].x, geyser[0].y)
-            if len(refineries) == 1 and len(geyser) == 2:
-                if len(HelperClass.get_units(self, obs, units.Terran.CommandCenter)) > 0:
-                    geyser_loc_1 = (geyser[0].x, geyser[0].y)
-                    geyser_loc_2 = (geyser[1].x, geyser[1].y)
-                    if geyser_loc_1[0] == refineries[0].x and geyser_loc_1[1] == refineries[0].y:
-                        new_action = HelperClass.place_building(
-                            self, obs, units.Terran.Refinery, geyser_loc_2[0], geyser_loc_2[1])
-                    else:
-                        new_action = HelperClass.place_building(
-                            self, obs, units.Terran.Refinery, geyser_loc_1[0], geyser_loc_1[1])
-            # In case there's only one visible geyser/refinery on the screen:
-            if len(refineries) == 2 or (len(refineries) == 1 and len(geyser) == 1):
-                if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc + 1:
-                    self.reqSteps = 2
-                    self.expo_loc += 1
-                    if self.expo_loc < len(Coordinates.CC_LOCATIONS):
-                        target = BuildOrders.choose_location(self, self.start_top)
-                        new_action = [
-                            actions.FUNCTIONS.move_camera(target)]
-                    else:
-                        self.reqSteps = 1
+            geysers = [u for u in obs.observation.feature_units
+                       if u.unit_type == units.Neutral.VespeneGeyser]
+            refineries = [u for u in obs.observation.feature_units
+                          if u.unit_type == units.Terran.Refinery
+                          and u.alliance == 1]
+            if len(refineries) == 0 and len(geysers) > 0:
+                new_action = HelperClass.place_building(self, obs, units.Terran.Refinery, geysers[0].x, geysers[0].y)
+            elif len(refineries) == 1 and len(geysers) == 2:
+                geyser_loc_1 = (geysers[0].x, geysers[0].y)
+                geyser_loc_2 = (geysers[1].x, geysers[1].y)
+                if geyser_loc_1[0] == refineries[0].x and geyser_loc_1[1] == refineries[0].y:
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.Refinery, geyser_loc_2[0], geyser_loc_2[1])
+                else:
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.Refinery, geyser_loc_1[0], geyser_loc_1[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -144,52 +185,66 @@ class BuildOrders(base_agent.BaseAgent):
             has depleted its resources.
         """
         new_action = [actions.FUNCTIONS.no_op()]
-        top_start = self.start_top
         if self.reqSteps == 0:
-            self.expo_loc = -1    # -1 denotes main base
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 4:
             if obs.observation.player.idle_worker_count > 0:
                 new_action = [actions.FUNCTIONS.select_idle_worker(
                     "select", obs, units.Terran.SCV)]
 
-        if self.reqSteps == 2:
-            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+        # Finds a suitable base to send the SCV to.
+        if self.reqSteps == 3:
+            command_centers = [u for u in obs.observation.raw_units
+                               if u.alliance == 1
+                               and u.unit_type == units.Terran.CommandCenter
+                               and u.build_progress == 100
+                               and u.ideal_harvesters > 0]
+            undermanned_command_centers = [u for u in command_centers
+                                           if u.assigned_harvesters/u.ideal_harvesters < 0]
+            undermanned_refineries = [u for u in obs.observation.raw_units
+                                      if u.alliance == 1
+                                      and u.unit_type == units.Terran.Refinery
+                                      and u.build_progress == 100
+                                      and u.assigned_harvesters < 3]
+            if len(undermanned_refineries) > 0:
+                refinery = random.choice(undermanned_refineries)
+                new_action = HelperClass.move_screen(obs, (refinery.x, refinery.y))
+            elif len(undermanned_command_centers) > 0:
+                command_center = random.choice(undermanned_command_centers)
+                new_action = HelperClass.move_screen(obs, (command_center.x, command_center.y))
+            elif len(command_centers) > 0:
+                command_center = random.choice(command_centers)
+                new_action = HelperClass.move_screen(obs, (command_center.x, command_center.y))
 
-        if self.reqSteps == 1:  # Check if there are minerals. If there aren't, move to the next location
-            minerals = HelperClass.get_units(self, obs, units.Neutral.MineralField) +\
-                       HelperClass.get_units(self, obs, units.Neutral.MineralField750)
-            refineries = HelperClass.get_units(self, obs, units.Terran.Refinery)
-            refineries = [refinery for refinery in refineries
-                          if refinery.alliance == 1
-                          and refinery.vespene_contents > 0
-                          and refinery.assigned_harvesters < 3]
-            if len(minerals) == 0 and len(refineries) == 0:
-                if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc + 1:
-                    self.reqSteps = 2
-                    self.expo_loc += 1
-                    if self.expo_loc < len(Coordinates.CC_LOCATIONS):
-                        target = BuildOrders.choose_location(self, top_start)
-                        new_action = [
-                            actions.FUNCTIONS.move_camera(target)]
-                    else:
-                        self.reqSteps = 1
-            else:
-                if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
-                        if len(refineries) > 0:
-                            for i in range(len(refineries)):
-                                if refineries[i].assigned_harvesters < 3:
-                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
-                                        "now", (HelperClass.sigma(refineries[i].x),
-                                                HelperClass.sigma(refineries[i].y)))]
-                                    self.action_finished = True
-                        else:
-                            new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
-                                "now", (HelperClass.sigma(minerals[0].x),
-                                        HelperClass.sigma(minerals[0].y)))]
-                            self.action_finished = True
+        # Should be at a base now.
+        if self.reqSteps == 2:
+            undermanned_refineries = [u for u in obs.observation.feature_units
+                                      if u.alliance == 1
+                                      and u.unit_type == units.Terran.Refinery
+                                      and u.build_progress == 100
+                                      and u.assigned_harvesters < 3]
+            minerals = [u for u in obs.observation.feature_units if
+                        (u.unit_type == units.Neutral.MineralField
+                         or u.unit_type == units.Neutral.MineralField750
+                         or u.unit_type == units.Neutral.RichMineralField
+                         or u.unit_type == units.Neutral.RichMineralField750)]
+            if len(undermanned_refineries) > 0:
+                refinery = undermanned_refineries[0]
+                if HelperClass.do_action(self, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                        "now", (HelperClass.sigma(refinery.x),
+                                HelperClass.sigma(refinery.y)))]
+                    self.action_finished = True
+            elif len(minerals) > 0:
+                mineral = minerals[0]
+                if HelperClass.do_action(self, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                        "now", (HelperClass.sigma(mineral.x),
+                                HelperClass.sigma(mineral.y)))]
+                    self.action_finished = True
+
+        # There's one step left (reqSteps == 1) that's intentionally being left blank.
         self.reqSteps -= 1
 
         ActionSingleton().set_action(new_action)
