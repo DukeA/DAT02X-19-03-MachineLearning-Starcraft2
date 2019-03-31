@@ -173,7 +173,7 @@ class State:
     def get_unselected_production_buildings(obs, on_screen=False):
         """
         This methods returns a list of production buildings (buildings capable of producing units) that aren't
-        in currently selected.
+        in currently selected. Note that it doesn't count Barracks with tech labs.
         :param obs:
         :param on_screen: Whether or not the list should only contain units visible on the screen
         :return:
