@@ -157,6 +157,8 @@ class State:
             bot_obj.reqSteps = 1
 
         elif bot_obj.reqSteps == 1:
+            # single_select is an array of zeros if nothing is selected.
+            # The following line checks for when hp > 0 (i.e. a unit is actually selected)
             if obs.observation.single_select[0][2] > 0:
                 if (obs.observation.single_select[0].unit_type == units.Terran.CommandCenter or
                         obs.observation.single_select[0].unit_type == units.Terran.Barracks or
