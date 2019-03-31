@@ -71,7 +71,7 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         if self.reqSteps == 3:
-            HelperClass.get_current_minimap_location(self, obs)
+            HelperClass.get_current_minimap_location(obs)
             new_action = HelperClass.select_scv(self, obs)
 
         if self.reqSteps == 2:
@@ -182,13 +182,13 @@ class BuildOrders(base_agent.BaseAgent):
                             for i in range(len(refineries)):
                                 if refineries[i].assigned_harvesters < 3:
                                     new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
-                                        "now", (HelperClass.sigma(self, refineries[i].x),
-                                                HelperClass.sigma(self, refineries[i].y)))]
+                                        "now", (HelperClass.sigma(refineries[i].x),
+                                                HelperClass.sigma(refineries[i].y)))]
                                     self.action_finished = True
                         else:
                             new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
-                                "now", (HelperClass.sigma(self, minerals[0].x),
-                                        HelperClass.sigma(self, minerals[0].y)))]
+                                "now", (HelperClass.sigma(minerals[0].x),
+                                        HelperClass.sigma(minerals[0].y)))]
                             self.action_finished = True
         self.reqSteps -= 1
 
@@ -290,8 +290,8 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 2:
             if len(barracks) > 0 and HelperClass.not_in_progress(self, obs, units.Terran.Barracks):
                 new_action = [actions.FUNCTIONS.select_point("select",
-                                                             (HelperClass.sigma(self, barracks[0].x),
-                                                              HelperClass.sigma(self, barracks[0].y)))]
+                                                             (HelperClass.sigma(barracks[0].x),
+                                                              HelperClass.sigma(barracks[0].y)))]
         elif self.reqSteps == 1:
             if len(barracks) > 0:
                 if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
@@ -322,8 +322,8 @@ class BuildOrders(base_agent.BaseAgent):
                 else:
                     command = random.choice(command_scv)
                     new_action = [actions.FUNCTIONS.select_point(
-                        "select", (HelperClass.sigma(self, command.x),
-                                   HelperClass.sigma(self, command.y)))]
+                        "select", (HelperClass.sigma(command.x),
+                                   HelperClass.sigma(command.y)))]
 
         if self.reqSteps == 2:  # move to expansion location
             target = BuildOrders.choose_location(self, top_start)
@@ -345,7 +345,7 @@ class BuildOrders(base_agent.BaseAgent):
             else:
                 target = BuildOrders.choose_screen_location(self, top_start)
                 new_action = HelperClass.place_building(self, obs, units.Terran.CommandCenter, target[0], target[1])
-                minimap_location = HelperClass.get_current_minimap_location(self, obs)
+                minimap_location = HelperClass.get_current_minimap_location(obs)
                 self.game_state.add_unit_in_progress(self, minimap_location, target,
                                                      units.Terran.CommandCenter.value)
 
