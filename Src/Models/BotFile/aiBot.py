@@ -37,6 +37,8 @@ class AiBot(base_agent.BaseAgent):
         self.previous_state = None
         self.agent = None
 
+
+        self.minerals = 50
     def step(self, obs):
         super(AiBot, self).step(obs)
 

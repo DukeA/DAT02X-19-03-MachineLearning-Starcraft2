@@ -30,11 +30,12 @@ class BuildSelector():
 
         action = self.agent.act(state)
 
+        if obs.observation.player.minerals < self.minerals:
+            self.agent.remember(self.previous_state, self.previous_action, 0.05, state, False)
+        else:
+            self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
 
-
-        self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
-
-
+        self.minerals = obs.observation.player.minerals
         self.previous_state = state
         self.previous_action = action
 
@@ -56,7 +57,13 @@ class BuildSelector():
         current_state[6] = BuildSelector.myround(obs.observation.player.minerals)
 
 
+        #normalizing
+        u = (1/current_state.size)* np.sum(current_state)
+        sig = (1/current_state.size)* np.square(np.sum(current_state))
 
+        current_state = current_state - u
+        current_state = current_state / sig
+        print(current_state)
 
 
 

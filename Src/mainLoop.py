@@ -36,7 +36,7 @@ def main(unused_argv):
                         agent.agent.save('shortgames.h5')
                         if len(agent.agent.memory) > 32:
                             agent.agent.replay(32)
-                        agent.previous_state = None
+                        agent.previous_action = None
                         agent.previous_state = None
                         break
                     if agent.game_state.units_amount[units.Terran.Marine.value] >= 10 and\
@@ -45,7 +45,7 @@ def main(unused_argv):
                         agent.agent.save('shortgames.h5')
                         if len(agent.agent.memory) > 32:
                             agent.agent.replay(32)
-                        agent.previous_state = None
+                        agent.previous_action = None
                         agent.previous_state = None
                         if best is None or best > agent.steps*5:
                             best = agent.steps*5
