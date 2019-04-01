@@ -78,8 +78,12 @@ class State:
                     self.action_issued = "no_op"
 
             # Saves last state and last action in a tuple
-            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount),
-                                     self.action_issued, bot_obj.steps))
+            supply = obs.observation.player.food_used
+            free_supply = obs.observation.player.food_cap - supply
+            idle_workers = obs.observation.player.idle_worker_count
+
+            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount), supply, free_supply, idle_workers,
+                                     self.action_issued, bot_obj.steps, self.reward))
 
             # Update any state that doesn't require actions
             self.minerals = obs.observation.player.minerals

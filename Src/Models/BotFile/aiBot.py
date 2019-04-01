@@ -11,6 +11,9 @@ from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
 
+import os
+import pickle
+
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
         super(AiBot, self).__init__()
@@ -27,6 +30,20 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
+
+
+
+    def save_game(self, path, episode):
+        offset = 0
+        while os.path.exists(path + str(episode)+str(offset)+".txt"):
+            offset +=1
+        with open(path + str(episode)+str(offset)+".txt", 'wb') as filehandle:
+            pickle.dump(self.game_state.get_state(), filehandle)
+
+
+
+
+
 
     def step(self, obs):
         super(AiBot, self).step(obs)
