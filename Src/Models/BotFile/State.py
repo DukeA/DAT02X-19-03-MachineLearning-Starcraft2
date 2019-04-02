@@ -100,9 +100,6 @@ class State:
                                      dict(self.units_amount), dict(self.enemy_units_amount),
                                      self.action_issued, bot_obj.steps))
 
-            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount), supply, free_supply, idle_workers,
-                                     self.action_issued, bot_obj.steps, self.reward))
-
             # Update any state that doesn't require actions
             self.minerals = obs.observation.player.minerals
             self.vespene = obs.observation.player.vespene
