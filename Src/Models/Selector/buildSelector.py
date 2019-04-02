@@ -1,90 +1,125 @@
 import random
+import os
+import pandas as pd
+import numpy as np
+from pysc2.lib import units
+
 
 from Models.HelperClass.IsPossible import IsPossible
+from Models.Selector.dqn import DQN
+
+
+actions = ["no_op", "build_scv", "build_supply_depot", "build_marine", "build_barracks",
+           "return_scv"]
 
 
 class BuildSelector():
+    def myround(x, base=50):
+        return int(base * round(float(x)/base))
+
     def buildSelector(self, obs):
-        possible_actions = BuildSelector.possible_build_actions(self, obs)
-        return (random.choice(possible_actions))
 
-    # True ska bytas ut mot is possible metoderna
-    def possible_build_actions(self, obs):
-        poss_actions = ["no_op"]
-        if IsPossible.build_scv_possible(self, obs):
-            poss_actions.append("build_scv")
+        state = BuildSelector.format_state(self, obs)
+        state = np.reshape(state, [1, 8])
+
+        if self.agent is None:
+            self.agent = DQN(state_size=8, action_size=len(actions))
+            if os.path.isfile('shortgames.h5'):
+                self.agent.load('shortgames.h5')
+
+        action = self.agent.act(state)
+
+        if self.game_state.minerals < self.minerals:
+            self.agent.remember(self.previous_state, self.previous_action, 0.02, state, False)
+
+        elif (self.game_state.food_cap - self.game_state.food_used) <= 1 or (self.game_state.food_cap - self.game_state.food_used) >= 15:
+            self.agent.remember(self.previous_state, self.previous_action, -0.1, state, False)
         else:
-            poss_actions.append("no_op")
+            self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
 
-        if IsPossible.build_supply_depot_possible(self, obs):
-            poss_actions.append("build_supply_depot")
-        else:
-            poss_actions.append("no_op")
+        print(self.game_state.units_amount[units.Terran.SCV])
+        self.minerals = self.game_state.minerals
+        self.previous_state = state
+        self.previous_action = action
 
-        if IsPossible.build_marines_possible(self, obs):
-            poss_actions.append("build_marine")
-        else:
-            poss_actions.append("no_op")
+        translatedaction = actions[action]
 
-        if IsPossible.build_marauder_possible(self, obs):
-            poss_actions.append("build_marauder")
-        else:
-            poss_actions.append("no_op")
+        if len(self.agent.memory) > 32:
+            self.agent.replay(32)
+        return translatedaction
 
-        if IsPossible.build_reaper_possible(self, obs):
-            poss_actions.append("build_reaper")
-        else:
-            poss_actions.append("no_op")
+    def format_state(self, obs):
+        current_state = np.zeros(8)
 
-        if IsPossible.build_hellion_possible(self, obs):
-            poss_actions.append("build_hellion")
-        else:
-            poss_actions.append("no_op")
+        current_state[0] = self.game_state.units_amount[units.Terran.CommandCenter]
+        current_state[1] = self.game_state.units_amount[units.Terran.SupplyDepot]
+        current_state[2] = self.game_state.units_amount[units.Terran.Barracks]
+        current_state[3] = self.game_state.units_amount[units.Terran.SCV]
+        current_state[4] = self.game_state.units_amount[units.Terran.Marine]
+        current_state[5] = self.game_state.food_cap
+        current_state[6] = self.game_state.food_used
+        current_state[7] = self.game_state.minerals
 
-        if IsPossible.build_medivac_possible(self, obs):
-            poss_actions.append("build_medivac")
-        else:
-            poss_actions.append("no_op")
+        # normalizing
+        u = (1/current_state.size) * np.sum(current_state)
+        sig = (1/current_state.size) * np.square(np.sum(current_state))
 
-        if IsPossible.build_viking_possible(self, obs):
-            poss_actions.append("build_viking")
-        else:
-            poss_actions.append("no_op")
+        current_state = current_state - u
+        current_state = current_state / sig
 
-        if IsPossible.build_barracks_possible(self, obs):
-            poss_actions.append("build_barracks")
-        else:
-            poss_actions.append("no_op")
+        return current_state
 
-        if IsPossible.build_refinery_possible(self, obs):
-            poss_actions.append("build_refinery")
-        else:
-            poss_actions.append("no_op")
+    # True ska buytas ut mot is possible metoderna
 
-        if True:
-            poss_actions.append("distribute_scv")
+    def excluded_actions(self, obs):
+        excluded_actions = []
 
-        if True:
-            poss_actions.append("return_scv")
+        if not IsPossible.build_scv_possible(self, obs):
+            excluded_actions.append(actions.index("build_scv"))
 
-        if IsPossible.build_command_center_possible(self, obs):
-            poss_actions.append("expand")
-        else:
-            poss_actions.append("no_op")
+        if not IsPossible.build_supply_depot_possible(self, obs):
+            excluded_actions.append(actions.index("build_supply_depot"))
 
-        if IsPossible.build_factory_possible(self, obs):
-            poss_actions.append("build_factory")
-        else:
-            poss_actions.append("no_op")
+        if not IsPossible.build_marines_possible(self, obs):
+            excluded_actions.append(actions.index("build_marine"))
 
-        if IsPossible.build_starport_possible(self, obs):
-            poss_actions.append("build_starport")
-        else:
-            poss_actions.append("no_op")
+        if not IsPossible.build_marauder_possible(self, obs):
+            excluded_actions.append(actions.index("build_marauder"))
 
-        if IsPossible.build_techlab_possible(self, obs):
-            poss_actions.append("build_tech_lab_barracks")
-        else:
-            poss_actions.append("no_op")
+        if not IsPossible.build_reaper_possible(self, obs):
+            excluded_actions.append(actions.index("build_reaper"))
 
-        return poss_actions
+        if not IsPossible.build_hellion_possible(self, obs):
+            excluded_actions.append(actions.index("build_hellion"))
+
+        if not IsPossible.build_medivac_possible(self, obs):
+            excluded_actions.append(actions.index("build_medivac"))
+
+        if not IsPossible.build_viking_possible(self, obs):
+            excluded_actions.append(actions.index("build_viking"))
+
+        if not IsPossible.build_barracks_possible(self, obs):
+            excluded_actions.append(actions.index("build_barracks"))
+
+        if not IsPossible.build_refinery_possible(self, obs):
+            excluded_actions.append(actions.index("build_refinery"))
+
+        # if not  True:
+        #     excluded_actions.append("distribute_scv")
+
+        if not True:
+            excluded_actions.append(actions.index("return_scv"))
+
+        if not IsPossible.build_command_center_possible(self, obs):
+            excluded_actions.append(actions.index("expand"))
+
+        if not IsPossible.build_factory_possible(self, obs):
+            excluded_actions.append(actions.index("build_factory"))
+
+        if not IsPossible.build_starport_possible(self, obs):
+            excluded_actions.append(actions.index("build_starport"))
+
+        if not IsPossible.build_techlab_possible(self, obs):
+            excluded_actions.append(actions.index("build_tech_lab_barracks"))
+
+        return excluded_actions

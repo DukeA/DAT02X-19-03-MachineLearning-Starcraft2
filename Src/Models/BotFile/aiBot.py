@@ -32,6 +32,12 @@ class AiBot(base_agent.BaseAgent):
         self.game_state_updated = False
         self.action_finished = False
 
+        self.previous_action = None
+        self.previous_state = None
+        self.agent = None
+
+        self.minerals = 50
+
     def save_game(self, path, episode):
         offset = 0
         while os.path.exists(path + str(episode)+str(offset)+".txt"):
