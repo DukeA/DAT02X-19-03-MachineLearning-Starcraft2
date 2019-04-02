@@ -21,7 +21,17 @@ class BuildFacade():
      BuildFacade.build_state = BuildModelGather.set_locations(self , obs)
      list = BuildFacade.build_state
      BuildFacade.build_model = BuildModelLocations.set_building_location(self ,list)
-     value =BuildNetwork.set_upModel(self)
+
+    """
+        An method for printing out the  environment on the screen
+    """
+    def print_enviroment(self, list):
+        value = 0
+        for i in list:
+            if value % 82 == 0:
+                print("\n")
+            print(i, end="")
+            value = value + 1
 
 
 
