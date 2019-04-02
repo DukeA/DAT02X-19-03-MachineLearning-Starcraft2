@@ -31,8 +31,8 @@ class BuildOrdersController(base_agent.BaseAgent):
     def return_scv(self, obs):
         BuildOrders.return_scv(self, obs)
 
-    def build_expand(self, obs, top_start):
-        BuildOrders.expand(self, obs, top_start)
+    def build_expand(self, obs):
+        BuildOrders.expand(self, obs)
 
     def build_starport(self, obs):
         BuildOrders.build_starport(self, obs)
