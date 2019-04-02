@@ -9,7 +9,6 @@ from Models.HelperClass.IsPossible import IsPossible
 from Models.Selector.dqn import DQN
 
 
-
 actions = ["no_op", "build_scv", "build_supply_depot", "build_marine", "build_barracks",
            "return_scv"]
 
@@ -24,7 +23,7 @@ class BuildSelector():
         state = np.reshape(state, [1, 7])
 
         if self.agent is None:
-            self.agent = DQN(state_size = 7, action_size=len(actions))
+            self.agent = DQN(state_size=7, action_size=len(actions))
             if os.path.isfile('shortgames.h5'):
                 self.agent.load('shortgames.h5')
 
@@ -32,6 +31,9 @@ class BuildSelector():
 
         if obs.observation.player.minerals < self.minerals:
             self.agent.remember(self.previous_state, self.previous_action, 0.05, state, False)
+
+        elif (obs.observation.player.food_cap - obs.observation.player.food_used) <= 1 or (obs.observation.player.food_cap - obs.observation.player.food_used) >= 20:
+            self.agent.remember(self.previous_state, self.previous_action, -0.1, state, False)
         else:
             self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
 
@@ -56,21 +58,17 @@ class BuildSelector():
         current_state[5] = obs.observation.player.food_cap - obs.observation.player.food_used
         current_state[6] = BuildSelector.myround(obs.observation.player.minerals)
 
-
-        #normalizing
-        u = (1/current_state.size)* np.sum(current_state)
-        sig = (1/current_state.size)* np.square(np.sum(current_state))
+        # normalizing
+        u = (1/current_state.size) * np.sum(current_state)
+        sig = (1/current_state.size) * np.square(np.sum(current_state))
 
         current_state = current_state - u
         current_state = current_state / sig
-        print(current_state)
-
-
 
         return current_state
 
-
     # True ska buytas ut mot is possible metoderna
+
     def excluded_actions(self, obs):
         excluded_actions = []
 
