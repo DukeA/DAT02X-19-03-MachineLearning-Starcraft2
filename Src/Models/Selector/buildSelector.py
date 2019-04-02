@@ -8,9 +8,9 @@ class BuildSelector():
         possible_actions = BuildSelector.possible_build_actions(self, obs)
         return (random.choice(possible_actions))
 
-    # True ska buytas ut mot is possible metoderna
+    # True ska bytas ut mot is possible metoderna
     def possible_build_actions(self, obs):
-        poss_actions = ["do_nothing"]
+        poss_actions = ["no_op"]
         if IsPossible.build_scv_possible(self, obs):
             poss_actions.append("build_scv")
         else:
@@ -85,9 +85,6 @@ class BuildSelector():
         if IsPossible.build_techlab_possible(self, obs):
             poss_actions.append("build_tech_lab_barracks")
         else:
-            poss_actions.append("no_op")
-
-        if True:
             poss_actions.append("no_op")
 
         return poss_actions
