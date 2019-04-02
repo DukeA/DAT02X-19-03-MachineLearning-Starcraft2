@@ -28,6 +28,7 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
+        self.attacking = False
 
     def step(self, obs):
         super(AiBot, self).step(obs)

@@ -131,9 +131,7 @@ class State:
 
                     units_found = HelperClass.check_minimap_for_units(self, obs, camera_coord)
 
-                    if not units_found:
-                        print('test')
-                    else:
+                    if units_found:
                         new_action = [actions.FUNCTIONS.move_camera(curr_unit[0])]  # Move camera
 
                 elif bot_obj.reqSteps % self.update_steps_per_unit == 1:

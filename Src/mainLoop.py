@@ -10,7 +10,7 @@ def main(unused_argv):
                 map_name="AbyssalReef",
                 players=[sc2_env.Agent(sc2_env.Race.terran),
                          sc2_env.Bot(sc2_env.Race.terran,
-                                         sc2_env.Difficulty.easy)],
+                                         sc2_env.Difficulty.medium)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True),
