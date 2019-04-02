@@ -28,7 +28,6 @@ class AiBot(base_agent.BaseAgent):
         self.actor_critic_agent = None
         self.game_state = None
         self.game_state_updated = False
-        self.num_actions = len(attackSelector) + len(buildSelector)
 
         # Basic game state test variables.
 
@@ -62,7 +61,11 @@ class AiBot(base_agent.BaseAgent):
             self.game_state = State()
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
-            self.actor_critic_agent = ActorCriticAgent(self.num_actions, 2, buildSelector+attackSelector)
+
+            action_space = list(self.game_state.action_space.values())
+
+            num_actions = len(action_space)
+            self.actor_critic_agent = ActorCriticAgent(num_actions, 4, action_space)
 
         action = [actions.FUNCTIONS.no_op()]
 

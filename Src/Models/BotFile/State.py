@@ -17,7 +17,8 @@ class State:
         self.units_amount = defaultdict(lambda: 0)  # Amount of each unit. Set to 0 by default
         self.minerals = 0
         self.vespene = 0
-        self.score = 0
+        self.unit_weight = 200
+        self.score = self.minerals + self.vespene + 12 * self.unit_weight
         self.reward = 0
         self.action_issued = None
         self.state_tuple = []
@@ -30,7 +31,6 @@ class State:
         self.update_steps_per_unit = 4  # Steps required to add each unit in units_in_progress to a control group
         self.update_building_step_threshold = 400  # Threshold steps for finding a building before it's removed from
         self.units_amounts_updated = False
-        self.unit_weight = 50
 
         # Constants
         # Action space of actions whose success is easily evaluated with observation.last_actions[0].
@@ -91,7 +91,7 @@ class State:
             # Update the score and reward
             oldScore = self.score
             self.score = self.minerals + self.vespene + sum(self.units_amount.values()) * self.unit_weight
-            self.reward = self.score - oldScore
+            self.reward = self.score - oldScore - 25
 
             # Check if the total amount of units stored is the same as the amount seen in control group 9
             if obs.observation.control_groups[9][1] != \

@@ -19,7 +19,7 @@ class Selector:
             #    self.actor_critic_agent =
             #else:
             self.game_state_updated = False
-            return self.actor_critic_agent.predict(self.game_state)
+            return self.actor_critic_agent.predict(self.game_state, obs)
 
                 # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
                 #if self.steps < 16 * 60 * 5 / 5 * 1.4:

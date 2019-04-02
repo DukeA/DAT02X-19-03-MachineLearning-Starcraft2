@@ -22,8 +22,8 @@ class ActorCriticAgent:
         self.train_indicator = True
         self.BUFFER_SIZE = 100000
         self.BATCH_SIZE = 32
-        self.GAMMA = 0.99
-        self.TAU = 0.001     #Target Network HyperParameters
+        self.GAMMA = 0.9
+        self.TAU = 0.1     #Target Network HyperParameters
         self.LRA = 0.0001    #Learning rate for Actor
         self.LRC = 0.001     #Lerning rate for Critic
 
@@ -77,13 +77,23 @@ class ActorCriticAgent:
 
         print("TORCS Experiment Start.")
 
-    def predict(self, game_state):
+    def predict(self, game_state, obs):
 
-        state = np.hstack((game_state.minerals, game_state.vespene))
+        state = np.hstack((game_state.minerals, game_state.vespene, obs.observation.player.food_workers, obs.observation.player.food_cap))
 
         loss = 0
 
-        action_probabilities = self.actor.model.predict(state.reshape(1, state.shape[0]))
+        self.epsilon *= 0.99
+        print("Epsilon: ", self.epsilon)
+
+        r = random.random()
+
+        if r < self.epsilon:
+            action_probabilities = tf.one_hot([random.randint(0, self.action_dim-1)], self.action_dim).eval(session=self.sess)
+        else:
+            action_probabilities = self.actor.model.predict(state.reshape(1, state.shape[0]))
+
+        print(action_probabilities)
 
         if self.episode == 0:
             self.prev_actions = action_probabilities
@@ -128,6 +138,11 @@ class ActorCriticAgent:
 
         chosen_action = self.action_space[max_index]
 
+        # FOR TESTING
+        print('Probs:', action_probabilities)
+        print('Chosen action:', chosen_action)
+        print('Reward:', game_state.reward)
+
         return chosen_action
 
         #if np.mod(self.episode, 3) == 0:
@@ -140,6 +155,10 @@ class ActorCriticAgent:
          #       with open("criticmodel.json", "w") as outfile:
          #           json.dump(self.critic.model.to_json(), outfile)
 
-
-# TODO Change networks to fit SC2 AI
-# TODO Keep track of episode (probably needs to be set and incremented in main_loop)
+    def probs_to_one_hot(self, probabilities):
+        one_hot_tensor = []
+        for prob in probabilities:
+            a = tf.constant(prob)
+            one_hot = tf.one_hot(tf.nn.top_k(a).indices, tf.shape(a)[0]).eval(session=self.sess)
+            one_hot_tensor.append(one_hot[0])
+        return np.array(one_hot_tensor)

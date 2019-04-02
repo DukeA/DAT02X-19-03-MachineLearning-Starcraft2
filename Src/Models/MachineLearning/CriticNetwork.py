@@ -4,14 +4,14 @@ from keras.initializers import normal, identity
 from keras.models import model_from_json, load_model
 #from keras.engine.training import collect_trainable_weights
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Input, merge, Lambda, Activation, Add
+from keras.layers import Dense, Flatten, Input, merge, Lambda, Activation, add
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 import keras.backend as K
 import tensorflow as tf
 
-HIDDEN1_UNITS = 300
-HIDDEN2_UNITS = 600
+HIDDEN1_UNITS = 150
+HIDDEN2_UNITS = 300
 
 class CriticNetwork(object):
     def __init__(self, sess, state_size, action_size, BATCH_SIZE, TAU, LEARNING_RATE):
@@ -49,8 +49,7 @@ class CriticNetwork(object):
         w1 = Dense(HIDDEN1_UNITS, activation='relu')(S)
         a1 = Dense(HIDDEN2_UNITS, activation='linear')(A) 
         h1 = Dense(HIDDEN2_UNITS, activation='linear')(w1)
-        #h2 = merge([h1, a1], mode='sum')
-        h2 = Add()([h1, a1])
+        h2 = add([h1, a1])
         h3 = Dense(HIDDEN2_UNITS, activation='relu')(h2)
         V = Dense(action_dim,activation='linear')(h3)   
         model = Model(input=[S, A], output=V)
