@@ -15,8 +15,17 @@ class State:
         # Game state
 
         self.units_amount = defaultdict(lambda: 0)  # Amount of each unit. Set to 0 by default
-        self.minerals = 0
+        self.units_amount[units.Terran.SCV] = 12
+        self.units_amount[units.Terran.CommandCenter] = 1
+        self.enemy_units_amount = defaultdict(lambda: 0)
+        self.enemy_units_amount[units.Terran.SCV] = 12
+        self.enemy_units_amount[units.Terran.CommandCenter] = 1
+        self.minerals = 50
         self.vespene = 0
+        self.food_used = 12
+        self.food_cap = 15
+        self.idle_workers = 0
+
         self.score = 0
         self.reward = 0
         self.action_issued = None
@@ -31,6 +40,7 @@ class State:
         self.update_building_step_threshold = 400  # Threshold steps for finding a building before it's removed from
         self.units_amounts_updated = False
         self.unit_weight = 50
+        self.current_unit = None
 
         # Constants
         # Action space of actions whose success is easily evaluated with observation.last_actions[0].
@@ -62,9 +72,17 @@ class State:
         return self.state_tuple
 
     def update_state(self, bot_obj, obs):
+        """
+        Updates the state and adds up to 1 production facility to control group. Always takes 4 steps to execute.
+        :param bot_obj: The agent
+        :param obs: The observation
+        :return: Actions
+        """
         new_action = [actions.FUNCTIONS.no_op()]  # No action by default
 
         if bot_obj.reqSteps == 0:
+            bot_obj.reqSteps = 3
+
             # Find latest issued action
             if bot_obj.action_finished:
                 # This catches everything in ArmyControl, return_scv() and distribute_scv()
@@ -78,100 +96,110 @@ class State:
                     self.action_issued = "no_op"
 
             # Saves last state and last action in a tuple
-            self.state_tuple.append((self.minerals, self.vespene, dict(self.units_amount),
+            self.state_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
+                                     dict(self.units_amount), dict(self.enemy_units_amount),
                                      self.action_issued, bot_obj.steps))
 
             # Update any state that doesn't require actions
             self.minerals = obs.observation.player.minerals
             self.vespene = obs.observation.player.vespene
-            self.units_amount[units.Terran.Marine.value] = obs.observation.player.army_count  # Temporary solution
-            # The following line might actually count SCVs in construction.
-            self.units_amount[units.Terran.SCV.value] = obs.observation.player.food_workers
+            self.food_used = obs.observation.player.food_used
+            self.food_cap = obs.observation.player.food_cap
+            self.idle_workers = obs.observation.player.idle_worker_count
+            self.units_amount[units.Terran.SCV] = obs.observation.player.food_workers
+            # Filter out SCVs before updating units_amount because they disappear when they go into refineries
+            own_units = [u for u in obs.observation.raw_units
+                         if u.alliance == 1 and u.unit_type != units.Terran.SCV]
+            # Quickly checks if the state has changed. Not sure if actually faster.
+            if len(own_units) != sum(self.units_amount.values())-self.units_amount[units.Terran.SCV]:
+                own_unit_types = [u.unit_type for u in own_units]
+                unit_types, unit_type_counts = np.unique(np.array(own_unit_types), return_counts=True)
+                for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
+                    self.units_amount[unit_type] = unit_type_count
+
+            # Counts enemy units
+            enemy_units = [u for u in obs.observation.raw_units
+                           if u.alliance == 4]
+            enemy_unit_types = [u.unit_type for u in enemy_units]
+            unit_types, unit_type_counts = np.unique(np.array(enemy_unit_types), return_counts=True)
+            for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
+                self.enemy_units_amount[unit_type] = unit_type_count
 
             # Update the score and reward
             oldScore = self.score
             self.score = self.minerals + self.vespene + sum(self.units_amount.values()) * self.unit_weight
             self.reward = self.score - oldScore
 
-            # Check if the total amount of units stored is the same as the amount seen in control group 9
-            if obs.observation.control_groups[9][1] != \
-                    sum(self.units_amount.values())\
-                    - obs.observation.player.army_count\
-                    - obs.observation.player.food_workers:
-                new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]
-                bot_obj.reqSteps = 1
-            else:
-                if not self.units_amounts_updated:
-                    self.units_amounts_updated = True
+            bot_obj.game_state_updated = True
 
-                # Check if there are buildings queued that need to be found.
-                if len(self.units_in_progress) > 0:
-                    bot_obj.reqSteps = len(self.units_in_progress)*self.update_steps_per_unit
-                else:
-                    bot_obj.game_state_updated = True
+            # Selects control group 9
+            new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]
 
-        elif bot_obj.reqSteps > 0:  # Check if method needs to perform actions
-            bot_obj.reqSteps -= 1
+        # Section for adding unselected production building to control group 9.
+        # It only adds one building per state update to keep state update lengths consistent.
+        # When at this stage, control group 9 should be selected.
+        # This section should be ran even when the control group is correct.
+        elif bot_obj.reqSteps == 3:
+            unselected_production = self.get_unselected_production_buildings(obs, on_screen=False)
+            if len(unselected_production) > 0:
+                unit = random.choice(unselected_production)
+                new_action = HelperClass.move_screen(obs, (unit.x, unit.y))
+            bot_obj.reqSteps = 2
 
-            # Section for adding units from the queue units_in_progress to control group 9
-            if len(self.units_in_progress) > 0 and self.units_amounts_updated:
-                index = bot_obj.reqSteps // self.update_steps_per_unit  # Current index in units_in_progress queue
-                curr_unit = self.units_in_progress[index]
+        elif bot_obj.reqSteps == 2:
+            unselected_production = self.get_unselected_production_buildings(obs, on_screen=True)
+            if len(unselected_production) > 0:
+                unit = random.choice(unselected_production)
+                new_action = [actions.FUNCTIONS.select_point(
+                    "select",
+                    (HelperClass.sigma(unit.x+random.randint(0, 3)),
+                     HelperClass.sigma(unit.y+random.randint(0, 3))))]
+            bot_obj.reqSteps = 1
 
-                if bot_obj.reqSteps % self.update_steps_per_unit == 3:
-                    new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]  # Select control group
-
-                elif bot_obj.reqSteps % self.update_steps_per_unit == 2:
-                    new_action = [actions.FUNCTIONS.move_camera(curr_unit[0])]  # Move camera
-
-                elif bot_obj.reqSteps % self.update_steps_per_unit == 1:
-                    # Look for units of the right type that aren't already in the selected control group.
-                    found_units = [unit for unit in obs.observation.feature_units
-                                   if unit.unit_type == curr_unit[1] and not unit.is_selected]
-                    if len(found_units) > 0:  # If units are found, select the first one (arbitrarily, could choose any)
-                        unit_squared_center_distances = [(unit.x - 42) ** 2 + (unit.y - 42) ** 2 for unit in
-                                                         found_units]
-                        unit_index = unit_squared_center_distances.index(min(unit_squared_center_distances))
-                        selected_unit = found_units[unit_index]
-                        curr_unit[3] = True  # Set the unit as "found" so it can be added in the next step
-                        self.units_in_progress[index] = curr_unit
-                        # Select the unit. Random perturbation added so a slightly different point is
-                        # selected each time, in case some other unit is blocking the unit found.
-                        new_action = [actions.FUNCTIONS.select_point("select", (HelperClass.sigma(self, selected_unit.x+random.randint(0, 5)),
-                                                                                HelperClass.sigma(self, selected_unit.y+random.randint(0, 5))))]
-                elif bot_obj.reqSteps % self.update_steps_per_unit == 0:
-                    if curr_unit[3]:  # Check if the current unit was found in the previous step
-                        # If it was found but the type is wrong, go back to the previous step and select again
-                        if obs.observation.single_select[0][0] != curr_unit[1]:
-                            bot_obj.reqSteps += 2
-                        else:  # If the unit found is of the right type, add it to control group 9
-                            self.units_amount[curr_unit[1]] = self.units_amount[curr_unit[1]] + 1
-                            new_action = [actions.FUNCTIONS.select_control_group("append", 9)]
-                            del self.units_in_progress[index]  # Remove if from the queue
-                    # If the unit wasn't found and the amount of steps passed since it was queued is above the
-                    # threshold, remove it from the queue. Something likely interrupted the building process
-                    elif not curr_unit[3] and bot_obj.steps - curr_unit[2] > self.update_building_step_threshold:
-                        del self.units_in_progress[index]
-
-            # Section that runs on the last step of a series of actions
-            # (this part won't be reached unless reqSteps was previously > 0 during this method call).
-            if bot_obj.reqSteps == 0:  # Everything has been checked. Set game state to updated
-                if self.units_amounts_updated:
-                    bot_obj.game_state_updated = True
-                    self.units_amounts_updated = False
-                # If this step is reached, the total unit amount stored doesn't correspond to the control
-                # group amount. Therefore, update all unit amounts from the control group
-                else:
-                    units_selected = obs.observation.multi_select
-                    units_selected_types = [unit.unit_type for unit in units_selected]
-                    unit_types, unit_type_counts = np.unique(np.array(units_selected_types), return_counts=True)
-                    for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
-                        self.units_amount[unit_type] = unit_type_count
+        elif bot_obj.reqSteps == 1:
+            # single_select is an array of zeros if nothing is selected.
+            # The following line checks for when hp > 0 (i.e. a unit is actually selected)
+            if obs.observation.single_select[0][2] > 0:
+                if (obs.observation.single_select[0].unit_type == units.Terran.CommandCenter or
+                        obs.observation.single_select[0].unit_type == units.Terran.Barracks or
+                        obs.observation.single_select[0].unit_type == units.Terran.Factory or
+                        obs.observation.single_select[0].unit_type == units.Terran.Starport):
+                    new_action = [actions.FUNCTIONS.select_control_group("append", 9)]
+            bot_obj.reqSteps = 0
 
         ActionSingleton().set_action(new_action)
 
+    @staticmethod
+    def get_unselected_production_buildings(obs, on_screen=False):
+        """
+        This methods returns a list of production buildings (buildings capable of producing units) that aren't
+        in currently selected. Note that it doesn't count Barracks with tech labs.
+        :param obs:
+        :param on_screen: Whether or not the list should only contain units visible on the screen
+        :return:
+        """
+        if on_screen:
+            return [u for u in obs.observation.feature_units
+                    if u.alliance == 1 and not u.is_selected
+                    and (
+                            u.unit_type == units.Terran.CommandCenter or
+                            u.unit_type == units.Terran.Barracks or
+                            u.unit_type == units.Terran.Factory or
+                            u.unit_type == units.Terran.Starport
+                    )]
+        else:
+            return [u for u in obs.observation.raw_units
+                    if u.alliance == 1 and not u.is_selected
+                    and (
+                       u.unit_type == units.Terran.CommandCenter or
+                       u.unit_type == units.Terran.Barracks or
+                       u.unit_type == units.Terran.Factory or
+                       u.unit_type == units.Terran.Starport
+                    )]
+
     # Method for adding placed buildings to the building queue units_in_progress. Takes current camera_coordinate
     # and the unit type of the building placed.
+    # Obsolete with raw_units.
     def add_unit_in_progress(self, bot_obj, camera_coordinate, screen_coordinate, unit_type):
         # Check if variable types are correct
         if not isinstance(camera_coordinate, list) and not isinstance(camera_coordinate, tuple):
@@ -183,7 +211,7 @@ class State:
         else:  # Everything of correct type. Add to building queue
             old_camera_coordinate = camera_coordinate
             camera_coordinate = [coord for coord in old_camera_coordinate]
-            camera_coordinate[0] = camera_coordinate[0] + (screen_coordinate[0]-42) / 84 * 7
+            camera_coordinate[0] = camera_coordinate[0] + (screen_coordinate[0] - 42) / 84 * 7
             camera_coordinate[1] = camera_coordinate[1] + (screen_coordinate[1] - 42) / 84 * 7
             self.units_in_progress.append([camera_coordinate, unit_type, bot_obj.steps, False])
             return True
