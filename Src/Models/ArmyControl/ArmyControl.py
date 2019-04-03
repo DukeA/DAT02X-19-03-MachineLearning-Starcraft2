@@ -83,7 +83,7 @@ class ArmyControl(base_agent.BaseAgent):
         new_action = [actions.FUNCTIONS.no_op()]
 
         if location is None:
-            location = self.base_location
+            location = [32,32]
 
         if self.reqSteps == 0:
             self.reqSteps = 4

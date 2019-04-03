@@ -1,14 +1,12 @@
 import random
 from Models.HelperClass.IsPossible import IsPossible
-from Models.Selector.attackSelector import AttackSelector
-from Models.Selector.buildSelector import BuildSelector
 from Models.Selector.selector import Selector
 
 class HardCodedSelector():
 
     def hardCodedSelector(self, obs):
         
-        allActions = [
+        all_actions = [
                 "no_op", 
                 "build_scv",
                 "build_supply_depot",
@@ -33,6 +31,28 @@ class HardCodedSelector():
                 "transform_vikings_to_ground",
                 "transform_vikings_to_air",
             ]
+
+        build_actions = [
+                "no_op", 
+                "build_scv",
+                "build_supply_depot",
+                "build_marine",
+                "build_marauder",
+                "build_reaper",
+                "build_hellion",
+                "build_medivac",
+                "build_viking",
+                "build_barracks",
+                "build_refinery",
+                "distribute_scv",
+                "return_scv",
+                "expand",
+                "build_factory",
+                "build_starport",
+                "build_tech_lab_barracks",
+            ]
+        
+
 
         if self.reqSteps == 0 and not self.game_state_updated:
             return "updateState"
@@ -68,7 +88,7 @@ class HardCodedSelector():
                     return "no_op"
 
                 elif selection <= 1.0:
-                    return BuildSelector.buildSelector(self, obs)
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
             
                 else:
                     return "no_op"
@@ -112,7 +132,7 @@ class HardCodedSelector():
                     return "no_op"
 
                 elif selection <= 1.0:
-                    return BuildSelector.buildSelector(self, obs)
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
             
                 else:
                     return "no_op"
@@ -160,7 +180,7 @@ class HardCodedSelector():
                     return "no_op"            
 
                 elif selection <= 1.0:
-                    return BuildSelector.buildSelector(self, obs)
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
             
                 else:
                     return "no_op"
@@ -203,7 +223,7 @@ class HardCodedSelector():
                 
 
                 elif selection <= 1.0:
-                    return BuildSelector.buildSelector(self, obs)
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
             
                 else:
                     return "no_op"
@@ -230,11 +250,11 @@ class HardCodedSelector():
                 elif selection <= 0.8:
                     return "no_op"
                 
-                elif selection <= 0.8:
+                elif selection <= 0.9:
                     return "retreat"
 
                 elif selection <= 1.0:
-                    return BuildSelector.buildSelector(self, obs)
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
             
                 else:
                     return "no_op"            
@@ -285,11 +305,14 @@ class HardCodedSelector():
                 elif selection <= 0.9:
                         return "retreat"
                 
-                if selection <= 0.95 and not self.attacking:
+                elif selection <= 0.94 and not self.attacking:
+                    return "no_op"
+                
+                elif selection <= 0.95 and not self.attacking:
                     return "build_supply_depot"
 
                 else:
-                    return BuildSelector.buildSelector(self, obs)
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
 ##################################################################################################
 
             if self.steps < 16 * 60 * 30 / 5 * 1.4:   #min 30
@@ -337,18 +360,18 @@ class HardCodedSelector():
                 elif selection <= 0.9 and not self.attacking:
                     return "retreat"
 
-                if selection <= 0.91:
+                elif selection <= 0.91:
                     self.attacking = True
                     return "attack"
 
                 else:
-                    return BuildSelector.buildSelector(self, obs)
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
 
 
 
 ##############################################################################################
 
             else:
-                return BuildSelector.buildSelector(self, obs)
+                return (random.choice(Selector.possible_build_actions(self, obs)))
             
          
