@@ -65,7 +65,8 @@ def main(unused_argv):
                                      sc2_env.Difficulty.very_easy)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
-                    use_feature_units=True),
+                    use_feature_units=True,
+                    use_raw_units=True),
                 step_mul=step_mul,  #about 200 APM
                 game_steps_per_episode=maximum_bot_steps_per_episode*step_mul*1.1,
                 #save_replay_episodes=1, #How often do you save replays
