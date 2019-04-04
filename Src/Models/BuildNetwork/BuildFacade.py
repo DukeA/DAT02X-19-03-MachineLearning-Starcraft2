@@ -5,7 +5,7 @@ from Models.BuildNetwork.BuildModelLocations import BuildModelLocations
 from Models.BuildNetwork.BuildNetwork import BuildNetwork
 from Models.BotFile.State import State
 
-
+STACKED_VALUES = 4
 
 class BuildFacade():
     def __init__(self):
@@ -33,5 +33,16 @@ class BuildFacade():
             print(i, end="")
             value = value + 1
 
+    """
+        Stacked the frames for the  list which is entered
+    """
+    def stacked_enviorment(self, list):
+        if len(list) <= 0:
+            return list
+        n_list = list
+        result = []
+        for i in range(STACKED_VALUES):
+            result.append(i)
+        return result
 
 

@@ -55,7 +55,9 @@ class BuildModelLocations:
                             view[i][j] = 5
                         else:
                             view[i][j] = build_state[i][j]
-        return view
+
+        n_view = BuildModelLocations.flatten_values(self, view)
+        return n_view
 
     """
         :param takes in a value of list 

@@ -21,3 +21,18 @@ class test_buildFacade(unittest.TestCase):
         assert len(list) == value
         BuildFacade.print_enviroment(self,list)
 
+    """
+        The test method for the stacking value in the  build Facade
+    """
+    def test_stacked_value(self):
+        list=[1]
+        n_list = BuildFacade.stacked_enviorment(self,list)
+        assert len(list) == 4
+
+    """
+        Test method if the list is empty
+    """
+    def test_stacked_value_of_list(self):
+        list=[]
+        n_list = BuildFacade.stacked_enviorment(self,list)
+        assert len(list) ==0
