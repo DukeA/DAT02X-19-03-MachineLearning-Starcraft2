@@ -152,3 +152,16 @@ class HelperClass(base_agent.BaseAgent):
                         self, HelperClass.get_current_minimap_location(obs), coordinates, building_type.value)
 
         return new_action
+
+    def check_minimap_for_units(self, obs, camera_coordinate):
+        camera_coordinate = [int(coord) for coord in camera_coordinate]
+        minimap_player_relative = obs.observation.feature_minimap[5]
+        minimap_screen_area_rows = minimap_player_relative[(camera_coordinate[1] - 4):(camera_coordinate[1] + 2)]
+        minimap_screen_area = np.array(
+            [row[(camera_coordinate[0] - 4):(camera_coordinate[0] + 2)] for row in minimap_screen_area_rows])
+        friendly_unit_indexes = np.where(minimap_screen_area == 1)
+
+        if len(friendly_unit_indexes[0]) > 0:
+            return True
+        else:
+            return False

@@ -10,6 +10,7 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Models.Selector.HardCodedSelector import HardCodedSelector
 
 import os
 import pickle
@@ -31,6 +32,7 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
+        self.attacking = False
 
         # Deep learning stuff
 
@@ -94,7 +96,7 @@ class AiBot(base_agent.BaseAgent):
         elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
             if self.reqSteps == 0:
                 self.DistributeSCVInstance = DistributeSCV()
-            self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
+            self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
