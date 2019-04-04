@@ -14,45 +14,48 @@ HIDDEN1_UNITS = 150
 HIDDEN2_UNITS = 300
 
 class CriticNetwork(object):
-    def __init__(self, sess, state_size, action_size, BATCH_SIZE, TAU, LEARNING_RATE):
+    def __init__(self, sess, state_size, BATCH_SIZE, TAU, LEARNING_RATE, UPDATE_STEPS):
         self.sess = sess
         self.BATCH_SIZE = BATCH_SIZE
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
-        self.action_size = action_size
-        
+        self.UPDATE_STEPS = UPDATE_STEPS
+
         K.set_session(sess)
 
-        #Now create the model
-        self.model, self.action, self.state = self.create_critic_network(state_size, action_size)  
-        self.target_model, self.target_action, self.target_state = self.create_critic_network(state_size, action_size)  
-        self.action_grads = tf.gradients(self.model.output, self.action)  #GRADIENTS for policy update
-        self.sess.run(tf.initialize_all_variables())
+        # Now create the model
+        self.model, self.weights, self.state = self.create_critic_network(state_size)
+        self.target_model, self.target_weights, self.target_state = self.create_critic_network(state_size)
 
-    def gradients(self, states, actions):
-        return self.sess.run(self.action_grads, feed_dict={
+        self.discounted_rewards = tf.placeholder(tf.float32, [UPDATE_STEPS, ])
+        squared_difference = tf.reduce_sum(tf.math.squared_difference(tf.cast(self.discounted_rewards, tf.float32), self.model.output))
+
+        self.params_grad = tf.gradients(squared_difference, self.weights)
+        grads = zip(self.params_grad, self.weights)
+        self.optimize = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(grads)
+
+        self.sess.run(tf.global_variables_initializer())
+
+    def train(self, states, discounted_rewards):
+        self.sess.run(self.optimize, feed_dict={
             self.state: states,
-            self.action: actions
-        })[0]
+            self.discounted_rewards: discounted_rewards
+        })
 
     def target_train(self):
         critic_weights = self.model.get_weights()
         critic_target_weights = self.target_model.get_weights()
         for i in range(len(critic_weights)):
-            critic_target_weights[i] = self.TAU * critic_weights[i] + (1 - self.TAU)* critic_target_weights[i]
+            critic_target_weights[i] = self.TAU * critic_weights[i] + (1 - self.TAU) * critic_target_weights[i]
         self.target_model.set_weights(critic_target_weights)
 
-    def create_critic_network(self, state_size, action_dim):
+    def create_critic_network(self, state_size):
         print("Now we build the model")
-        S = Input(shape=[state_size])  
-        A = Input(shape=[action_dim],name='action2')   
+        S = Input(shape=[state_size])
         w1 = Dense(HIDDEN1_UNITS, activation='relu')(S)
-        a1 = Dense(HIDDEN2_UNITS, activation='linear')(A) 
-        h1 = Dense(HIDDEN2_UNITS, activation='linear')(w1)
-        h2 = add([h1, a1])
-        h3 = Dense(HIDDEN2_UNITS, activation='relu')(h2)
-        V = Dense(action_dim,activation='linear')(h3)   
-        model = Model(input=[S, A], output=V)
+        h1 = Dense(HIDDEN2_UNITS, activation='relu')(w1)
+        V = Dense(1, activation='linear')(h1)
+        model = Model(inputs=S, outputs=V)
         adam = Adam(lr=self.LEARNING_RATE)
         model.compile(loss='mse', optimizer=adam)
-        return model, A, S 
+        return model, model.trainable_weights, S

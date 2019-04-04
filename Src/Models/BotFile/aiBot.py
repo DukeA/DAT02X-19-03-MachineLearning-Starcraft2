@@ -65,7 +65,7 @@ class AiBot(base_agent.BaseAgent):
             action_space = list(self.game_state.action_space.values())
 
             num_actions = len(action_space)
-            self.actor_critic_agent = ActorCriticAgent(num_actions, 4, action_space)
+            self.actor_critic_agent = ActorCriticAgent(4, action_space)
 
         action = [actions.FUNCTIONS.no_op()]
 
