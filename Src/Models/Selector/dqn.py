@@ -6,6 +6,8 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 
+from Models.HelperClass.IsPossible import IsPossible
+
 
 class DQN:
     def __init__(self, state_size, action_size):
@@ -18,10 +20,10 @@ class DQN:
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
         self.gamma = 0.95    # discount rate
-        self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
+        self.epsilon = 0.1  # exploration rate
+        self.epsilon_min = 0.1
         self.epsilon_decay = 0.995
-        self.learning_rate = 0.001
+        self.learning_rate = 0.002
         self.model = self._build_model()
 
     def _build_model(self):
@@ -71,6 +73,7 @@ class DQN:
                 target = reward + self.gamma * \
                     np.amax(self.model.predict(next_state))
             target_f = self.model.predict(state)
+
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:

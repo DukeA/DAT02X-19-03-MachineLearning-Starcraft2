@@ -20,24 +20,36 @@ class BuildSelector():
     def buildSelector(self, obs):
 
         state = BuildSelector.format_state(self, obs)
-        state = np.reshape(state, [1, 8])
+        state = np.reshape(state, [1, 9])
 
         if self.agent is None:
-            self.agent = DQN(state_size=8, action_size=len(actions))
+            self.agent = DQN(state_size=9, action_size=len(actions))
             if os.path.isfile('shortgames.h5'):
                 self.agent.load('shortgames.h5')
 
         action = self.agent.act(state)
 
-        if self.game_state.minerals < self.minerals:
-            self.agent.remember(self.previous_state, self.previous_action, 0.02, state, False)
+        if not BuildSelector.actionpossible(self, self.previous_action, obs):
+            self.agent.remember(self.previous_state, self.previous_action, -10, state, False)
 
-        elif (self.game_state.food_cap - self.game_state.food_used) <= 1 or (self.game_state.food_cap - self.game_state.food_used) >= 15:
-            self.agent.remember(self.previous_state, self.previous_action, -0.1, state, False)
+        elif (self.game_state.food_cap - self.game_state.food_used) >= 15 and self.previous_action == 2:
+            #print("buiding useless supplydepots")
+            self.agent.remember(self.previous_state, self.previous_action, -3, state, False)
+
+        elif (self.game_state.food_cap - self.game_state.food_used) <= 3 and self.previous_action == 2:
+            #print("building good supplydepots")
+            self.agent.remember(self.previous_state, self.previous_action, 3, state, False)
+
+        elif self.game_state.idle_workers > 1:
+            self.agent.remember(self.previous_state,
+                                self.previous_action, -0.5, state, False)
+
+        elif self.game_state.minerals < self.minerals:
+            self.agent.remember(self.previous_state, self.previous_action, 0.05, state, False)
+
         else:
             self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
 
-        print(self.game_state.units_amount[units.Terran.SCV])
         self.minerals = self.game_state.minerals
         self.previous_state = state
         self.previous_action = action
@@ -49,7 +61,7 @@ class BuildSelector():
         return translatedaction
 
     def format_state(self, obs):
-        current_state = np.zeros(8)
+        current_state = np.zeros(9)
 
         current_state[0] = self.game_state.units_amount[units.Terran.CommandCenter]
         current_state[1] = self.game_state.units_amount[units.Terran.SupplyDepot]
@@ -58,7 +70,8 @@ class BuildSelector():
         current_state[4] = self.game_state.units_amount[units.Terran.Marine]
         current_state[5] = self.game_state.food_cap
         current_state[6] = self.game_state.food_used
-        current_state[7] = self.game_state.minerals
+        current_state[7] = self.game_state.food_cap - self.game_state.food_used
+        current_state[8] = self.game_state.minerals
 
         # normalizing
         u = (1/current_state.size) * np.sum(current_state)
@@ -69,57 +82,19 @@ class BuildSelector():
 
         return current_state
 
-    # True ska buytas ut mot is possible metoderna
+    def actionpossible(self, action, obs):
+        ok = True
+        if action == 0:
+            pass
+        elif action == 1:
+            ok = IsPossible.build_scv_possible(self, obs)
+        elif action == 2:
+            ok = IsPossible.build_supply_depot_possible(self, obs)
+        elif action == 3:
+            ok = IsPossible.build_marines_possible(self, obs)
+        elif action == 4:
+            ok = IsPossible.build_barracks_possible(self, obs)
+        elif action == 5:
+            pass
 
-    def excluded_actions(self, obs):
-        excluded_actions = []
-
-        if not IsPossible.build_scv_possible(self, obs):
-            excluded_actions.append(actions.index("build_scv"))
-
-        if not IsPossible.build_supply_depot_possible(self, obs):
-            excluded_actions.append(actions.index("build_supply_depot"))
-
-        if not IsPossible.build_marines_possible(self, obs):
-            excluded_actions.append(actions.index("build_marine"))
-
-        if not IsPossible.build_marauder_possible(self, obs):
-            excluded_actions.append(actions.index("build_marauder"))
-
-        if not IsPossible.build_reaper_possible(self, obs):
-            excluded_actions.append(actions.index("build_reaper"))
-
-        if not IsPossible.build_hellion_possible(self, obs):
-            excluded_actions.append(actions.index("build_hellion"))
-
-        if not IsPossible.build_medivac_possible(self, obs):
-            excluded_actions.append(actions.index("build_medivac"))
-
-        if not IsPossible.build_viking_possible(self, obs):
-            excluded_actions.append(actions.index("build_viking"))
-
-        if not IsPossible.build_barracks_possible(self, obs):
-            excluded_actions.append(actions.index("build_barracks"))
-
-        if not IsPossible.build_refinery_possible(self, obs):
-            excluded_actions.append(actions.index("build_refinery"))
-
-        # if not  True:
-        #     excluded_actions.append("distribute_scv")
-
-        if not True:
-            excluded_actions.append(actions.index("return_scv"))
-
-        if not IsPossible.build_command_center_possible(self, obs):
-            excluded_actions.append(actions.index("expand"))
-
-        if not IsPossible.build_factory_possible(self, obs):
-            excluded_actions.append(actions.index("build_factory"))
-
-        if not IsPossible.build_starport_possible(self, obs):
-            excluded_actions.append(actions.index("build_starport"))
-
-        if not IsPossible.build_techlab_possible(self, obs):
-            excluded_actions.append(actions.index("build_tech_lab_barracks"))
-
-        return excluded_actions
+        return ok
