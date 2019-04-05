@@ -10,7 +10,7 @@ from Models.Selector.dqn import DQN
 
 
 actions = ["no_op", "build_scv", "build_supply_depot", "build_marine", "build_barracks",
-           "return_scv"]
+           "return_scv", "attack"]
 
 
 class BuildSelector():
@@ -29,26 +29,12 @@ class BuildSelector():
 
         action = self.agent.act(state)
 
-        if not BuildSelector.actionpossible(self, self.previous_action, obs):
-            self.agent.remember(self.previous_state, self.previous_action, -10, state, False)
+        if action == 20:
+            rand_act = random.choice(BuildSelector.availableaction(self, obs))
+            translate = BuildSelector.translaterandact(self, rand_act)
+            action = translate
 
-        elif (self.game_state.food_cap - self.game_state.food_used) >= 15 and self.previous_action == 2:
-            #print("buiding useless supplydepots")
-            self.agent.remember(self.previous_state, self.previous_action, -3, state, False)
-
-        elif (self.game_state.food_cap - self.game_state.food_used) <= 3 and self.previous_action == 2:
-            #print("building good supplydepots")
-            self.agent.remember(self.previous_state, self.previous_action, 3, state, False)
-
-        elif self.game_state.idle_workers > 1:
-            self.agent.remember(self.previous_state,
-                                self.previous_action, -0.5, state, False)
-
-        elif self.game_state.minerals < self.minerals:
-            self.agent.remember(self.previous_state, self.previous_action, 0.05, state, False)
-
-        else:
-            self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
+        self.agent.remember(self.previous_state, self.previous_action, 0, state, False)
 
         self.minerals = self.game_state.minerals
         self.previous_state = state
@@ -96,5 +82,39 @@ class BuildSelector():
             ok = IsPossible.build_barracks_possible(self, obs)
         elif action == 5:
             pass
+        elif action == 6:
+            ok = IsPossible.attack_possible(self, obs)
 
         return ok
+
+    def availableaction(self, obs):
+        actions = ["no_op"]
+        if IsPossible.build_scv_possible(self, obs):
+            actions.append("build_scv")
+        if IsPossible.build_supply_depot_possible(self, obs):
+            actions.append("build_supply_depot")
+        if IsPossible.build_marines_possible(self, obs):
+            actions.append("build_marine")
+        if IsPossible.build_barracks_possible(self, obs):
+            actions.append("build_barracks")
+        if obs.observation.player.idle_worker_count > 1:
+            actions.append("return_scv")
+        if IsPossible.attack_possible(self, obs):
+            actions.append("attack")
+        return actions
+
+    def translaterandact(self, act):
+        if act == "no_op":
+            return 0
+        if act == "build_scv":
+            return 1
+        if act == "build_supply_depot":
+            return 2
+        if act == "build_marine":
+            return 3
+        if act == "build_barracks":
+            return 4
+        if act == "return_scv":
+            return 5
+        if act == "attack":
+            return 6

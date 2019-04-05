@@ -20,8 +20,8 @@ def main(unused_argv):
                     use_feature_units=True,
                     use_raw_units=True,
                     use_camera_position=True),
-                step_mul=5,  # about 200 APM
-                game_steps_per_episode=7000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
+                step_mul=10,  # about 200 APM
+                game_steps_per_episode=13000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
                 visualize=False,
@@ -36,31 +36,21 @@ def main(unused_argv):
                 while True:
 
                     step_actions = [agent.step(timesteps[0])]
-
                     if timesteps[0].last():
+
+                        if agent.reward > 0:
+                            reward = 1
+                        else:
+                            reward = -1
+
                         agent.agent.remember(agent.previous_state,
-                                             agent.previous_action, -100, agent.previous_state, True)
+                                             agent.previous_action, reward, agent.previous_state, True)
                         agent.agent.save('shortgames.h5')
                         if len(agent.agent.memory) > 32:
                             agent.agent.replay(32)
                         agent.previous_action = None
                         agent.previous_state = None
 
-                        if save_game:
-                            agent.save_game(path, episode)
-                        break
-
-                    if agent.game_state.units_amount[units.Terran.Marine] >= 10 and agent.game_state.units_amount[units.Terran.SCV] >= 16:
-                        agent.agent.remember(agent.previous_state,
-                                             agent.previous_action, 100, agent.previous_state, True)
-                        agent.agent.save('shortgames.h5')
-                        if len(agent.agent.memory) > 32:
-                            agent.agent.replay(32)
-                        agent.previous_action = None
-                        agent.previous_state = None
-                        if best is None or best > agent.steps*5:
-                            best = agent.steps*5
-                            print("best is:" + str(best))
                         if save_game:
                             agent.save_game(path, episode)
                         break
