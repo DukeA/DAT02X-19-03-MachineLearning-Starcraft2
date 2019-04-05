@@ -5,6 +5,8 @@ from Models.BotFile.aiBot import AiBot
 
 def main(unused_argv):
     agent = AiBot()
+    epsilon = 1
+    eps_reduction_factor = 0.999
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
@@ -25,9 +27,10 @@ def main(unused_argv):
 
                 timesteps = env.reset()
                 agent.reset()
+                epsilon *= eps_reduction_factor
 
                 while True:
-                    step_actions = [agent.step(timesteps[0])]
+                    step_actions = [agent.step(timesteps[0], epsilon)]
                     if timesteps[0].last():
                         # Game state test
                         # print(agent.action_data)

@@ -54,6 +54,21 @@ class State:
         # For reference, the rest of the action space is:
         # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
 
+        self.A3C_action_space = [
+                "no_op",
+                "build_scv",
+                "build_supply_depot",
+                "build_marine",
+                "build_marauder",
+                "build_barracks",
+                "build_refinery",
+                "return_scv",
+                "expand",
+                "attack",
+                "retreat",
+                "scout",
+            ]
+
     def get_state(self):
         """
         :return: A list containing all the tuples (minerals, vespene, unit_amount, action_issued, bot_obj.steps)

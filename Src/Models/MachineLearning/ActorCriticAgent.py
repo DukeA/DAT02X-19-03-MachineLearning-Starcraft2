@@ -18,7 +18,7 @@ import timeit
 OU = OU()       #Ornstein-Uhlenbeck Process
 
 class ActorCriticAgent:
-    def __init__(self, state_dim, action_space):
+    def __init__(self, state_dim, action_space, epsilon):
         self.train_indicator = True
         self.BUFFER_SIZE = 100000
         self.BATCH_SIZE = 32
@@ -41,7 +41,7 @@ class ActorCriticAgent:
         self.reward = 0
         self.done = False
         self.step = 0
-        self.epsilon = 1
+        self.epsilon = epsilon
         self.indicator = 0
         self.episode = 0
         self.NUM_STEPS_UNTIL_UPDATE = 10
@@ -82,7 +82,6 @@ class ActorCriticAgent:
 
         loss = 0
 
-        self.epsilon *= 0.99
         print("Epsilon: ", self.epsilon)
 
         if self.episode > 0:

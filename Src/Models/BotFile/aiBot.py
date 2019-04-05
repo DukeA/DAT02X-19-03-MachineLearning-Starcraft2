@@ -35,7 +35,7 @@ class AiBot(base_agent.BaseAgent):
         self.marine_count = 0      # Maybe for ML
         self.action_finished = False
 
-    def step(self, obs):
+    def step(self, obs, epsilon):
         super(AiBot, self).step(obs)
 
         # first step
@@ -62,10 +62,10 @@ class AiBot(base_agent.BaseAgent):
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
-            action_space = list(self.game_state.action_space.values())
+            action_space = list(self.game_state.A3C_action_space)
 
             num_actions = len(action_space)
-            self.actor_critic_agent = ActorCriticAgent(4, action_space)
+            self.actor_critic_agent = ActorCriticAgent(4, action_space, epsilon)
 
         action = [actions.FUNCTIONS.no_op()]
 
