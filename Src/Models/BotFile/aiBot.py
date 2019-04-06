@@ -17,7 +17,7 @@ import pickle
 
 
 class AiBot(base_agent.BaseAgent):
-    def __init__(self, build_agent):
+    def __init__(self, worker):
         super(AiBot, self).__init__()
         self.base_location = None
         self.start_top = None
@@ -36,7 +36,7 @@ class AiBot(base_agent.BaseAgent):
 
         # Deep learning stuff
 
-        self.build_agent = build_agent
+        self.worker = worker
         self.predicted_this_step = False
 
     def save_game(self, path, episode):

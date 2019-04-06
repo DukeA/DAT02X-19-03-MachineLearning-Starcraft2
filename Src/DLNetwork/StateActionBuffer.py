@@ -17,6 +17,9 @@ class StateActionBuffer(object):
             self.buffer.popleft()
             self.buffer.append(data)
 
+    def get_buffer(self):
+        return list(self.buffer)
+
     def get_batch(self, batch_size):
         if self.buffer_length < batch_size:
             return random.sample(self.buffer, self.buffer_length)
@@ -25,6 +28,13 @@ class StateActionBuffer(object):
 
     def get_newest_data(self):
         return self.buffer[len(self.buffer)-1]
+
+    def set_newest_data(self, data_new):
+        if len(data_new) == self.buffer_size:
+            self.buffer.pop()
+            self.buffer.append(data_new)
+        else:
+            print("Error when setting new buffer data.")
 
     def set_latest_done(self):
         data = self.get_newest_data()

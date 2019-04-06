@@ -1,6 +1,7 @@
 import random
 from Models.HelperClass.IsPossible import IsPossible
 
+
 class Selector():
 
     def selector(self, obs):
@@ -11,16 +12,17 @@ class Selector():
             self.game_state_updated = False
             # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
             if self.steps < 16 * 60 * 5 / 5 * 1.4:
-                build_actions = Selector.possible_build_actions(self, obs)
-                return (random.choice(build_actions))
+                return self.worker.predict_action(self.game_state.get_state())
+                #build_actions = Selector.possible_build_actions(self, obs)
+                #return (random.choice(build_actions))
             else:
+
                 action = random.random()
                 if action <= 0.25:
                     attack_actions = Selector.possible_attack_actions(self)
                     return (random.choice(attack_actions))
                 else:
-                    build_actions = Selector.possible_build_actions(self, obs)
-                return (random.choice(build_actions))
+                    return self.worker.predict_action(self.game_state.get_state())
 
         return (random.choice(Selector.all_possible_actions(self, obs)))
 
