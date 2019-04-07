@@ -10,6 +10,11 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Models.Selector.HardCodedSelector import HardCodedSelector
+
+import os
+import pickle
+
 
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
@@ -27,6 +32,14 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
+        self.attacking = False
+
+    def save_game(self, path, episode):
+        offset = 0
+        while os.path.exists(path + str(episode)+str(offset)+".txt"):
+            offset += 1
+        with open(path + str(episode)+str(offset)+".txt", 'wb') as filehandle:
+            pickle.dump(self.game_state.get_state(), filehandle)
 
     def step(self, obs):
         super(AiBot, self).step(obs)
@@ -53,7 +66,8 @@ class AiBot(base_agent.BaseAgent):
 
             self.game_state = State()
             # The command center isn't actually in the center of the screen!
-            self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            self.game_state.add_unit_in_progress(
+                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
         action = [actions.FUNCTIONS.no_op()]
 
@@ -66,7 +80,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         if self.next_action == "expand":
-            BuildOrdersController.build_expand(self, obs, self.start_top)
+            BuildOrdersController.build_expand(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
