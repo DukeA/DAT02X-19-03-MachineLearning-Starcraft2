@@ -24,7 +24,7 @@ def main(unused_argv):
                 game_steps_per_episode=13000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
-                visualize=False,
+                visualize=True,
                 disable_fog=True) as env:
             while True:
                 agent.setup(env.observation_spec(), env.action_spec())
@@ -37,7 +37,7 @@ def main(unused_argv):
 
                     step_actions = [agent.step(timesteps[0])]
                     if timesteps[0].last():
-
+                        print(agent.reward)
                         if agent.reward > 0:
                             reward = 1
                         else:
@@ -50,6 +50,7 @@ def main(unused_argv):
                             agent.agent.replay(32)
                         agent.previous_action = None
                         agent.previous_state = None
+                        agent.reward = 0
 
                         if save_game:
                             agent.save_game(path, episode)

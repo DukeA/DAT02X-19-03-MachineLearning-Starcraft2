@@ -20,7 +20,7 @@ class DQN:
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
         self.gamma = 0.95    # discount rate
-        self.epsilon = 1.0  # exploration rate
+        self.epsilon = 0.6497219477151059  # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99995
         self.learning_rate = 0.002
