@@ -33,6 +33,10 @@ class AiBot(base_agent.BaseAgent):
         self.game_state_updated = False
         self.action_finished = False
         self.attacking = False
+        self.hasStarport = False
+        self.hasTechlab = False
+        self.hasFactory = False
+        self.hasBarrack = False
 
     def save_game(self, path, episode):
         offset = 0
@@ -73,7 +77,7 @@ class AiBot(base_agent.BaseAgent):
 
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.earlier_action = self.next_action
-            self.next_action = Selector.selector(self, obs)
+            self.next_action = HardCodedSelector.hardCodedSelector(self, obs)
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)

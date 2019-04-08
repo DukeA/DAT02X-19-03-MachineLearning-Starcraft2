@@ -60,40 +60,7 @@ class HardCodedSelector():
             self.game_state_updated = False
 
 #################################################################################
-            if self.steps < 16 * 60 * 1 / 5 * 1.4:   #First min
-                selection = random.random()
-                if obs.observation.player.idle_worker_count > 1:
-                    return "return_scv"
-
-                if selection <= 0.3:
-                    if IsPossible.build_scv_possible(self, obs):
-                        return "build_scv"
-
-                elif selection <= 0.5:
-                    if IsPossible.build_supply_depot_possible(self, obs):
-                        return "build_supply_depot"
-
-                elif selection <= 0.7:
-                    if IsPossible.build_barracks_possible(self, obs):
-                        return "build_barracks"
-
-                elif selection <= 0.8:
-                    if IsPossible.build_refinery_possible(self, obs):
-                        return "build_refinery"
-
-                elif selection <= 0.95:
-                    return "no_op"
-
-                elif selection <= 1.0:
-                    return (random.choice(Selector.possible_build_actions(self, obs)))
-
-                else:
-                    return "no_op"
-
-
-#########################################################################################
-
-            if self.steps < 16 * 60 * 2 / 5 * 1.4:   #min 2
+            if self.steps < 1346/5:   #First min
                 selection = random.random()
                 if obs.observation.player.idle_worker_count > 1:
                     return "return_scv"
@@ -102,33 +69,74 @@ class HardCodedSelector():
                     if IsPossible.build_scv_possible(self, obs):
                         return "build_scv"
 
-                elif selection <= 0.25:
+                if selection <= 0.3:
                     if IsPossible.build_supply_depot_possible(self, obs):
                         return "build_supply_depot"
-                elif selection <= 0.3:
-                    if IsPossible.build_starport_possible(self, obs):
-                        return "build_starport"
 
-                elif selection <= 0.4:
+                if selection <= 0.7:
                     if IsPossible.build_barracks_possible(self, obs):
+                        self.hasBarrack = True
                         return "build_barracks"
 
-                elif selection <= 0.5:
+                if selection <= 0.9:
                     if IsPossible.build_refinery_possible(self, obs):
                         return "build_refinery"
 
-                elif selection <= 0.6:
+                if selection <= 0.95:
+                    return "no_op"
+
+                if selection <= 1.0:
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
+
+                else:
+                    return "no_op"
+
+
+#########################################################################################
+
+            if self.steps < 1346/5*2:   #min 2
+                selection = random.random()
+                if obs.observation.player.idle_worker_count > 1:
+                    return "return_scv"
+
+                if selection <= 0.2:
+                    if IsPossible.build_scv_possible(self, obs):
+                        return "build_scv"
+
+                if selection <= 0.25:
+                    if IsPossible.build_supply_depot_possible(self, obs):
+                        return "build_supply_depot"
+                
+                if selection <= 0.5:
+                    if IsPossible.build_starport_possible(self, obs):
+                        self.hasStarport = True
+                        return "build_starport"
+
+                if selection <= 0.55:
+                    if IsPossible.build_barracks_possible(self, obs):
+                        self.hasBarrack = True
+                        return "build_barracks"
+
+                if selection <= 0.6:
+                    if IsPossible.build_refinery_possible(self, obs):
+                        return "build_refinery"
+
+                if selection <= 0.8:
                     if IsPossible.build_factory_possible(self, obs):
                         return "build_factory"
 
-                elif selection <= 0.8:
+                if selection <= 0.9:
                     if IsPossible.build_marines_possible(self, obs):
                         return "build_marine"
 
-                elif selection <= 0.95:
+                if selection <= 0.91:
                     return "no_op"
+                
+                if selection <= 0.95:
+                    return "expand"
+                    
 
-                elif selection <= 1.0:
+                if selection <= 1.0:
                     return (random.choice(Selector.possible_build_actions(self, obs)))
 
                 else:
@@ -136,47 +144,79 @@ class HardCodedSelector():
 
 
 ############################################################################################3
-            if self.steps < 16 * 60 * 3 / 5 * 1.4:   #min 3
+            if self.steps < 1346/5*3:   #min 3
                 selection = random.random()
                 if obs.observation.player.idle_worker_count > 1:
                     return "return_scv"
+
+                if not self.hasStarport:
+                    if IsPossible.build_starport_possible(self, obs):
+                        self.hasStarport = True
+                        return "build_startport"
+                    else:
+                        return "no_op"
+                
+                if not self.hasFactory:
+                    if IsPossible.build_factory_possible(self, obs):
+                        self.hasFactory = True
+                        return "build_factory"
+                    else:
+                        return "no_op"
+
+                if not self.hasBarrack:
+                    if IsPossible.build_barracks_possible(self, obs):
+                        self.hasBarrack = True
+                        return "build_barracks"
+                    else:
+                        return "no_op"
+
+                if not self.hasTechlab:
+                    if IsPossible.build_techlab_possible(self, obs):
+                        self.hasTechlab = True
+                        return "build_tech_lab_barracks"
+                    else:
+                        return "no_op"
+
 
                 if selection <= 0.1:
                     if IsPossible.build_scv_possible(self, obs):
                         return "build_scv"
 
-                elif selection <= 0.15:
-                    if IsPossible.build_supply_depot_possible(self, obs):
-                        return "build_supply_depot"
-
-                elif selection <= 0.5:
+                if selection <= 0.2:
                     if IsPossible.build_marines_possible(self, obs):
                         return "build_marine"
 
-                elif selection <= 0.55:
+                if selection <= 0.3:
                     if IsPossible.build_refinery_possible(self, obs):
                         return "build_refinery"
 
-                elif selection <= 0.65:
+                if selection <= 0.45:
                     if IsPossible.build_factory_possible(self, obs):
                         return "build_factory"
 
-                elif selection <= 0.7:
+                if selection <= 0.6:
                     if IsPossible.build_starport_possible(self, obs):
                         return "build_starport"
 
-                elif selection <= 0.75:
+                if selection <= 0.75:
                     if IsPossible.build_techlab_possible(self, obs):
                         return "build_tech_lab_barracks"
 
-                elif selection <= 0.85:
+                if selection <= 0.8:
                     if IsPossible.build_barracks_possible(self, obs):
                         return "build_barracks"
 
-                elif selection <= 0.95:
+                if selection <= 0.85:
                     return "no_op"
+                
+                if selection <= 0.9:
+                    if IsPossible.build_supply_depot_possible(self, obs):
+                        return "build_supply_depot"
 
-                elif selection <= 1.0:
+                if selection <= 0.95:
+                    return "expand"
+
+                if selection <= 1.0:
                     return (random.choice(Selector.possible_build_actions(self, obs)))
 
                 else:
@@ -184,52 +224,94 @@ class HardCodedSelector():
 
 
 ###############################################################################################
-            if self.steps < 16 * 60 * 4 / 5 * 1.4:   #min 4
+            if self.steps < 1346/5*4:   #min 4
                 selection = random.random()
                 if obs.observation.player.idle_worker_count > 1:
                     return "return_scv"
+                
+                if not self.hasStarport:
+                    if IsPossible.build_starport_possible(self, obs):
+                        self.hasStarport = True
+                        return "build_startport"
+                        
+                    else:
+                        return "no_op"
+                
+                if not self.hasFactory:
+                    if IsPossible.build_factory_possible(self, obs):
+                        self.hasFactory = True
+                        return "build_factory"
+                    else:
+                        return "no_op"
 
-                if selection <= 0.025:
-                    if IsPossible.build_supply_depot_possible(self, obs):
-                        return "build_supply_depot"
+                if not self.hasBarrack:
+                    if IsPossible.build_barracks_possible(self, obs):
+                        self.hasBarrack = True
+                        return "build_barracks"
+                    else:
+                        return "no_op"
 
-                elif selection <= 0.1:
+                if not self.hasTechlab:
+                    if IsPossible.build_techlab_possible(self, obs):
+                        self.hasTechlab = True
+                        return "build_tech_lab_barracks"
+                    else:
+                        return "no_op"
+
+                if selection <= 0.05:
                     if IsPossible.build_barracks_possible(self, obs):
                         return "build_barracks"
 
-                elif selection <= 0.15:
+                if selection <= 0.1:
+                    if IsPossible.build_supply_depot_possible(self, obs):
+                        return "build_supply_depot"
+
+                if selection <= 0.2:
                     if IsPossible.build_factory_possible(self, obs):
                         return "build_factory"
 
-                elif selection <= 0.2:
+                if selection <= 0.4:
                     if IsPossible.build_starport_possible(self, obs):
                         return "build_starport"
 
-                elif selection <= 0.25:
+                if selection <= 0.5:
                     if IsPossible.build_techlab_possible(self, obs):
                         return "build_tech_lab_barracks"
 
-                elif selection <= 0.5:
+                if selection <= 0.55:
                     if IsPossible.build_marines_possible(self, obs):
                         return "build_marine"
+                
+                if selection <= 0.65:
+                    if IsPossible.build_marauder_possible(self, obs):
+                        return "build_marauder"
+
+                if selection <= 0.75:
+                    if IsPossible.build_medivac_possible(self, obs):
+                        return "build_medivac"
+
+    
+                if selection <= 0.85:
+                    if IsPossible.build_hellion_possible(self, obs):
+                        return "build_hellion"
 
 
-                elif selection <= 0.7:
+                if selection <= 0.86:
                     return "no_op"
 
 
-                elif selection <= 0.75:
+                if selection <= 0.87:
                     if IsPossible.build_scv_possible(self, obs):
                         return "build_scv"
 
-                elif selection <= 0.8 and not self.attacking:
+                if selection <= 0.9 and not self.attacking:
                     return "retreat"
 
-                elif selection <= 0.9:
+                if selection <= 0.95:
                     return "expand"
 
 
-                elif selection <= 1.0:
+                if selection <= 1.0:
                     return (random.choice(Selector.possible_build_actions(self, obs)))
 
                 else:
@@ -237,153 +319,237 @@ class HardCodedSelector():
 
 
 ############################################################################################
-            if self.steps < 16 * 60 * 5 / 5 * 1.4:   #min 5
+            if self.steps < 1346/5*5:   #min 5
                 selection = random.random()
                 if obs.observation.player.idle_worker_count > 1:
                     return "return_scv"
+                
+                if not self.hasStarport:
+                    if IsPossible.build_starport_possible(self, obs):
+                        self.hasStarport = True
+                        return "build_startport"
+                    else:
+                        return "no_op"
+                
+                if not self.hasFactory:
+                    if IsPossible.build_factory_possible(self, obs):
+                        self.hasFactory = True
+                        return "build_factory"
+                    else:
+                        return "no_op"
+
+                if not self.hasBarrack:
+                    if IsPossible.build_barracks_possible(self, obs):
+                        self.hasBarrack = True
+                        return "build_barracks"
+                    else:
+                        return "no_op"
+
+                if not self.hasTechlab:
+                    if IsPossible.build_techlab_possible(self, obs):
+                        self.hasTechlab = True
+                        return "build_tech_lab_barracks"
+                    else:
+                        return "no_op"
+
+                if selection <= 0.0:
+                    self.attacking = True
+                    return "attack"
+
+                if selection <= 0.05:
+                    if IsPossible.build_supply_depot_possible(self, obs):
+                        return "build_supply_depot"
+
+                if selection <= 0.2:
+                    if IsPossible.build_marauder_possible(self, obs):
+                        return "build_marauder"
+
+                if selection <= 0.4:
+                    if IsPossible.build_medivac_possible(self, obs):
+                        return "build_medivac"
+
+                if selection <= 0.6:
+                    if IsPossible.build_marines_possible(self, obs):
+                        return "build_marine"
+
+                if selection <= 0.7:
+                    if IsPossible.build_hellion_possible(self, obs):
+                        return "build_hellion"
+
+                if selection <= 0.8:
+                    return "no_op"
+
+
+                if selection <= 0.85:
+                    if IsPossible.build_scv_possible(self, obs):
+                        return "build_scv"
+
+
+                if selection <= 0.9 and not self.attacking:
+                    return "retreat"
+
+                if selection <= 1.0:
+                    return (random.choice(Selector.possible_build_actions(self, obs)))
+
+                else:
+                    return "no_op"
+
+############################################################################################
+            if self.steps < 1346/5*10:   #min 10
+
+                selection = random.random()
+                if obs.observation.player.idle_worker_count > 1:
+                    if selection <= 0.2:
+                        return "return_scv"
+                    elif selection <= 0.5:
+                        return "distribute_scv"
+
+                if not self.hasStarport:
+                    if IsPossible.build_starport_possible(self, obs):
+                        self.hasStarport = True
+                        return "build_startport"
+                    else:
+                        return "no_op"
+                
+                if not self.hasFactory:
+                    if IsPossible.build_factory_possible(self, obs):
+                        self.hasFactory = True
+                        return "build_factory"
+                    else:
+                        return "no_op"
+
+                if not self.hasBarrack:
+                    if IsPossible.build_barracks_possible(self, obs):
+                        self.hasBarrack = True
+                        return "build_barracks"
+                    else:
+                        return "no_op"
+
+                if not self.hasTechlab:
+                    if IsPossible.build_techlab_possible(self, obs):
+                        self.hasTechlab = True
+                        return "build_tech_lab_barracks"
+                    else:
+                        return "no_op"
+
+                if self.attacking:
+                    attack = random.random()
+                    if attack <= 0.3:
+                        return "attack"
 
                 if selection <= 0.01:
                     self.attacking = True
                     return "attack"
 
-                elif selection <= 0.025:
-                    if IsPossible.build_supply_depot_possible(self, obs):
-                        return "build_supply_depot"
-
-                elif selection <= 0.2:
-                    if IsPossible.build_marauder_possible(self, obs):
-                        return "build_marauder"
-
-                elif selection <= 0.4:
-                    if IsPossible.build_medivac_possible(self, obs):
-                        return "build_medivac"
-
-                elif selection <= 0.6:
+                if selection <= 0.1:
                     if IsPossible.build_marines_possible(self, obs):
                         return "build_marine"
 
-                elif selection <= 0.8:
-                    return "no_op"
-
-
-                elif selection <= 0.85:
-                    if IsPossible.build_scv_possible(self, obs):
-                        return "build_scv"
-
-
-                elif selection <= 0.9 and not self.attacking:
-                    return "retreat"
-
-                elif selection <= 1.0:
-                    return (random.choice(Selector.possible_build_actions(self, obs)))
-
-                else:
-                    return "no_op"
-
-############################################################################################
-            if self.steps < 16 * 60 * 10 / 5 * 1.4:   #min 10
-
-                selection = random.random()
-                if obs.observation.player.idle_worker_count > 1:
-                    return "return_scv"
-
-                if selection <= 0.02:
-                    self.attacking = True
-                    return "attack"
-
-                elif selection <= 0.1:
-                    if IsPossible.build_marines_possible(self, obs):
-                        return "build_marine"
-
-                elif selection <= 0.3:
+                if selection <= 0.3:
                     if IsPossible.build_marauder_possible(self, obs):
                         return "build_marauder"
 
-                elif selection <= 0.35:
+                if selection <= 0.35:
                     if IsPossible.build_medivac_possible(self, obs):
                         return "build_medivac"
 
-                elif selection <= 0.4:
+                if selection <= 0.4:
                     if IsPossible.build_techlab_possible(self, obs):
                         return "build_tech_lab_barracks"
 
-                elif selection <= 0.45:
+                if selection <= 0.45:
                     if IsPossible.build_starport_possible(self, obs):
                         return "build_starport"
 
-                elif selection <= 0.55:
+                if selection <= 0.55:
                     if IsPossible.build_factory_possible(self, obs):
                         return "build_factory"
 
 
-                elif selection <= 0.60:
+                if selection <= 0.60:
                     if IsPossible.build_scv_possible(self, obs):
                         return "build_scv"
 
-                elif selection <= 0.9 and not self.attacking:
+                if selection <= 0.65:
+                        return "expand"
+
+                if selection <= 0.75:
+                    if IsPossible.build_supply_depot_possible(self, obs):
+                        return "build_starport"
+
+                if selection <= 0.9 and not self.attacking:
                         return "retreat"
 
-                elif selection <= 0.94:
+                if selection <= 0.95:
                     return "no_op"
 
-                elif selection <= 0.95:
-                    if IsPossible.build_supply_depot_possible(self, obs):
-                        return "build_supply_depot"
+                
 
                 else:
                     return (random.choice(Selector.possible_build_actions(self, obs)))
 ##################################################################################################
 
-            if self.steps < 16 * 60 * 30 / 5 * 1.4:   #min 30
+            if self.steps < 1346/5*30:   #min 30
 
                 selection = random.random()
                 if obs.observation.player.idle_worker_count > 1:
-                    return "return_scv"
+                    if selection <= 0.1:
+                        return "return_scv"
+                    elif selection <= 0.2:
+                        return "distribute_scv"
+                
+                if self.attacking:
+                    attack = random.random()
+                    if attack <= 0.3:
+                        return "attack"
 
                 if selection <= 0.1:
                     if IsPossible.build_marines_possible(self, obs):
                         return "build_marine"
 
-                elif selection <= 0.2:
+                if selection <= 0.2:
                     if IsPossible.build_marauder_possible(self, obs):
                         return "build_marauder"
 
-                elif selection <= 0.3:
+                if selection <= 0.3:
                     if IsPossible.build_reaper_possible(self, obs):
                         return "build_reaper"
 
-                elif selection <= 0.4:
+                if selection <= 0.4:
                     if IsPossible.build_medivac_possible(self, obs):
                         return "build_medivac"
 
-                elif selection <= 0.5:
+                if selection <= 0.5:
                     if IsPossible.build_viking_possible(self, obs):
                         return "build_viking"
 
-                elif selection <= 0.5:
+                if selection <= 0.5:
                     if IsPossible.build_hellion_possible(self, obs):
                         return "build_hellion"
 
-                elif selection <= 0.6:
+                if selection <= 0.6:
                     if IsPossible.build_techlab_possible(self, obs):
                         return "build_tech_lab_barracks"
 
-                elif selection <= 0.7:
+                if selection <= 0.7:
                     if IsPossible.build_starport_possible(self, obs):
                         return "build_starport"
 
-                elif selection <= 0.8:
+                if selection <= 0.8:
                     if IsPossible.build_factory_possible(self, obs):
                         return "build_factory"
 
-                elif selection <= 0.85:
+                if selection <= 0.81:
+                        return "no_op"
+
+                if selection <= 0.85:
                     if IsPossible.build_supply_depot_possible(self, obs):
                         return "build_supply_depot"
 
-                elif selection <= 0.9 and not self.attacking:
+                if selection <= 0.9 and not self.attacking:
                     return "retreat"
 
-                elif selection <= 0.91:
+                if selection <= 0.95:
                     self.attacking = True
                     return "attack"
 
