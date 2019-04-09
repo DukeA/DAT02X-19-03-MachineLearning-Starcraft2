@@ -17,7 +17,7 @@ class BuildFacade():
         self.total
 
 
-    def set_up(self, obs, is_start=False):
+    def set_up(self, obs):
         BuildFacade.build_state = BuildModelGather.set_locations(self, obs)
         list = BuildFacade.build_state
         BuildFacade.build_model = BuildModelLocations.set_building_location(self, list)
