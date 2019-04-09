@@ -7,7 +7,25 @@ def main(unused_argv):
     agent = AiBot()
     save_game = True
     episode = 0
-    path = "C:/Users/Claes/Desktop/StarCraft2Replays/"
+    path1 = "C:/Users/Claes/Desktop/StarCraft2Replays/no_op/"
+    path2 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_scv/"
+    path3 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_supply_depot/"
+    path4 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_marine/"
+    path5 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_marauder/"
+    path6 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_reaper/"
+    path7 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_hellion/"
+    path8 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_medivac/"
+    path9 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_viking/"
+    path10 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_barracks/"
+    path11 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_refinery/"
+    path12 = "C:/Users/Claes/Desktop/StarCraft2Replays/retreat/"
+    path13 = "C:/Users/Claes/Desktop/StarCraft2Replays/return_scv/"
+    path14 = "C:/Users/Claes/Desktop/StarCraft2Replays/expand/"
+    path15 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_factory/"
+    path16 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_starport/"
+    path17 = "C:/Users/Claes/Desktop/StarCraft2Replays/build_tech_lab_barracks/"
+    path18 = "C:/Users/Claes/Desktop/StarCraft2Replays/attack/"
+
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
@@ -35,8 +53,11 @@ def main(unused_argv):
                 while True:
                     step_actions = [agent.step(timesteps[0])]
                     if timesteps[0].last():
-                        if save_game:
-                            agent.save_game(path, episode)
+                        if save_game and agent.reward == 1:
+                            agent.save_game(path1, path2, path3, path4,
+                            path5, path6, path7, path8, path9, path10, 
+                            path11, path12, path13, path14, path15, 
+                            path16, path17, path18, episode)
                         break
                     timesteps = env.step(step_actions)
 

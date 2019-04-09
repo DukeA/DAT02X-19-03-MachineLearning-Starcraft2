@@ -77,7 +77,7 @@ class Selector():
         else:
             poss_actions.append("no_op")
 
-        if True:
+        if False:
             poss_actions.append("distribute_scv")
 
         if True:

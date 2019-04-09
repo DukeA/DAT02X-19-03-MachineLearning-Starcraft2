@@ -401,8 +401,6 @@ class HardCodedSelector():
                 if obs.observation.player.idle_worker_count > 1:
                     if selection <= 0.2:
                         return "return_scv"
-                    elif selection <= 0.5:
-                        return "distribute_scv"
 
                 if not self.hasStarport:
                     if IsPossible.build_starport_possible(self, obs):
@@ -495,8 +493,6 @@ class HardCodedSelector():
                 if obs.observation.player.idle_worker_count > 1:
                     if selection <= 0.1:
                         return "return_scv"
-                    elif selection <= 0.2:
-                        return "distribute_scv"
                 
                 if self.attacking:
                     attack = random.random()
