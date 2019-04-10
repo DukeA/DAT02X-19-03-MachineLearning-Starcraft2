@@ -15,6 +15,8 @@ from Models.MachineLearning.CriticNetwork import CriticNetwork
 from Models.MachineLearning.OU import OU
 import timeit
 
+from collections import deque
+
 OU = OU()       #Ornstein-Uhlenbeck Process
 
 class ActorCriticAgent:
@@ -55,12 +57,16 @@ class ActorCriticAgent:
 
         self.actor = ActorNetwork(self.sess, self.state_dim, self.action_dim, self.BATCH_SIZE, self.TAU, self.LRA, self.NUM_STEPS_UNTIL_UPDATE)
         self.critic = CriticNetwork(self.sess, self.state_dim, self.BATCH_SIZE, self.TAU, self.LRC, self.NUM_STEPS_UNTIL_UPDATE)
-        self.buff = ReplayBuffer(self.BUFFER_SIZE)    # Create replay buffer
 
         self.total_reward = 0
         self.prev_state = None
         self.prev_actions = None
+        self.buffer = deque(maxlen=4000)
 
+
+        self.actions_softmax = tf.nn.softmax(self.actor.model.output[0])
+
+        self.sess.run(tf.global_variables_initializer())
 
         # Now load the weight
         print("Now we load the weight")
@@ -77,72 +83,33 @@ class ActorCriticAgent:
         #self.loss = 0
 
     def predict(self, game_state, obs):
+        state = np.array([[game_state.minerals, game_state.vespene, obs.observation.player.food_workers, obs.observation.player.food_cap]])
 
-        state = np.hstack((game_state.minerals, game_state.vespene, obs.observation.player.food_workers, obs.observation.player.food_cap))
 
-        loss = 0
 
-        print("Epsilon: ", self.epsilon)
+        if random.random() < self.epsilon:
+            action_probs = [1/self.action_dim]*self.action_dim
+        else:
+            action_probs = self.sess.run(self.actions_softmax, feed_dict={
+            self.actor.state: state
+            })
+        action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
         if self.episode > 0:
-            test = self.critic.model.trainable_weights
-            test2 = self.sess.run(test)
-
-            if len(self.buffer) == self.NUM_STEPS_UNTIL_UPDATE:
-                if obs.last():
-                    R = 0
-                else:
-                    R = self.critic.model.predict(state.reshape(1, state.shape[0]))[0][0]
-
-                states = np.asarray([row[0] for row in self.buffer])
-                actions_one_hot = np.asarray([row[1] for row in self.buffer])
-                rewards = np.asarray([row[2] for row in self.buffer])
-                new_states = np.asarray([row[3] for row in self.buffer])
-                values = np.asarray([row[4] for row in self.buffer])
-
-                discounted_rewards = np.zeros(len(self.buffer))
-                discounted_values = np.zeros(len(self.buffer))
-
-                for idx, reward in reversed(list(enumerate(rewards))):
-                    R = reward + self.GAMMA * R
-                    discounted_rewards[idx] = R
-                    discounted_values[idx] = R - values[idx]
-
-                self.actor.train(states, actions_one_hot, discounted_values)
-                self.critic.train(states, discounted_rewards)
-
-                self.buffer = []
-
-        r = random.random()
-
-        if r < self.epsilon:
-            action_probabilities = "random"
-            actions_one_hot = tf.one_hot([random.randint(0, self.action_dim-1)], self.action_dim).eval(session=self.sess)[0]
-        else:
-            action_probabilities = self.actor.model.predict(state.reshape(1, state.shape[0]))
-            chosen_actions = np.argmax(action_probabilities, axis=1)
-            actions_one_hot = tf.one_hot(chosen_actions, self.action_dim).eval(session=self.sess)[0]
-
-        value = self.critic.model.predict(state.reshape(1, state.shape[0]))[0][0]
-
-        self.prev_actions = actions_one_hot
-        self.prev_state = state
-
-        if self.episode == 0:
-            self.prev_actions = actions_one_hot
-            self.prev_state = state
-            self.buffer = []
-        else:
             self.buffer.append(
-                [self.prev_state, self.prev_actions, game_state.reward, state, value, False])  # Add replay buffer
+                [self.prev_state[0], self.prev_actions, game_state.reward, state[0], obs.last()])  # Add replay buffer
 
+        self.prev_actions = action_index
+        self.prev_state = state
         self.episode += 1
 
-        max_index = np.argmax(actions_one_hot)
-        chosen_action = self.action_space[max_index]
+        chosen_action = self.action_space[action_index]
+        if(len(self.buffer) > self.BATCH_SIZE):
+            training_batch = random.sample(self.buffer, self.BATCH_SIZE)
+            self.train(training_batch)
 
         # FOR TESTING
-        print('Probs:', action_probabilities)
+        print('Probs:', action_probs)
         print('Chosen action:', chosen_action)
         print('Reward:', game_state.reward)
 
@@ -158,6 +125,32 @@ class ActorCriticAgent:
                     json.dump(self.critic.model.to_json(), outfile)
 
         return chosen_action
+
+    def train(self, training_batch):
+        states = np.asarray([row[0] for row in training_batch])
+        actions = np.asarray([row[1] for row in training_batch])
+        rewards = np.asarray([row[2] for row in training_batch])
+        next_states = np.asarray([row[3] for row in training_batch])
+        dones = np.asarray([row[4] for row in training_batch])
+
+
+        next_state_values = self.critic.model.predict(next_states)
+        state_values = next_state_values
+
+        predicted_state_values = self.critic.model.predict(states)
+        target_actor = np.zeros((len(predicted_state_values), self.action_dim))
+
+        for idx, reward in enumerate(rewards):
+            if dones[idx]:
+                state_values[idx] = reward
+                target_actor[idx][actions[idx]] = reward - predicted_state_values[idx]
+            else:
+                state_values[idx] = reward + self.GAMMA * next_state_values[idx]
+                target_actor[idx][actions[idx]] = reward + self.GAMMA * next_state_values[idx] - predicted_state_values[idx]
+
+        self.actor.train(states, target_actor)
+
+        self.critic.train(states, state_values)
 
 
 

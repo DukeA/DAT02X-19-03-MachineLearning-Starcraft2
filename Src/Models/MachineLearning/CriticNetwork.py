@@ -24,23 +24,14 @@ class CriticNetwork(object):
         K.set_session(sess)
 
         # Now create the model
-        self.model, self.weights, self.state = self.create_critic_network(state_size)
-        self.target_model, self.target_weights, self.target_state = self.create_critic_network(state_size)
+        self.model, self.state, self.output, self.weight = self.create_critic_network(state_size)
 
-        self.discounted_rewards = tf.placeholder(tf.float32, [UPDATE_STEPS, ])
-        squared_difference = tf.reduce_sum(tf.math.squared_difference(tf.cast(self.discounted_rewards, tf.float32), self.model.output))
 
-        self.params_grad = tf.gradients(squared_difference, self.weights)
-        grads = zip(self.params_grad, self.weights)
-        self.optimize = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(grads)
+        self.model.compile(optimizer=Adam(lr=self.LEARNING_RATE), loss='mse')
 
-        self.sess.run(tf.global_variables_initializer())
+    def train(self, states, target_critic):
+        self.model.fit(states, target_critic)
 
-    def train(self, states, discounted_rewards):
-        self.sess.run(self.optimize, feed_dict={
-            self.state: states,
-            self.discounted_rewards: discounted_rewards
-        })
 
     def target_train(self):
         critic_weights = self.model.get_weights()
@@ -56,6 +47,4 @@ class CriticNetwork(object):
         h1 = Dense(HIDDEN2_UNITS, activation='relu')(w1)
         V = Dense(1, activation='linear')(h1)
         model = Model(inputs=S, outputs=V)
-        adam = Adam(lr=self.LEARNING_RATE)
-        model.compile(loss='mse', optimizer=adam)
-        return model, model.trainable_weights, S
+        return model, S, V, model.trainable_weights

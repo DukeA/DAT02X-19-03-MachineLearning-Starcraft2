@@ -1,9 +1,9 @@
 import gym
 import numpy as np
 import random
-import matplotlib.pyplot as plt
 
-from buffer import Buffer
+
+
 from A3C_agent import A3CAgent
 from collections import deque
 
@@ -53,8 +53,7 @@ while iter < num_iters:
   if done:
     observation = env.reset()
     print("Total reward: ", total_reward)
-    plt.scatter(episode, total_reward, s=3, c='blue')
-    plt.pause(0.05)
+
     total_reward = 0
     episode += 1
     if episode % 100 == 0:
@@ -64,7 +63,6 @@ while iter < num_iters:
 
   if iter == num_iters:
     env.close()
-    plt.show()
 
 
   if exploration_factor > min_exploration_rate:

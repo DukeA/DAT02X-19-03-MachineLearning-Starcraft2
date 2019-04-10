@@ -23,26 +23,21 @@ class ActorNetwork(object):
         K.set_session(sess)
 
         # Now create the model
-        self.model, self.weights, self.state = self.create_actor_network(state_size, action_size)
-        self.target_model, self.target_weights, self.target_state = self.create_actor_network(state_size, action_size)
-        self.action_one_hot = tf.placeholder(tf.float32, [None, action_size])
-        self.discounted_values = tf.placeholder(tf.float32, [UPDATE_STEPS, ])
+        self.model, self.state, self.output, self.weights = self.create_actor_network(state_size, action_size)
+        self.target_actor = tf.placeholder(tf.float32)
 
-        negative_likelihoods = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.action_one_hot, logits=self.model.output)
-        weighted_negative_likelihoods = tf.multiply(negative_likelihoods, self.discounted_values)
-        loss = tf.reduce_mean(weighted_negative_likelihoods)
-
-        self.params_grad = tf.gradients(loss, self.weights)
-        grads = zip(self.params_grad, self.weights)
-        self.optimize = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(grads)
+        loss2 = tf.reduce_sum(
+            tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.output,
+                                                    labels=self.target_actor))
+        self.optimize = tf.train.AdamOptimizer(self.LEARNING_RATE).minimize(loss2)
 
         self.sess.run(tf.global_variables_initializer())
 
-    def train(self, states, action_one_hots, discounted_values):
+
+    def train(self, states, target_actor):
         self.sess.run(self.optimize, feed_dict={
             self.state: states,
-            self.action_one_hot: action_one_hots,
-            self.discounted_values: discounted_values
+            self.target_actor: target_actor
         })
 
     def target_train(self):
@@ -54,10 +49,9 @@ class ActorNetwork(object):
 
     def create_actor_network(self, state_size, action_dim):
         print("Now we build the model")
-        S = Input(shape=[state_size])   
+        S = Input(shape=[state_size])
         h0 = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
         h1 = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(h0)
         V = Dense(action_dim, activation='relu', kernel_initializer='random_normal')(h1)
         model = Model(inputs=S, outputs=V)
-        return model, model.trainable_weights, S
-
+        return model, S, V, model.trainable_weights
