@@ -12,6 +12,10 @@ from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
 from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 
+import os
+import pickle
+
+
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
         super(AiBot, self).__init__()
@@ -34,6 +38,14 @@ class AiBot(base_agent.BaseAgent):
         self.last_scout = 0        # Maybe for ML
         self.marine_count = 0      # Maybe for ML
         self.action_finished = False
+        self.attacking = False
+
+    def save_game(self, path, episode):
+        offset = 0
+        while os.path.exists(path + str(episode)+str(offset)+".txt"):
+            offset += 1
+        with open(path + str(episode)+str(offset)+".txt", 'wb') as filehandle:
+            pickle.dump(self.game_state.get_state(), filehandle)
 
     def step(self, obs, epsilon):
         super(AiBot, self).step(obs)
@@ -78,7 +90,7 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         if self.next_action == "expand":
-            BuildOrdersController.build_expand(self, obs, self.start_top)
+            BuildOrdersController.build_expand(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
