@@ -71,10 +71,10 @@ class ActorCriticAgent:
         # Now load the weight
         print("Now we load the weight")
         try:
-            self.actor.model.load_weights("actormodel.h5")
-            self.critic.model.load_weights("criticmodel.h5")
-            self.actor.target_model.load_weights("actormodel.h5")
-            self.critic.target_model.load_weights("criticmodel.h5")
+            self.actor.model.load_weights("Src/Models/MachineLearning/actormodel.h5")
+            self.critic.model.load_weights("Src/Models/MachineLearning/criticmodel.h5")
+            self.actor.target_model.load_weights("Src/Models/MachineLearning/actormodel.h5")
+            self.critic.target_model.load_weights("Src/Models/MachineLearning/criticmodel.h5")
             print("Weight load successfully")
         except:
             print("Cannot find the weight")
@@ -83,21 +83,21 @@ class ActorCriticAgent:
         #self.loss = 0
 
     def predict(self, game_state, obs):
-        state = np.array([[game_state.minerals, game_state.vespene, obs.observation.player.food_workers, obs.observation.player.food_cap]])
+        state, oldscore, map = game_state.get_state_now(obs)
 
 
 
         if random.random() < self.epsilon:
-            action_probs = [1/self.action_dim]*self.action_dim
+             action_probs = [1/self.action_dim]*self.action_dim
         else:
             action_probs = self.sess.run(self.actions_softmax, feed_dict={
-            self.actor.state: state
+                self.actor.state: state
             })
         action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
         if self.episode > 0:
             self.buffer.append(
-                [self.prev_state[0], self.prev_actions, game_state.reward, state[0], obs.last()])  # Add replay buffer
+                [self.prev_state[0], self.prev_actions, game_state.reward, state[0], False])  # Add replay buffer
 
         self.prev_actions = action_index
         self.prev_state = state
@@ -116,12 +116,12 @@ class ActorCriticAgent:
         if np.mod(self.episode, 30) == 0 and self.episode > 0:
             if self.train_indicator:
                 print("Now we save the model")
-                self.actor.model.save_weights("actormodel.h5", overwrite=True)
-                with open("actormodel.json", "w") as outfile:
+                self.actor.model.save_weights("Src/Models/MachineLearning/actormodel.h5", overwrite=True)
+                with open("Src/Models/MachineLearning/actormodel.json", "w") as outfile:
                     json.dump(self.actor.model.to_json(), outfile)
 
-                self.critic.model.save_weights("criticmodel.h5", overwrite=True)
-                with open("criticmodel.json", "w") as outfile:
+                self.critic.model.save_weights("Src/Models/MachineLearning/criticmodel.h5", overwrite=True)
+                with open("Src/Models/MachineLearning/criticmodel.json", "w") as outfile:
                     json.dump(self.critic.model.to_json(), outfile)
 
         return chosen_action

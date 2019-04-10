@@ -10,7 +10,7 @@ from Models.HelperClass.HelperClass import HelperClass
 
 
 class State:
-    def __init__(self):
+    def __init__(self, bot_obj):
 
         # Game state
 
@@ -25,8 +25,7 @@ class State:
         self.food_used = 12
         self.food_cap = 15
         self.idle_workers = 0
-
-        self.score = 0
+        self.oldscore = 0
         self.reward = 0
         self.action_issued = None
         self.state_tuple = []
@@ -41,6 +40,8 @@ class State:
         self.units_amounts_updated = False
         self.unit_weight = 50
         self.current_unit = None
+
+        self.bot_obj = bot_obj
 
         # Constants
         # Action space of actions whose success is easily evaluated with observation.last_actions[0].
@@ -69,14 +70,10 @@ class State:
                 "build_scv",
                 "build_supply_depot",
                 "build_marine",
-                "build_marauder",
                 "build_barracks",
-                "build_refinery",
                 "return_scv",
-                "expand",
                 "attack",
-                "retreat",
-                "scout",
+                "retreat"
             ]
 
     def get_state(self):
@@ -111,43 +108,7 @@ class State:
                     self.action_issued = "no_op"
 
             # Saves last state and last action in a tuple
-            self.state_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
-                                     dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps))
-
-            # Update any state that doesn't require actions
-            self.minerals = obs.observation.player.minerals
-            self.vespene = obs.observation.player.vespene
-            self.food_used = obs.observation.player.food_used
-            self.food_cap = obs.observation.player.food_cap
-            self.idle_workers = obs.observation.player.idle_worker_count
-            self.units_amount[units.Terran.SCV] = obs.observation.player.food_workers
-            # Filter out SCVs before updating units_amount because they disappear when they go into refineries
-            own_units = [u for u in obs.observation.raw_units
-                         if u.alliance == 1 and u.unit_type != units.Terran.SCV]
-            # Quickly checks if the state has changed. Not sure if actually faster.
-            if len(own_units) != sum(self.units_amount.values())-self.units_amount[units.Terran.SCV]:
-                own_unit_types = [u.unit_type for u in own_units]
-                unit_types, unit_type_counts = np.unique(np.array(own_unit_types), return_counts=True)
-                for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
-                    self.units_amount[unit_type] = unit_type_count
-
-            # Counts enemy units
-            enemy_units = [u for u in obs.observation.raw_units
-                           if u.alliance == 4]
-            enemy_unit_types = [u.unit_type for u in enemy_units]
-            unit_types, unit_type_counts = np.unique(np.array(enemy_unit_types), return_counts=True)
-            for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
-                self.enemy_units_amount[unit_type] = unit_type_count
-
-            # Update the score and reward
-            oldScore = self.score
-            self.score = self.minerals + self.vespene + sum(self.units_amount.values()) * self.unit_weight
-            self.reward = self.score - oldScore - 25
-
-            bot_obj.game_state_updated = True
-
-            # Selects control group 9
+                        # Selects control group 9
             new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]
 
         # Section for adding unselected production building to control group 9.
@@ -182,7 +143,76 @@ class State:
                     new_action = [actions.FUNCTIONS.select_control_group("append", 9)]
             bot_obj.reqSteps = 0
 
+
+            # Update the score and reward
+
+            bot_obj.game_state_updated = True
+
+
+
         ActionSingleton().set_action(new_action)
+
+
+    def get_state_now(self, obs):
+        self.state_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
+                                 dict(self.units_amount), dict(self.enemy_units_amount),
+                                 self.action_issued, self.bot_obj.steps))
+
+        # Update any state that doesn't require actions
+        oldscore = self.oldscore
+        self.reward = obs.observation.score_cumulative.score - self.oldscore
+        minerals = obs.observation.player.minerals
+        vespene = obs.observation.player.vespene
+        food_used = obs.observation.player.food_used
+        food_cap = obs.observation.player.food_cap
+        idle_workers = obs.observation.player.idle_worker_count
+
+        self.oldscore = obs.observation.score_cumulative.score
+
+        # Filter out SCVs before updating units_amount because they disappear when they go into refineries
+        own_units = [u for u in obs.observation.raw_units
+                     if u.alliance == 1 and u.unit_type != units.Terran.SCV]
+        # Quickly checks if the state has changed. Not sure if actually faster.
+        units_amount = defaultdict(lambda: 0)
+        own_unit_types = [u.unit_type for u in own_units]
+        unit_types, unit_type_counts = np.unique(np.array(own_unit_types), return_counts=True)
+        for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
+            units_amount[unit_type] = unit_type_count
+        units_amount[units.Terran.SCV] = obs.observation.player.food_workers
+        # Counts enemy units
+        enemy_units_amount = defaultdict(lambda: 0)
+        enemy_units = [u for u in obs.observation.raw_units
+                       if u.alliance == 4]
+        enemy_unit_types = [u.unit_type for u in enemy_units]
+        unit_types, unit_type_counts = np.unique(np.array(enemy_unit_types), return_counts=True)
+        for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
+            enemy_units_amount[unit_type] = unit_type_count
+
+
+        return np.array([[minerals, vespene, food_used, food_cap, idle_workers,
+                                units_amount[units.Terran.CommandCenter],
+                                units_amount[units.Terran.SupplyDepot],
+                                units_amount[units.Terran.Barracks],
+                                units_amount[units.Terran.Marine],
+                                units_amount[units.Terran.SCV],
+                                enemy_units_amount[units.Terran.SupplyDepot],
+                                (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor]+enemy_units_amount[units.Terran.BarracksTechLab]),
+                                (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor]+enemy_units_amount[units.Terran.FactoryTechLab]),
+                                (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor]+enemy_units_amount[units.Terran.StarportTechLab]),
+                                enemy_units_amount[units.Terran.Refinery],
+                                (enemy_units_amount[units.Terran.CommandCenter]+enemy_units_amount[units.Terran.OrbitalCommand]),
+                                enemy_units_amount[units.Terran.Marine],
+                                enemy_units_amount[units.Terran.Marauder],
+                                enemy_units_amount[units.Terran.Medivac],
+                                enemy_units_amount[units.Terran.Reaper],
+                                enemy_units_amount[units.Terran.Hellion],
+                                (enemy_units_amount[units.Terran.VikingAssault]+enemy_units_amount[units.Terran.VikingFighter]),
+                                enemy_units_amount[units.Terran.Thor],
+                                (enemy_units_amount[units.Terran.SiegeTank]+enemy_units_amount[units.Terran.SiegeTankSieged]),
+                                enemy_units_amount[units.Terran.Cyclone],
+                                enemy_units_amount[units.Terran.Raven],
+                                enemy_units_amount[units.Terran.SCV],
+                                self.bot_obj.steps]]), oldscore, obs.observation.feature_minimap.player_relative
 
     @staticmethod
     def get_unselected_production_buildings(obs, on_screen=False):

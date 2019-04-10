@@ -70,14 +70,14 @@ class AiBot(base_agent.BaseAgent):
                 self.attack_coordinates = Coordinates.START_LOCATIONS[0]
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
-            self.game_state = State()
+            self.game_state = State(self)
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
             action_space = list(self.game_state.A3C_action_space)
 
             num_actions = len(action_space)
-            self.actor_critic_agent = ActorCriticAgent(4, action_space, epsilon)
+
 
         action = [actions.FUNCTIONS.no_op()]
 

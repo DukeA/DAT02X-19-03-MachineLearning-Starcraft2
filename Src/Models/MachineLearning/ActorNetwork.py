@@ -31,7 +31,6 @@ class ActorNetwork(object):
                                                     labels=self.target_actor))
         self.optimize = tf.train.AdamOptimizer(self.LEARNING_RATE).minimize(loss2)
 
-        self.sess.run(tf.global_variables_initializer())
 
 
     def train(self, states, target_actor):
@@ -52,6 +51,6 @@ class ActorNetwork(object):
         S = Input(shape=[state_size])
         h0 = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
         h1 = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(h0)
-        V = Dense(action_dim, activation='relu', kernel_initializer='random_normal')(h1)
+        V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(h1)
         model = Model(inputs=S, outputs=V)
         return model, S, V, model.trainable_weights

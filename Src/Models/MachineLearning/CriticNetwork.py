@@ -30,7 +30,7 @@ class CriticNetwork(object):
         self.model.compile(optimizer=Adam(lr=self.LEARNING_RATE), loss='mse')
 
     def train(self, states, target_critic):
-        self.model.fit(states, target_critic)
+        self.model.fit(states, target_critic, verbose = 0)
 
 
     def target_train(self):
