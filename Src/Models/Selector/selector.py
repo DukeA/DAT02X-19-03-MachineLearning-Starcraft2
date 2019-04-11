@@ -42,10 +42,10 @@ class Selector():
         else:
             poss_actions.append("no_op")
 
-        if IsPossible.build_marauder_possible(self, obs):
-            poss_actions.append("build_marauder")
-        else:
-            poss_actions.append("no_op")
+        #if IsPossible.build_marauder_possible(self, obs):
+        #    poss_actions.append("build_marauder")
+        #else:
+        #    poss_actions.append("no_op")
 
         if IsPossible.build_reaper_possible(self, obs):
             poss_actions.append("build_reaper")
@@ -77,8 +77,8 @@ class Selector():
         else:
             poss_actions.append("no_op")
 
-        if False:
-            poss_actions.append("distribute_scv")
+        #if False:
+         #   poss_actions.append("distribute_scv")
 
         if True:
             poss_actions.append("return_scv")
@@ -98,10 +98,10 @@ class Selector():
         else:
             poss_actions.append("no_op")
 
-        if IsPossible.build_techlab_possible(self, obs):
-            poss_actions.append("build_tech_lab_barracks")
-        else:
-            poss_actions.append("no_op")
+       # if IsPossible.build_techlab_possible(self, obs):
+       #     poss_actions.append("build_tech_lab_barracks")
+       # else:
+        #    poss_actions.append("no_op")
 
         return poss_actions
 

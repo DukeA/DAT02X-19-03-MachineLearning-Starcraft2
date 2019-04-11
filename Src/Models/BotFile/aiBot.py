@@ -38,116 +38,103 @@ class AiBot(base_agent.BaseAgent):
         self.hasFactory = False
         self.hasBarrack = False
 
-    def save_game(self, path1, path2, path3, path4, path5,
+    def save_game(self, path1, path2, path3, path4,
         path6, path7, path8, path9, path10, path11, path12, 
-        path13, path14, path15, path16, path17, path18,
+        path13, path14, path15, path16, path18,
         episode):
         offset = 0
       
-        while os.path.exists(path1 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path1 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path1 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path1 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_no_op(), filehandle)
         
-
-        while os.path.exists(path2 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path2 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path2 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path2 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_scv(), filehandle)
      
         
-        while os.path.exists(path3 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path3 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path3 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path3 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_supply_depot(), filehandle)
 
 
-        while os.path.exists(path4 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path4 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path4 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path4 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_marine(), filehandle)
         
-
-        while os.path.exists(path5 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path6 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path5 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
-            pickle.dump(self.game_state.get_state_build_marauder(), filehandle)
-     
-        
-        while os.path.exists(path6 + str(episode)+str(offset)+"laptop.txt"):
-            offset += 1
-        with open(path6 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path6 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_reaper(), filehandle)
 
 
-        while os.path.exists(path7 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path7 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path7 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path7 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_hellion(), filehandle)
         
 
-        while os.path.exists(path8 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path8 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path8 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path8 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_medivac(), filehandle)
      
         
-        while os.path.exists(path9 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path9 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path9 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path9 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_viking(), filehandle)
 
 
-        while os.path.exists(path10 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path10 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path10 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path10 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_barracks(), filehandle)
         
 
-        while os.path.exists(path11 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path11 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path11 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path11 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_refinery(), filehandle)
      
         
-        while os.path.exists(path12 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path12 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path12 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path12 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_retreat(), filehandle)
 
 
-        while os.path.exists(path13 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path13 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path13 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path13 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_return_scv(), filehandle)
         
 
-        while os.path.exists(path14 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path14 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path14 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path14 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_expand(), filehandle)
      
         
-        while os.path.exists(path15 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path15 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path15 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path15 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_factory(), filehandle)
 
 
-        while os.path.exists(path16 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path16 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path16 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path16 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_build_starport(), filehandle)
         
-
-        while os.path.exists(path17 + str(episode)+str(offset)+"laptop.txt"):
-            offset += 1
-        with open(path17 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
-            pickle.dump(self.game_state.get_state_build_tech_lab_barracks(), filehandle)
         
-        while os.path.exists(path18 + str(episode)+str(offset)+"laptop.txt"):
+        while os.path.exists(path18 + str(episode)+str(offset)+".txt"):
             offset += 1
-        with open(path18 + str(episode)+str(offset)+"laptop.txt", 'wb') as filehandle:
+        with open(path18 + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state_attack(), filehandle)
      
       

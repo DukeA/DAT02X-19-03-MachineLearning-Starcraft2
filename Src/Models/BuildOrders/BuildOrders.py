@@ -190,13 +190,13 @@ class BuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             if obs.observation.player.idle_worker_count > 0:
                 new_action = [actions.FUNCTIONS.select_idle_worker(
                     "select", obs, units.Terran.SCV)]
 
         # Finds a suitable base to send the SCV to.
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             command_centers = [u for u in obs.observation.raw_units
                                if u.alliance == 1
                                and u.unit_type == units.Terran.CommandCenter
@@ -220,7 +220,7 @@ class BuildOrders(base_agent.BaseAgent):
                 new_action = HelperClass.move_screen(obs, (command_center.x, command_center.y))
 
         # Should be at a base now.
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             undermanned_refineries = [u for u in obs.observation.feature_units
                                       if u.alliance == 1
                                       and u.unit_type == units.Terran.Refinery

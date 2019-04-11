@@ -35,7 +35,6 @@ class State:
         self.build_scv_tuple = []
         self.build_supply_depot_tuple = []
         self.build_marine_tuple = []
-        self.build_marauder_tuple = []
         self.build_reaper_tuple = []
         self.build_hellion_tuple = []
         self.build_medivac_tuple = []
@@ -47,7 +46,6 @@ class State:
         self.expand_tuple = []
         self.build_factory_tuple = []
         self.build_starport_tuple = []
-        self.build_tech_lab_barracks_tuple = []
         self.attack_tuple = []
 
 
@@ -103,9 +101,6 @@ class State:
 
     def get_state_build_marine(self):
         return self.build_marine_tuple
-    
-    def get_state_build_marauder(self):
-        return self.build_marauder_tuple
 
     def get_state_build_reaper(self):
         return self.build_reaper_tuple
@@ -139,9 +134,6 @@ class State:
 
     def get_state_build_starport(self):
         return self.build_starport_tuple
-
-    def get_state_build_tech_lab_barracks(self):
-        return self.build_tech_lab_barracks_tuple
 
     def get_state_attack(self):
         return self.attack_tuple
@@ -194,11 +186,6 @@ class State:
                                      dict(self.units_amount), dict(self.enemy_units_amount),
                                      self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
         
-            elif self.action_issued == "build_marauder":
-                self.build_marauder_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
-                                     dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
-            
             elif self.action_issued == "build_reaper":
                 self.build_reaper_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
@@ -254,10 +241,6 @@ class State:
                                      dict(self.units_amount), dict(self.enemy_units_amount),
                                      self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
 
-            elif self.action_issued == "build_tech_lab_barracks":
-                self.build_tech_lab_barracks_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
-                                     dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
             
             elif self.action_issued == "attack":
                 self.attack_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,

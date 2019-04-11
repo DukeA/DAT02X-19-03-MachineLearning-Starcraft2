@@ -11,7 +11,6 @@ def main(unused_argv):
     path2 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_scv/"
     path3 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_supply_depot/"
     path4 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_marine/"
-    path5 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_marauder/"
     path6 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_reaper/"
     path7 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_hellion/"
     path8 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_medivac/"
@@ -23,7 +22,6 @@ def main(unused_argv):
     path14 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/expand/"
     path15 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_factory/"
     path16 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_starport/"
-    path17 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_tech_lab_barracks/"
     path18 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/attack/"
 
     try:
@@ -38,7 +36,7 @@ def main(unused_argv):
                     use_raw_units=True,
                     use_camera_position=True),
                 step_mul=5,  # about 200 APM
-                game_steps_per_episode=1346*30,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
+                game_steps_per_episode=1346*20,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
                 visualize=True,
@@ -55,9 +53,9 @@ def main(unused_argv):
                     if timesteps[0].last():
                         if save_game and agent.reward == 1:
                             agent.save_game(path1, path2, path3, path4,
-                            path5, path6, path7, path8, path9, path10, 
+                            path6, path7, path8, path9, path10, 
                             path11, path12, path13, path14, path15, 
-                            path16, path17, path18, episode)
+                            path16, path18, episode)
                         break
                     timesteps = env.step(step_actions)
 

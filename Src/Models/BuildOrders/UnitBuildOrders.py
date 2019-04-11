@@ -24,10 +24,10 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_all_buildings(obs)
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if len(obs.observation.multi_select > 0):
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Barracks or\
@@ -36,7 +36,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                         new_action = [actions.FUNCTIONS.select_unit("select_all_type", i)]
                         break
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks) or\
                     HelperClass.is_unit_selected(self, obs, units.Terran.BarracksTechLab) or\
                     HelperClass.is_unit_selected(self, obs, units.Terran.BarracksReactor):
@@ -53,17 +53,17 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_all_buildings(obs)
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if len(obs.observation.multi_select > 0):
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.BarracksTechLab:
                         new_action = [actions.FUNCTIONS.select_unit("select_all_type", i)]
                         break
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.BarracksTechLab):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Marauder_quick.id):
                     new_action = [actions.FUNCTIONS.Train_Marauder_quick("now")]
@@ -78,10 +78,10 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_all_buildings(obs)
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if len(obs.observation.multi_select > 0):
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Barracks or \
@@ -90,7 +90,7 @@ class UnitBuildOrders(base_agent.BaseAgent):
                         new_action = [actions.FUNCTIONS.select_unit("select_all_type", i)]
                         break
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks) or \
                     HelperClass.is_unit_selected(self, obs, units.Terran.BarracksTechLab) or \
                     HelperClass.is_unit_selected(self, obs, units.Terran.BarracksReactor):
@@ -107,17 +107,17 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_all_buildings(obs)
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if len(obs.observation.multi_select > 0):
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Factory:
                         new_action = [actions.FUNCTIONS.select_unit("select_all_type", i)]
                         break
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.Factory):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Hellion_quick.id):
                     new_action = [actions.FUNCTIONS.Train_Hellion_quick("now")]
@@ -132,17 +132,17 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_all_buildings(obs)
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if len(obs.observation.multi_select > 0):
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Starport:
                         new_action = [actions.FUNCTIONS.select_unit("select_all_type", i)]
                         break
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.Starport):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_Medivac_quick.id):
                     new_action = [actions.FUNCTIONS.Train_Medivac_quick("now")]
@@ -157,17 +157,17 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_all_buildings(obs)
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if len(obs.observation.multi_select > 0):
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.CommandCenter:
                         new_action = [actions.FUNCTIONS.select_unit("select_all_type", i)]
                         break
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.CommandCenter):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id):
                     new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
@@ -182,17 +182,17 @@ class UnitBuildOrders(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             new_action = HelperClass.select_all_buildings(obs)
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if len(obs.observation.multi_select > 0):
                 for i in range(len(obs.observation.multi_select)):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Starport:
                         new_action = [actions.FUNCTIONS.select_unit("select_all_type", i)]
                         break
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.Starport):
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_VikingFighter_quick.id):
                     new_action = [actions.FUNCTIONS.Train_VikingFighter_quick("now")]

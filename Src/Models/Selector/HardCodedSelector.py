@@ -170,14 +170,6 @@ class HardCodedSelector():
                     else:
                         return "no_op"
 
-                if not self.hasTechlab:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        self.hasTechlab = True
-                        return "build_tech_lab_barracks"
-                    else:
-                        return "no_op"
-
-
                 if selection <= 0.1:
                     if IsPossible.build_scv_possible(self, obs):
                         return "build_scv"
@@ -194,13 +186,9 @@ class HardCodedSelector():
                     if IsPossible.build_factory_possible(self, obs):
                         return "build_factory"
 
-                if selection <= 0.6:
+                if selection <= 0.75:
                     if IsPossible.build_starport_possible(self, obs):
                         return "build_starport"
-
-                if selection <= 0.75:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        return "build_tech_lab_barracks"
 
                 if selection <= 0.8:
                     if IsPossible.build_barracks_possible(self, obs):
@@ -251,13 +239,6 @@ class HardCodedSelector():
                     else:
                         return "no_op"
 
-                if not self.hasTechlab:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        self.hasTechlab = True
-                        return "build_tech_lab_barracks"
-                    else:
-                        return "no_op"
-
                 if selection <= 0.05:
                     if IsPossible.build_barracks_possible(self, obs):
                         return "build_barracks"
@@ -270,21 +251,17 @@ class HardCodedSelector():
                     if IsPossible.build_factory_possible(self, obs):
                         return "build_factory"
 
-                if selection <= 0.4:
+                if selection <= 0.45:
                     if IsPossible.build_starport_possible(self, obs):
                         return "build_starport"
-
-                if selection <= 0.5:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        return "build_tech_lab_barracks"
 
                 if selection <= 0.55:
                     if IsPossible.build_marines_possible(self, obs):
                         return "build_marine"
                 
                 if selection <= 0.65:
-                    if IsPossible.build_marauder_possible(self, obs):
-                        return "build_marauder"
+                    if IsPossible.build_viking_possible(self, obs):
+                        return "build_viking"
 
                 if selection <= 0.75:
                     if IsPossible.build_medivac_possible(self, obs):
@@ -345,13 +322,6 @@ class HardCodedSelector():
                     else:
                         return "no_op"
 
-                if not self.hasTechlab:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        self.hasTechlab = True
-                        return "build_tech_lab_barracks"
-                    else:
-                        return "no_op"
-
                 if selection <= 0.0:
                     self.attacking = True
                     return "attack"
@@ -361,8 +331,8 @@ class HardCodedSelector():
                         return "build_supply_depot"
 
                 if selection <= 0.2:
-                    if IsPossible.build_marauder_possible(self, obs):
-                        return "build_marauder"
+                    if IsPossible.build_viking_possible(self, obs):
+                        return "build_viking"
 
                 if selection <= 0.4:
                     if IsPossible.build_medivac_possible(self, obs):
@@ -423,13 +393,6 @@ class HardCodedSelector():
                     else:
                         return "no_op"
 
-                if not self.hasTechlab:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        self.hasTechlab = True
-                        return "build_tech_lab_barracks"
-                    else:
-                        return "no_op"
-
                 if self.attacking:
                     attack = random.random()
                     if attack <= 0.3:
@@ -444,16 +407,12 @@ class HardCodedSelector():
                         return "build_marine"
 
                 if selection <= 0.3:
-                    if IsPossible.build_marauder_possible(self, obs):
-                        return "build_marauder"
+                    if IsPossible.build_viking_possible(self, obs):
+                        return "build_viking"
 
                 if selection <= 0.35:
                     if IsPossible.build_medivac_possible(self, obs):
                         return "build_medivac"
-
-                if selection <= 0.4:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        return "build_tech_lab_barracks"
 
                 if selection <= 0.45:
                     if IsPossible.build_starport_possible(self, obs):
@@ -499,13 +458,9 @@ class HardCodedSelector():
                     if attack <= 0.3:
                         return "attack"
 
-                if selection <= 0.1:
+                if selection <= 0.15:
                     if IsPossible.build_marines_possible(self, obs):
                         return "build_marine"
-
-                if selection <= 0.2:
-                    if IsPossible.build_marauder_possible(self, obs):
-                        return "build_marauder"
 
                 if selection <= 0.3:
                     if IsPossible.build_reaper_possible(self, obs):
@@ -522,10 +477,6 @@ class HardCodedSelector():
                 if selection <= 0.5:
                     if IsPossible.build_hellion_possible(self, obs):
                         return "build_hellion"
-
-                if selection <= 0.6:
-                    if IsPossible.build_techlab_possible(self, obs):
-                        return "build_tech_lab_barracks"
 
                 if selection <= 0.7:
                     if IsPossible.build_starport_possible(self, obs):
