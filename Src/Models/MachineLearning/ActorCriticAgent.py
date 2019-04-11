@@ -73,8 +73,6 @@ class ActorCriticAgent:
         try:
             self.actor.model.load_weights("Src/Models/MachineLearning/actormodel.h5")
             self.critic.model.load_weights("Src/Models/MachineLearning/criticmodel.h5")
-            self.actor.target_model.load_weights("Src/Models/MachineLearning/actormodel.h5")
-            self.critic.target_model.load_weights("Src/Models/MachineLearning/criticmodel.h5")
             print("Weight load successfully")
         except:
             print("Cannot find the weight")
@@ -109,13 +107,8 @@ class ActorCriticAgent:
             self.train(training_batch)
 
         # FOR TESTING
-        print('Probs:', action_probs)
-        print('Chosen action:', chosen_action)
-        print('Reward:', game_state.reward)
-
         if np.mod(self.episode, 30) == 0 and self.episode > 0:
             if self.train_indicator:
-                print("Now we save the model")
                 self.actor.model.save_weights("Src/Models/MachineLearning/actormodel.h5", overwrite=True)
                 with open("Src/Models/MachineLearning/actormodel.json", "w") as outfile:
                     json.dump(self.actor.model.to_json(), outfile)

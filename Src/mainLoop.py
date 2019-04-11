@@ -7,7 +7,7 @@ from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 def main(unused_argv):
     agent = AiBot()
     epsilon = 1
-    eps_reduction_factor = 0.999
+    eps_reduction_factor = 0.995
     save_game = False
     episode = 0
     path = ""
@@ -34,7 +34,7 @@ def main(unused_argv):
                     use_raw_units=True,
                     use_camera_position=True),
                 step_mul=5,  # about 200 APM
-                game_steps_per_episode=3000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
+                game_steps_per_episode=30000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
                 visualize=True,
@@ -46,6 +46,7 @@ def main(unused_argv):
                 agent.reset()
                 episode += 1
                 epsilon *= eps_reduction_factor
+                print(epsilon)
                 agent.reward = 0
                 while True:
                     step_actions = [agent.step(timesteps[0], epsilon)]
@@ -54,14 +55,14 @@ def main(unused_argv):
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
                         if agent.reward == 1:
-                            reward = 1000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            reward = 10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
                         else:
-                            reward = -1000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            reward = -10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
 
 
                         agent.actor_critic_agent.buffer.append(
                             [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, reward, state[0], True])
-
+                        print(agent.steps)
                         if save_game:
                             agent.save_game(path, episode)
                         break
