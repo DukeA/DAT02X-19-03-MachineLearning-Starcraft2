@@ -36,11 +36,11 @@ class Build_Critic_Actor:
         for items in sample:
 
 
-    def load_weights(self,item):
-        self.crtic_model.load_weights(item)
+    def load_weights(self,path):
+        self.crtic_model.load_weights(path)
 
-    def save_weights(self,item):
-        self.crtic_model.save_weights(item)
+    def save_weights(self,path):
+        self.crtic_model.save_weights(path + 'crtic_build_actor.h5')
 
 
 

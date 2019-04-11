@@ -18,7 +18,8 @@ class BuildNetwork:
         self.epsilon_decay =0.99
         self.tau =0.125
 
-        self.build_actor = Build_Actor(,)
+        self.build_actor = Build_Actor()
+        self.crtic_build_Actor = Build_Critic_Actor()
 
 
 
@@ -31,6 +32,10 @@ class BuildNetwork:
         build_state = Build_Critic_Actor(self,build_state)
 
 
-    def load_weights(self, item):
+    def load_weights(self, pathactor,pathbuilder):
+        self.build_actor.load_weights(self,pathbuilder)
+        self.crtic_build_Actor.load_weights(self, pathactor)
 
-    def save_weights(self,item):
+    def save_weights(self,path):
+        self.build_actor.save_weights(self,path)
+        self.crtic_build_Actor.save_weights(self,path)

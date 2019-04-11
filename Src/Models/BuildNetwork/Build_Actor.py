@@ -21,14 +21,19 @@ class Build_Actor:
         build_state_model.compile(loss="mse", optimizer=Adam(Build_Actor.learning_rate))
         return build_state_model
 
-    def train_actor_model(self, sample_screen):
-        for items in sample_screen:
+    def fit (self,inp,target):
+        self.model.fit(self.reshape(inp),target,epochs =1,verbose=0)
+
+
+    def predict(self, input):
+        return self.model.predict(self.reshape(input))
 
 
 
-    def load_weights(self, item):
-        self.build_author_model.load_weights(item)
+
+    def load_weights(self, path):
+        self.build_author_model.load_weights(path)
 
 
-    def save_weights(self, item):
-        self.build_author_model.save_weights(item)
+    def save_weights(self, path):
+        self.build_author_model.save_weights(path + 'build_actor.h5')
