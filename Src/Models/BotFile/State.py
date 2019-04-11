@@ -10,9 +10,10 @@ from Models.HelperClass.HelperClass import HelperClass
 
 
 class State:
-    def __init__(self, bot_obj):
+    def __init__(self, bot_obj, obs):
+        # Obs is actually not used
 
-        # Game state
+        # Game state (might actually be obsolete)
 
         self.units_amount = defaultdict(lambda: 0)  # Amount of each unit. Set to 0 by default
         self.units_amount[units.Terran.SCV] = 12
@@ -29,6 +30,34 @@ class State:
         self.reward = 0
         self.action_issued = None
         self.state_tuple = []
+
+        self.initial_state = np.asarray([[2, 0, 12/200, 15/200, 0,
+                                          1/15,
+                                          0,
+                                          0,
+                                          0,
+                                          12/200,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          1/5,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          12/200,
+                                          0]])
+        self.lstm_length = 10
+        self.old_lstm = np.asarray(self.initial_state.tolist()*self.lstm_length)
+        self.old_lstm = self.old_lstm.reshape((1, self.lstm_length, self.initial_state.shape[1]))
 
         # Variables required for updating the game state
 
@@ -141,7 +170,6 @@ class State:
 
         ActionSingleton().set_action(new_action)
 
-
     def get_state_now(self, obs):
         self.state_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                  dict(self.units_amount), dict(self.enemy_units_amount),
@@ -150,11 +178,25 @@ class State:
         # Update any state that doesn't require actions
         oldscore = self.oldscore
         self.reward = obs.observation.score_cumulative.score - self.oldscore
-        minerals = obs.observation.player.minerals
-        vespene = obs.observation.player.vespene
-        food_used = obs.observation.player.food_used
-        food_cap = obs.observation.player.food_cap
-        idle_workers = obs.observation.player.idle_worker_count
+
+        max_minerals = 1500
+        max_vespene = 1500
+
+        if obs.observation.player.minerals <= max_minerals:
+            minerals = obs.observation.player.minerals
+        else:
+            minerals = max_minerals
+        if obs.observation.player.vespene <= max_vespene:
+            vespene = obs.observation.player.vespene
+        else:
+            vespene = max_vespene
+
+        minerals = int(minerals/25)*25/max_minerals
+        vespene = int(vespene/25)*25/max_vespene
+
+        food_used = obs.observation.player.food_used/200
+        food_cap = obs.observation.player.food_cap/200
+        idle_workers = obs.observation.player.idle_worker_count/200
 
         self.oldscore = obs.observation.score_cumulative.score
 
@@ -179,7 +221,7 @@ class State:
 
 
         return np.array([[minerals, vespene, food_used, food_cap, idle_workers,
-                                units_amount[units.Terran.CommandCenter],
+                                units_amount[units.Terran.CommandCenter]/15,
                                 units_amount[units.Terran.SupplyDepot]/24,
                                 units_amount[units.Terran.Barracks]/10,
                                 units_amount[units.Terran.Marine]/200,
@@ -202,6 +244,18 @@ class State:
                                 enemy_units_amount[units.Terran.Raven]/100,
                                 enemy_units_amount[units.Terran.SCV]/200,
                                 self.bot_obj.steps/30000]]), oldscore, obs.observation.feature_minimap.player_relative
+
+    def get_lstm_state_now(self, obs):
+        """
+        Fetches an lstm state. Also updates self.old_lstm.
+        :param obs:
+        :return:
+        """
+        new_state, oldscore, minimap = self.get_state_now(obs)
+        self.old_lstm[0][:-1] = self.old_lstm[0][1:]
+        self.old_lstm[0][-1] = new_state[0]
+
+        return self.old_lstm, oldscore, minimap
 
     @staticmethod
     def get_unselected_production_buildings(obs, on_screen=False):

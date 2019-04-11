@@ -70,20 +70,29 @@ class ActorCriticAgent:
 
         # Now load the weight
         print("Now we load the weight")
-        try:
-            self.actor.model.load_weights("Src/Models/MachineLearning/actormodel.h5")
-            self.critic.model.load_weights("Src/Models/MachineLearning/criticmodel.h5")
-            print("Weight load successfully")
-        except:
-            print("Cannot find the weight")
+        if isinstance(self.state_dim, int):
+            try:
+                self.actor.model.load_weights("Models/MachineLearning/actormodel.h5")
+                self.critic.model.load_weights("Models/MachineLearning/criticmodel.h5")
+                print("Weight load successfully")
+            except:
+                print("Cannot find the weight")
+        else:
+            try:
+                self.actor.model.load_weights("Models/MachineLearning/actormodel_lstm.h5")
+                self.critic.model.load_weights("Models/MachineLearning/criticmodel_lstm.h5")
+                print("LSTM weight load successfully")
+            except:
+                print("Cannot find the weight")
 
         # Batch variables
         #self.loss = 0
 
     def predict(self, game_state, obs):
-        state, oldscore, map = game_state.get_state_now(obs)
-
-
+        if isinstance(self.state_dim, int):
+            state, oldscore, map = game_state.get_state_now(obs)
+        else:
+            state, oldscore, map = game_state.get_lstm_state_now(obs)
 
         if random.random() < self.epsilon:
              action_probs = [1/self.action_dim]*self.action_dim
@@ -109,13 +118,22 @@ class ActorCriticAgent:
         # FOR TESTING
         if np.mod(self.episode, 30) == 0 and self.episode > 0:
             if self.train_indicator:
-                self.actor.model.save_weights("Src/Models/MachineLearning/actormodel.h5", overwrite=True)
-                with open("Src/Models/MachineLearning/actormodel.json", "w") as outfile:
-                    json.dump(self.actor.model.to_json(), outfile)
+                if isinstance(self.state_dim, int):
+                    self.actor.model.save_weights("Models/MachineLearning/actormodel.h5", overwrite=True)
+                    with open("Models/MachineLearning/actormodel.json", "w") as outfile:
+                        json.dump(self.actor.model.to_json(), outfile)
 
-                self.critic.model.save_weights("Src/Models/MachineLearning/criticmodel.h5", overwrite=True)
-                with open("Src/Models/MachineLearning/criticmodel.json", "w") as outfile:
-                    json.dump(self.critic.model.to_json(), outfile)
+                    self.critic.model.save_weights("Models/MachineLearning/criticmodel.h5", overwrite=True)
+                    with open("Models/MachineLearning/criticmodel.json", "w") as outfile:
+                        json.dump(self.critic.model.to_json(), outfile)
+                else:
+                    self.actor.model.save_weights("Models/MachineLearning/actormodel_lstm.h5", overwrite=True)
+                    with open("Models/MachineLearning/actormodel_lstm.json", "w") as outfile:
+                        json.dump(self.actor.model.to_json(), outfile)
+
+                    self.critic.model.save_weights("Models/MachineLearning/criticmodel_lstm.h5", overwrite=True)
+                    with open("Models/MachineLearning/criticmodel_lstm.json", "w") as outfile:
+                        json.dump(self.critic.model.to_json(), outfile)
 
         return chosen_action
 
@@ -125,7 +143,6 @@ class ActorCriticAgent:
         rewards = np.asarray([row[2] for row in training_batch])
         next_states = np.asarray([row[3] for row in training_batch])
         dones = np.asarray([row[4] for row in training_batch])
-
 
         next_state_values = self.critic.model.predict(next_states)
         state_values = next_state_values
@@ -144,8 +161,6 @@ class ActorCriticAgent:
         self.actor.train(states, target_actor)
 
         self.critic.train(states, state_values)
-
-
 
     def probs_to_one_hot(self, probabilities):
         one_hot_tensor = []

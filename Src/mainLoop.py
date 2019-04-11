@@ -13,7 +13,14 @@ def main(unused_argv):
     episode = 0
     path = ""
 
-    agent.actor_critic_agent = ActorCriticAgent(28,
+    # The code automatically runs on LSTM networks if len(state_size) > 1 and saves to LSTM .h5 and .json files.
+
+    # with lstm: (need to change this in State too)
+    # state_size = (10, 28)
+    # without lstm:
+    state_size = 28
+
+    agent.actor_critic_agent = ActorCriticAgent(state_size,
             ["no_op",
             "build_scv",
             "build_supply_depot",
@@ -44,6 +51,7 @@ def main(unused_argv):
 
                 timesteps = env.reset()
                 agent.reset()
+                # agent.game_state.reset()
                 episode += 1
                 if epsilon > epsilon_min:
                     epsilon *= eps_reduction_factor
@@ -53,12 +61,14 @@ def main(unused_argv):
                     step_actions = [agent.step(timesteps[0], epsilon)]
 
                     if timesteps[0].last():
-                        state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
+                        if isinstance(state_size, int):
+                            state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
+                        else:
+                            state, oldscore, map = agent.game_state.get_lstm_state_now(timesteps[0])
                         if agent.reward == 1:
                             reward = 10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
                         else:
                             reward = -10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
-
 
                         agent.actor_critic_agent.buffer.append(
                             [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, reward, state[0], True])
