@@ -1,30 +1,28 @@
 # Inspiration from https://github.com/OctThe16th/A2C-Keras without the noise
 
-from keras import models, layers, optimizers
+from keras import models, layers, optimizers, Model
+from keras.layers import Dense, Input, LSTM
 import keras
 import keras.backend as K
-import tensorflow as tf
 from pysc2.env import sc2_env
 from pysc2.lib import features, units
 from Models.BotFile.aiBot import AiBot
-from DLNetwork.ActorNetwork import ActorNetwork
-from DLNetwork.CriticNetwork import CriticNetwork
 from DLNetwork.StateActionBuffer import StateActionBuffer
-from DLNetwork.BuildAgent import BuildAgent
 from absl import app
 import numpy as np
 import h5py
 import threading
 import time
 from collections import defaultdict
+import random
 
 MIN_BATCH = 32
+LSTM_LEN = 20
 LOSS_V = .5
 GAMMA = 0.99
-N_STEP_RETURN = 10
+N_STEP_RETURN = int(LSTM_LEN*2)
 GAMMA_N = GAMMA ** N_STEP_RETURN
-LSTM_LEN = 20
-STATE_SIZE = (LSTM_LEN, 11)
+STATE_SIZE = (LSTM_LEN, 13)
 action_space = {
     0: "no_op",
     1: "expand",
@@ -41,8 +39,7 @@ action_space = {
     12: "build_hellion",
     13: "build_medivac",
     14: "build_viking",
-    15: "distribute_scv",
-    16: "return_scv"
+    15: "return_scv"
 }
 
 
@@ -56,7 +53,10 @@ class ActorCriticNetwork(object):
         self.action_len = len(action_space)
         self.model = self.create_network()
         if network_path is not None:
-            self.model.load_weights(network_path)
+            try:
+                self.model.load_weights(network_path)
+            except:
+                print("Cannot find the weight. Using initial values.")
         self.NONE_STATE = np.zeros(state_size)
 
     @staticmethod
@@ -77,20 +77,21 @@ class ActorCriticNetwork(object):
 
     def create_network(self):
         # state_size should be (time_steps, #of_state_parameters)
-        state_input = layers.Input(shape=self.state_size)
-        actual_value = layers.Input(shape=(1,))
+        state_input = Input(shape=self.state_size)
+        actual_value = Input(shape=(1,))
 
-        s1 = layers.LSTM(100, return_sequences=False)(state_input)
-        s2 = layers.Dense(50, activation='relu')(s1)
+        x = LSTM(128, return_sequences=False)(state_input)
+        x = Dense(64, activation='relu')(x)
 
-        out_action = layers.Dense(self.action_len, activation='softmax')(s2)
-        out_value = layers.Dense(1, name='out_value')(s2)
+        out_actions = Dense(self.action_len, activation='softmax', name='out_actions')(x)
+        out_value = Dense(1, name='out_value')(x)
 
-        model = models.Model(inputs=[state_input, actual_value], outputs=[out_action, out_value])
+        model = Model(inputs=[state_input, actual_value], outputs=[out_actions, out_value])
         model.compile(optimizer=optimizers.RMSprop(),
                       loss=[self.policy_loss(actual_value=actual_value, predicted_value=out_value),
-                      self.value_loss(), ])
+                      self.value_loss()])
         model.predict([np.zeros(shape=[1]+list(STATE_SIZE)), np.zeros(shape=(1, 1))])
+        model.summary()
         return model
 
     def optimize(self):
@@ -107,29 +108,24 @@ class ActorCriticNetwork(object):
             self.train_queue = [[], [], [], [], []]
 
         print("optimize")
-
-        print(s)
-        print(a)
-        print(r)
-        print(s_)
-        print(s_mask)
-        s = np.vstack(s)
+        s = np.asarray(s)
         a = np.vstack(a)
         r = np.vstack(r)
-        s_ = np.vstack(s_)
+        s_ = np.asarray(s_)
         s_mask = np.vstack(s_mask)
 
         if len(s) > 5 * MIN_BATCH:
             print("Something about batch")
 
         v = self.predict_v(s_)
+        # Not sure why
         r = r + GAMMA_N * v * s_mask
+        print("###################s_mask#####################")
+        print(s_mask)
+        print("#####################Training rewards########################")
+        print(r)
 
-        self.model.train_on_batch([s, r], [a, v, r])
-
-        # sample_noise() is not a thing in Dense layer.
-        self.model.get_layer('out_action')
-        self.model.get_layer('out_value')
+        self.model.train_on_batch([s, r], [a, v])
 
     def print_average_weight(self):
         print(np.mean(self.model.get_layer('out_action').get_weights()[1]))
@@ -155,8 +151,6 @@ class ActorCriticNetwork(object):
 
     def predict_p(self, s):
         p, v = self.model.predict([s, np.zeros(shape=(s.shape[0], 1))])
-        print(p)
-        print(v)
         return p
 
     def predict_v(self, s):
@@ -167,38 +161,73 @@ class ActorCriticNetwork(object):
 class Worker(object):
     def __init__(self, network):
         self.network = network
-        self.time_steps = network.state_size[0]
+        self.time_steps = STATE_SIZE[0]
         self.buffer = StateActionBuffer(N_STEP_RETURN)
         self.agent = AiBot(self)
         self.last_action = 0
         self.R = 0
-        self.last_lstm_state = [[(50 / 25) / 40, 0, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0]] * self.time_steps
-        self.old_states = [[(50 / 25) / 40, 0, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0]] * (self.time_steps - 1)
+        self.last_lstm_state = np.asarray([(50 / 25) / 40, 0, 12/200, 15/200, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0] * self.time_steps)
+        self.last_lstm_state = self.last_lstm_state.reshape((1, self.time_steps, STATE_SIZE[1]))
+        self.old_states = [[(50 / 25) / 40, 0, 12/200, 15/200, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0]] * (self.time_steps - 1)
 
     def reset(self):
         self.last_action = 0
         self.R = 0
-        self.last_lstm_state = [[[(50 / 25) / 40, 0, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0]] * self.time_steps]
-        self.old_states = [[(50 / 25) / 40, 0, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0]] * (self.time_steps - 1)
+        self.last_lstm_state = np.asarray([(50 / 25) / 40, 0, 12/200, 15/200, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0] * self.time_steps)
+        self.last_lstm_state = self.last_lstm_state.reshape((1, self.time_steps, STATE_SIZE[1]))
+        self.old_states = [[(50 / 25) / 40, 0, 12/200, 15/200, 1 / 10, 0, 0, 0, 0, 0, 12 / 100, 0, 0]] * (self.time_steps - 1)
         self.agent.reset()
 
         # Should it reset the buffer?
         self.buffer.reset()
 
     def predict_action(self, state):
-        corrected_state = self.format_lstm_state(state)
-        print(corrected_state)
-
+        # This is only false when a new episode starts (hopefully)
+        if state:
+            corrected_state = self.format_lstm_state(state)
+        else:
+            corrected_state = self.last_lstm_state
         last_action_vector = np.zeros(len(action_space))
         last_action_vector[self.last_action] = 1
 
-        self.buffer.add(self.last_lstm_state, last_action_vector, corrected_state, 0)
+        # # # CALCULATING REWARD FROM LAST ACTION AND STATE # # #
+
+        reward = 0
+        food_used = self.last_lstm_state[0][self.time_steps - 1][2]*200
+        food_cap = self.last_lstm_state[0][self.time_steps - 1][3]*200
+        # Built supply depot
+        if self.last_action == 2:
+            if food_cap-food_used <= 10:
+                reward += 0
+            else:
+                reward -= 50
+        # Built SCV
+        if self.last_action == 8:
+            if food_cap-food_used > 0:
+                reward += 50
+            else:
+                reward -= 5
+        if food_cap-food_used > 15 or food_cap-food_used <= 1:
+            reward -= 10
+        else:
+            reward += 1
+
+        # Actually, fuck rewards.
+        reward = 0
+        # print("Reward: "+str(reward))
+
+        # # # UPDATING BUFFER # # #
+
+        self.buffer.add(self.last_lstm_state, last_action_vector, corrected_state, reward)
 
         self.last_lstm_state = corrected_state
         p = self.network.predict_p(corrected_state)[0]
 
-        # TODO: An action randomizer
+        # # # RANDOM ACTION # # #
+        if random.random() < 0.1:
+            p = [1/len(p)]*len(p)
 
+        print(p)
         self.last_action = np.random.choice(len(action_space), p=p)
 
         return action_space.get(self.last_action, "no_op")
@@ -206,11 +235,18 @@ class Worker(object):
     def format_lstm_state(self, state):
         """
         Takes a state input and formats it to LSTM state. Doesn't update self.old_states.
-        :param state:
-        :return:
         """
         newest_state = len(state) - 1
-        units_amount = defaultdict(int, state[newest_state][5])
+        try:
+            units_amount = defaultdict(int, state[newest_state][5])
+        except:
+            print("Some kind of error occured.")
+            print("##########################STATE##########################")
+            print(state)
+            print("#######################NEWEST_STATE######################")
+            print(state[newest_state])
+            print("#######################UNITS_AMOUNT######################")
+            print(defaultdict(int, state[newest_state][5]))
         minerals = int(state[newest_state][0]/25)
         if minerals > 40:
             minerals = 40
@@ -219,6 +255,8 @@ class Worker(object):
         if gas > 40:
             gas = 40
         gas = gas/40
+        food_used = state[newest_state][2]/200
+        food_cap = state[newest_state][3]/200
         command_centers = units_amount[units.Terran.CommandCenter.value]/10
         if command_centers > 1:
             command_centers = 1
@@ -248,12 +286,12 @@ class Worker(object):
         if step > 1:
             step = 1
 
-        new_state = [minerals, gas, command_centers, supply_depots, refineries, barracks,
+        new_state = [minerals, gas, food_used, food_cap, command_centers, supply_depots, refineries, barracks,
                      factories, starports, scvs, marines, step]
 
         time_state = self.old_states+[new_state]
         formatted_state = np.asarray([time_state])
-        formatted_state.reshape(1, self.time_steps, len(new_state))
+        formatted_state.reshape((1, self.time_steps, len(new_state)))
         self.old_states = self.old_states[1:len(self.old_states)]+[new_state]
         return formatted_state
 
@@ -264,7 +302,7 @@ class Worker(object):
 
         def get_sample(m, k):
             st, ac, _, _, _ = m[0]
-            _, _, _, st_, _ = m[k-1]
+            _, _, st_, _, _ = m[k-1]
 
             return st, ac, self.R, st_
 
@@ -274,7 +312,7 @@ class Worker(object):
                 s, a, r, s_ = get_sample(memory, n)
                 self.network.train_push(s, a, r, s_)
 
-                self.R = (self.R - memory[0][2]) / GAMMA
+                self.R = (self.R - memory[0][3]) / GAMMA
                 memory.pop(0)
 
             self.R = 0
@@ -283,19 +321,19 @@ class Worker(object):
             s, a, r, s_ = get_sample(memory, N_STEP_RETURN)
             self.network.train_push(s, a, r, s_)
 
-            self.R = self.R - memory[0][2]
+            self.R = self.R - memory[0][3]
 
 
 is_training = True
 step_mul = 5
-maximum_bot_steps_per_episode = 16 * 60 * 4 * 1.4 / step_mul
+maximum_bot_steps_per_episode = 16 * 60 * 5 * 1.4 / step_mul
 
 
 def run(self):
     episode = 0
-    # path = path to network
-    # network = ActorCriticNetwork(STATE_SIZE, path)
-    network = ActorCriticNetwork(STATE_SIZE)
+    path = "C:/Users/Edvin/Documents/Python/SC2MachineLearning/DAT02X-19-03-MachineLearning-Starcraft2/Src/model.h5"
+    network = ActorCriticNetwork(STATE_SIZE, path)
+    #network = ActorCriticNetwork(STATE_SIZE)
     worker = Worker(network)
 
     try:
@@ -334,8 +372,8 @@ def run(self):
                         if len(worker.agent.game_state.get_state()) > 0:
                             latest_state = worker.agent.game_state.get_state()[
                                 len(worker.agent.game_state.get_state()) - 1]
-                            if worker.agent.game_state.units_amount[units.Terran.SCV.value] >= 14:
-                                print(">=14 SCVs at agent step " + str(worker.agent.steps))
+                            if worker.agent.game_state.units_amount[units.Terran.SCV.value] >= 18:
+                                print(">=18 SCVs at agent step " + str(worker.agent.steps))
                                 done = True
                                 reward = 1
                                 s, a, s_, r, d = worker.buffer.get_newest_data()
@@ -354,7 +392,7 @@ def run(self):
                         s = worker.last_lstm_state
                         a = np.zeros(len(action_space))
                         a[worker.last_action] = 1
-                        worker.buffer.add((s, a, None, reward, done))
+                        worker.buffer.add(s, a, [None], reward)
 
                     if done or predicted_this_step:
                         worker.train()
@@ -364,7 +402,7 @@ def run(self):
                     if done:
                         break
                     timesteps = env.step(step_actions)
-                if np.mod(episode, 3) == 0:
+                if np.mod(episode, 1) == 0:
                     if is_training:
                         print("Saving model")
                         network.model.save_weights("model.h5", overwrite=True)

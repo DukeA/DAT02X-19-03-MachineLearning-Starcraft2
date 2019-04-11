@@ -30,11 +30,13 @@ class StateActionBuffer(object):
         return self.buffer[len(self.buffer)-1]
 
     def set_newest_data(self, data_new):
-        if len(data_new) == self.buffer_size:
+        if len(data_new) == 5:
             self.buffer.pop()
             self.buffer.append(data_new)
         else:
             print("Error when setting new buffer data.")
+            print("Expected a tuple of length "+str(5) +
+                  " but got a tuple with length "+str(len(data_new))+" instead.")
 
     def set_latest_done(self):
         data = self.get_newest_data()
@@ -50,3 +52,4 @@ class StateActionBuffer(object):
 
     def reset(self):
         self.buffer = deque()
+        self.buffer_length = 0
