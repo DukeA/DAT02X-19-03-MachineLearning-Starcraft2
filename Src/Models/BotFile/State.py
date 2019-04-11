@@ -65,17 +65,6 @@ class State:
         # For reference, the rest of the action space is:
         # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
 
-        self.A3C_action_space = [
-                "no_op",
-                "build_scv",
-                "build_supply_depot",
-                "build_marine",
-                "build_barracks",
-                "return_scv",
-                "attack",
-                "retreat"
-            ]
-
     def get_state(self):
         """
         :return: A list containing all the tuples (minerals, vespene, unit_amount, action_issued, bot_obj.steps)
@@ -191,28 +180,28 @@ class State:
 
         return np.array([[minerals, vespene, food_used, food_cap, idle_workers,
                                 units_amount[units.Terran.CommandCenter],
-                                units_amount[units.Terran.SupplyDepot],
-                                units_amount[units.Terran.Barracks],
-                                units_amount[units.Terran.Marine],
-                                units_amount[units.Terran.SCV],
-                                enemy_units_amount[units.Terran.SupplyDepot],
-                                (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor]+enemy_units_amount[units.Terran.BarracksTechLab]),
-                                (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor]+enemy_units_amount[units.Terran.FactoryTechLab]),
-                                (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor]+enemy_units_amount[units.Terran.StarportTechLab]),
-                                enemy_units_amount[units.Terran.Refinery],
-                                (enemy_units_amount[units.Terran.CommandCenter]+enemy_units_amount[units.Terran.OrbitalCommand]),
-                                enemy_units_amount[units.Terran.Marine],
-                                enemy_units_amount[units.Terran.Marauder],
-                                enemy_units_amount[units.Terran.Medivac],
-                                enemy_units_amount[units.Terran.Reaper],
-                                enemy_units_amount[units.Terran.Hellion],
-                                (enemy_units_amount[units.Terran.VikingAssault]+enemy_units_amount[units.Terran.VikingFighter]),
-                                enemy_units_amount[units.Terran.Thor],
-                                (enemy_units_amount[units.Terran.SiegeTank]+enemy_units_amount[units.Terran.SiegeTankSieged]),
-                                enemy_units_amount[units.Terran.Cyclone],
-                                enemy_units_amount[units.Terran.Raven],
-                                enemy_units_amount[units.Terran.SCV],
-                                self.bot_obj.steps]]), oldscore, obs.observation.feature_minimap.player_relative
+                                units_amount[units.Terran.SupplyDepot]/24,
+                                units_amount[units.Terran.Barracks]/10,
+                                units_amount[units.Terran.Marine]/200,
+                                units_amount[units.Terran.SCV]/200,
+                                enemy_units_amount[units.Terran.SupplyDepot]/24,
+                                (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor]+enemy_units_amount[units.Terran.BarracksTechLab])/10,
+                                (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor]+enemy_units_amount[units.Terran.FactoryTechLab])/10,
+                                (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor]+enemy_units_amount[units.Terran.StarportTechLab])/10,
+                                enemy_units_amount[units.Terran.Refinery]/10,
+                                (enemy_units_amount[units.Terran.CommandCenter]+enemy_units_amount[units.Terran.OrbitalCommand])/5,
+                                enemy_units_amount[units.Terran.Marine]/200,
+                                enemy_units_amount[units.Terran.Marauder]/100,
+                                enemy_units_amount[units.Terran.Medivac]/100,
+                                enemy_units_amount[units.Terran.Reaper]/200,
+                                enemy_units_amount[units.Terran.Hellion]/100,
+                                (enemy_units_amount[units.Terran.VikingAssault]+enemy_units_amount[units.Terran.VikingFighter])/100,
+                                enemy_units_amount[units.Terran.Thor]/33,
+                                (enemy_units_amount[units.Terran.SiegeTank]+enemy_units_amount[units.Terran.SiegeTankSieged])/66,
+                                enemy_units_amount[units.Terran.Cyclone]/66,
+                                enemy_units_amount[units.Terran.Raven]/100,
+                                enemy_units_amount[units.Terran.SCV]/200,
+                                self.bot_obj.steps/30000]]), oldscore, obs.observation.feature_minimap.player_relative
 
     @staticmethod
     def get_unselected_production_buildings(obs, on_screen=False):

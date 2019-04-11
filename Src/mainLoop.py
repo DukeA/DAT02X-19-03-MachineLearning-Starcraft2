@@ -7,7 +7,8 @@ from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 def main(unused_argv):
     agent = AiBot()
     epsilon = 1
-    eps_reduction_factor = 0.995
+    epsilon_min = 0.01
+    eps_reduction_factor = 0.999
     save_game = False
     episode = 0
     path = ""
@@ -19,15 +20,14 @@ def main(unused_argv):
             "build_marine",
             "build_barracks",
             "return_scv",
-            "attack",
-            "retreat"],
+            "attack"],
              epsilon)
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
                 players=[sc2_env.Agent(sc2_env.Race.terran),
                          sc2_env.Bot(sc2_env.Race.terran,
-                                         sc2_env.Difficulty.medium)],
+                                         sc2_env.Difficulty.easy)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True,
@@ -45,12 +45,12 @@ def main(unused_argv):
                 timesteps = env.reset()
                 agent.reset()
                 episode += 1
-                epsilon *= eps_reduction_factor
+                if epsilon > epsilon_min:
+                    epsilon *= eps_reduction_factor
                 print(epsilon)
                 agent.reward = 0
                 while True:
                     step_actions = [agent.step(timesteps[0], epsilon)]
-
 
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])

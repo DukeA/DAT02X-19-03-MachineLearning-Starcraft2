@@ -74,11 +74,6 @@ class AiBot(base_agent.BaseAgent):
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
-            action_space = list(self.game_state.A3C_action_space)
-
-            num_actions = len(action_space)
-
-
         action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0 or self.reqSteps == -1:
