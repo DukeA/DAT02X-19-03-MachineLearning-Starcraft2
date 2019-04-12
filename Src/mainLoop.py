@@ -8,7 +8,7 @@ def main(unused_argv):
     agent = AiBot()
     epsilon = 1
     epsilon_min = 0.01
-    eps_reduction_factor = 0.999
+    eps_reduction_factor = 0.995
     save_game = False
     episode = 0
     path = ""
@@ -16,9 +16,9 @@ def main(unused_argv):
     # The code automatically runs on LSTM networks if len(state_size) > 1 and saves to LSTM .h5 and .json files.
 
     # with lstm: (need to change this in State too)
-    # state_size = (10, 28)
+    state_size = (10, 28)
     # without lstm:
-    state_size = 28
+    # state_size = 28
 
     agent.actor_critic_agent = ActorCriticAgent(state_size,
             ["no_op",
