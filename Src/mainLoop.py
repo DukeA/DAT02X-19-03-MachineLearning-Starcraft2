@@ -6,14 +6,14 @@ from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 
 def main(unused_argv):
     agent = AiBot()
-    epsilon = 1
+    epsilon = 0.2
     epsilon_min = 0.01
     eps_reduction_factor = 0.999
     save_game = False
     episode = 0
     path = ""
 
-    agent.actor_critic_agent = ActorCriticAgent(28,
+    agent.actor_critic_agent = ActorCriticAgent(30,
             ["no_op",
             "build_scv",
             "build_supply_depot",
@@ -33,7 +33,7 @@ def main(unused_argv):
                     use_feature_units=True,
                     use_raw_units=True,
                     use_camera_position=True),
-                step_mul=5,  # about 200 APM
+                step_mul=8,  # about 200 APM
                 game_steps_per_episode=30000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
@@ -55,9 +55,9 @@ def main(unused_argv):
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
                         if agent.reward == 1:
-                            reward = 10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            reward = 30000 + (timesteps[0].observation.score_cumulative.score - oldscore)
                         else:
-                            reward = -10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            reward = -30000 + (timesteps[0].observation.score_cumulative.score - oldscore)
 
 
                         agent.actor_critic_agent.buffer.append(

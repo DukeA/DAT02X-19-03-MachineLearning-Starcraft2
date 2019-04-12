@@ -30,6 +30,9 @@ class State:
         self.action_issued = None
         self.state_tuple = []
 
+        self.last_attacked = 0
+        self.units_attacked = 0
+
         # Variables required for updating the game state
 
         # Information about buildings placed but not yet found is stored here on the form
@@ -150,11 +153,18 @@ class State:
         # Update any state that doesn't require actions
         oldscore = self.oldscore
         self.reward = obs.observation.score_cumulative.score - self.oldscore
-        minerals = obs.observation.player.minerals
-        vespene = obs.observation.player.vespene
-        food_used = obs.observation.player.food_used
-        food_cap = obs.observation.player.food_cap
-        idle_workers = obs.observation.player.idle_worker_count
+        if obs.observation.player.minerals > 3000:
+            minerals = 1
+        else:
+            minerals = obs.observation.player.minerals/3000
+
+        if obs.observation.player.vespene > 3000:
+            vespene = 1
+        else:
+            vespene = obs.observation.player.vespene/3000
+        food_used = obs.observation.player.food_used / 200
+        food_cap = obs.observation.player.food_cap / 200
+        idle_workers = obs.observation.player.idle_worker_count/100
 
         self.oldscore = obs.observation.score_cumulative.score
 
@@ -201,7 +211,9 @@ class State:
                                 enemy_units_amount[units.Terran.Cyclone]/66,
                                 enemy_units_amount[units.Terran.Raven]/100,
                                 enemy_units_amount[units.Terran.SCV]/200,
-                                self.bot_obj.steps/30000]]), oldscore, obs.observation.feature_minimap.player_relative
+                                self.last_attacked,
+                                self.units_attacked / 200,
+                                self.bot_obj.steps*8/30000]]), oldscore, obs.observation.feature_minimap.player_relative
 
     @staticmethod
     def get_unselected_production_buildings(obs, on_screen=False):
