@@ -170,82 +170,82 @@ class State:
             if self.action_issued == "no_op":
                 self.no_op_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
             elif self.action_issued == "build_scv":
                 self.build_scv_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps,  obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "build_supply_depot":
                 self.build_supply_depot_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "build_marine":
                 self.build_marine_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
         
             elif self.action_issued == "build_reaper":
                 self.build_reaper_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "build_hellion":
                 self.build_hellion_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "build_medivac":
                 self.build_medivac_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
      
             elif self.action_issued == "build_viking":
                 self.build_viking_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
             
             elif self.action_issued == "build_barracks":
                 self.build_barracks_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "build_refinery":
                 self.build_refinery_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "retreat" :
                 self.retreat_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued =="return_scv" :
                 self.return_scv_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
             
             elif self.action_issued == "expand":
                 self.expand_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "build_factory":
                 self.build_factory_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             elif self.action_issued == "build_starport":
                 self.build_starport_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
             
             elif self.action_issued == "attack":
                 self.attack_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
                                      dict(self.units_amount), dict(self.enemy_units_amount),
-                                     self.action_issued, bot_obj.steps, obs.observation.feature_minimap.player_relative))
+                                     self.action_issued, bot_obj.steps))
 
         
             # Update any state that doesn't require actions
