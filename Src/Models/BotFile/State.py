@@ -68,7 +68,7 @@ class State:
             91: "build_supply_depot",
             79: "build_refinery",
             44: "expand",
-            76: "build_factory",
+            53: "build_factory",
             89: "build_starport",
             94: "build_tech_lab_barracks",
             477: "build_marine",
