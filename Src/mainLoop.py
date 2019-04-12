@@ -45,9 +45,9 @@ def main(unused_argv):
                 timesteps = env.reset()
                 agent.reset()
                 episode += 1
-                if epsilon > epsilon_min:
-                    epsilon *= eps_reduction_factor
-                print(epsilon)
+                if agent.actor_critic_agent.epsilon > epsilon_min:
+                    agent.actor_critic_agent.epsilon *= eps_reduction_factor
+                print(agent.actor_critic_agent.epsilon)
                 agent.reward = 0
                 while True:
                     step_actions = [agent.step(timesteps[0], epsilon)]
