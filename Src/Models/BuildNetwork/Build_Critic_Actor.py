@@ -1,40 +1,51 @@
 
 
 from keras.layers import Dense,Input
-from keras.models import Model,Sequential
-from keras.layers.merge import Add
+from keras.models import Model
+from keras.backend as Backend
+import tensorflow as tf
 from keras.optimizers import Adam
 
 class Build_Critic_Actor:
 
-    def __init__(self,build_model,action_model,Learning_rate):
+    def __init__(self,sess, build_model,action_model,Learning_rate,
+                 Batch_size, Tau):
+        self.sess = sess
         self.build_model = build_model
         self.action_model = action_model
         self.Learning_rate = Learning_rate
-        self.crtic_model = Build_Critic_Actor.create_crtic_model(self,build_model,action_model)
+        self.Batch_size = Batch_size
+        self.Tau = Tau
+
+        Backend.set_session(sess)
+        self.crtic_model,self.crtic_state,\
+        self.crtic_output,self.crtic_weight = Build_Critic_Actor.create_crtic_model(self,build_model,action_model)
+        self.target_actor = tf.placeholder(tf.float32)
+        self.crtic_build_optimizer = Adam(lr = self.learning_rate)
+        self.model.compile(optmizer = self.crtic_build_optimizer,loss ='mse')
 
 
+    def create_crtic_model(self,build_model,action_state):
+        build_crtic_model_state = Input(shape=build_model)
+        hidden_layer1 = Dense(600, activation='relu', kernel_initializer='random_normal')(build_crtic_model_state)
+        hidden_layer2 = Dense(300, activation='relu', kernel_initializer='random_normal')(hidden_layer1)
+        build_crtic_action_state = Dense(action_state, activation='linear', kernel_initializer='random_normal')(hidden_layer2)
+        build_crtic_model = Model(input=build_crtic_model_state, output=action_state)
+        return build_crtic_model_state, build_crtic_model, \
+               build_crtic_action_state, build_crtic_model.trainable_weights
 
-    def create_crtic_model(self,build_model,action_model):
+    def train_crtic(self,build_state,action_state):
+        self.sess.run(self.optimaize ,feed_dict ={
+            self.build_states : build_state,
+            self.build_action_state :action_state
+        })
 
-        build_author_model = Sequential
-        build_author_model.add(Dense(300,input_dim=build_model,activation='relu'))
-        build_author_model.add(Dense(600,activation='relu'))
-        action_crtic_model =Sequential
-        action_crtic_model.add(Dense(600, input_dim=action_model,activation='relu'))
-        critic_state_model = Sequential
-        critic_state_model.add(Add()[build_author_model,action_crtic_model])
-        critic_state_output = Sequential
-        critic_state_output.add(Dense(1, input_dim=critic_state_model,activation='relu'))
-        critic_model= Sequential
-        critic_model.add(Model(input=critic_state_model,output =critic_state_output))
-        critic_model.compile(loss='mse',optimizer=Adam(Build_Critic_Actor.Learning_rate))
-        return critic_model
-
-
-    def train_crtic(self, sample_screen):
-        for items in sample:
-
+    def update_crtic_weights (self):
+        build_crtic_weights = self.crtic_model.getWeights()
+        build_target_weights = self.target_actor.get_weights()
+        for i in range(len(build_crtic_weights)):
+            build_target_weights[i] = self.Tau *build_target_weights[i] + (1-self.Tau)*build_target_weights[i]
+        self.target_actor.set_weights(build_target_weights)
 
     def load_weights(self,path):
         self.crtic_model.load_weights(path)

@@ -1,34 +1,47 @@
 
 from keras.layers import Dense, Input
-from keras.models import Sequential,Model
+from keras.models import Model
+from keras.backend as backend
+import tensorflow as tf
 from keras.optimizers import Adam
 
 class Build_Actor:
-    def __init__(self,build_model, action_szie, learning_rate, epsilion):
+    def __init__(self,sess,build_model, action_szie, learning_rate,batch_size, tau ):
+        self.sess = sess
         self.build_model = build_model
-        self.epsilon = epsilion
         self.action_size = action_szie
         self.learning_rate = learning_rate
-        self.build_author_model = Build_Actor.create_actor_model(self,Build_Actor.build_model)
+        self.batch_size = batch_size
+        self.Tau = tau
+        backend.set_session(sess)
+        self.build_author_model, self.build_author_state, \
+        self.build_author_output, self.build_suthor_weights = Build_Actor.create_actor_model(self,Build_Actor.build_model)
+        self.target_build_author = tf.placeholder(tf.float32)
+        self.build_author_optmizer= Adam(lr=self.learning_rate)
+        self.build_author_model.compile(optimizer=self.build_author_optmizer, loss ='mse')
+
+    def create_actor_model (self,build_model,action_state):
+        build_model_state = Input(shape=build_model)
+        hidden_layer1 = Dense(600, activation='relu',kernel_initializer='random_normal')(build_model_state)
+        hidden_layer2 = Dense(300,activation='relu',kernel_initializer='random_normal')(hidden_layer1)
+        build_action_state = Dense(action_state,activation='linear',kernel_initializer='random_normal')(hidden_layer2)
+        build_actor_model = Model(input=build_model_state, output=action_state)
+        return build_actor_model, build_model_state, \
+               build_action_state, build_model_state.trainable_weights
 
 
-    def create_actor_model (self,build_model):
-        build_state_model = Sequential
-        build_state_model.add(Dense(300,input_dim=build_model,activation='relu'))
-        build_state_model.add(Dense(600,activation='relu'))
-        build_state_model.add(Dense(300,activation='relu'))
-        build_state_model.add(Dense(self.action_size[0],activation='relu'))
-        build_state_model.compile(loss="mse", optimizer=Adam(Build_Actor.learning_rate))
-        return build_state_model
+    def train_author(self, build_state,action_state):
+        self.sess.run(self.optimazier, feed_dict ={
+            self.build_state : build_state,
+            self.builc_action_state : action_state
+        })
 
-    def fit (self,inp,target):
-        self.model.fit(self.reshape(inp),target,epochs =1,verbose=0)
-
-
-    def predict(self, input):
-        return self.model.predict(self.reshape(input))
-
-
+    def update_author_values(self):
+        build_author_weights = self.build_author_model.get_weights()
+        build_target_weights = self.target_build_author.getWeights()
+        for i  in range(len(build_author_weights)):
+            build_target_weights[i] = self.Tau *build_target_weights[i] + (1-self.Tau)*build_target_weights[i]
+        self.target_actor.set_weights(build_target_weights)
 
 
     def load_weights(self, path):

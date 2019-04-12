@@ -12,16 +12,20 @@ class BuildFacade():
         self.state = State()
         self.build_state =[]
         self.build_model =[]
+        self.build_action =[]
         self.value =[]
         self.score = 0
         self.total
 
 
     def set_up(self, obs):
+        BuildFacade.build_action(self)
         BuildFacade.build_state = BuildModelGather.set_locations(self, obs)
         list = BuildFacade.build_state
         BuildFacade.build_model = BuildModelLocations.set_building_location(self, list)
-
+        n_build_list = BuildFacade.normalize_evniorment(self,BuildFacade.build_model)
+        action_list = BuildFacade.build_action
+        BuildNetwork(self,n_build_list,action_list)
     """
         An method for printing out the  environment on the screen
     """
@@ -45,4 +49,25 @@ class BuildFacade():
             result.append(i)
         return result
 
+    """
+        Check to normalize the value where it is located
+    """
+    def normalize_evniorment(self,list):
+        if(len(list)) <= 0:
+            return list
+        n_list = list
+        for i in list:
+            n_list[i] = n_list[i]/ n_list[i]
+        return list
 
+    """
+        Set All the actions for the build_typ
+    """
+    def set_Actions(self):
+        self.build_action = [
+            "build_supply_depot",
+            "build_barracks",
+            "build_refinary",
+            "build_factorry",
+            "build_starport"
+        ]
