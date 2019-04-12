@@ -256,8 +256,8 @@ class HardCodedSelector():
                         return "build_starport"
 
                 if selection <= 0.55:
-                    if IsPossible.build_marines_possible(self, obs):
-                        return "build_marine"
+                    if IsPossible.build_reaper_possible(self, obs):
+                        return "build_reaper"
                 
                 if selection <= 0.65:
                     if IsPossible.build_viking_possible(self, obs):
@@ -339,8 +339,8 @@ class HardCodedSelector():
                         return "build_medivac"
 
                 if selection <= 0.6:
-                    if IsPossible.build_marines_possible(self, obs):
-                        return "build_marine"
+                    if IsPossible.build_reaper_possible(self, obs):
+                        return "build_reaper"
 
                 if selection <= 0.7:
                     if IsPossible.build_hellion_possible(self, obs):
@@ -403,8 +403,8 @@ class HardCodedSelector():
                     return "attack"
 
                 if selection <= 0.1:
-                    if IsPossible.build_marines_possible(self, obs):
-                        return "build_marine"
+                    if IsPossible.build_reaper_possible(self, obs):
+                        return "build_reaper"
 
                 if selection <= 0.3:
                     if IsPossible.build_viking_possible(self, obs):
@@ -415,6 +415,11 @@ class HardCodedSelector():
                         return "build_medivac"
 
                 if selection <= 0.45:
+                    if IsPossible.build_hellion_possible(self, obs):
+                        return "build_hellion"
+
+
+                if selection <= 0.5:
                     if IsPossible.build_starport_possible(self, obs):
                         return "build_starport"
 
