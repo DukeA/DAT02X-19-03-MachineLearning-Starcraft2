@@ -9,8 +9,8 @@ from keras.optimizers import Adam
 import tensorflow as tf
 import keras.backend as K
 
-HIDDEN1_UNITS = 150
-HIDDEN2_UNITS = 300
+HIDDEN1_UNITS = 512
+HIDDEN2_UNITS = 256
 LSTM_UNITS = 128
 
 class ActorNetwork(object):
@@ -49,9 +49,10 @@ class ActorNetwork(object):
         if isinstance(state_size, int):
             print("Now we build the model")
             S = Input(shape=[state_size])
-            h0 = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
-            h1 = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(h0)
-            V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(h1)
+            x = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
+            x = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(x)
+            x = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(x)
+            V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(x)
             model = Model(inputs=S, outputs=V)
             return model, S, V, model.trainable_weights
         else:

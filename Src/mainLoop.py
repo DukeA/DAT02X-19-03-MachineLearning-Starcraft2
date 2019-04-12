@@ -2,13 +2,15 @@ from pysc2.env import sc2_env
 from pysc2.lib import features
 from Models.BotFile.aiBot import AiBot
 from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
-
+import matplotlib.pyplot as plt
+import pickle
+import csv
 
 def main(unused_argv):
     agent = AiBot()
-    epsilon = 0.2
-    epsilon_min = 0.01
-    eps_reduction_factor = 0.999
+    epsilon = 1
+    epsilon_min = 0.1
+    eps_reduction_factor = 0.95
     save_game = False
     episode = 0
     path = ""
@@ -16,9 +18,9 @@ def main(unused_argv):
     # The code automatically runs on LSTM networks if len(state_size) > 1 and saves to LSTM .h5 and .json files.
 
     # with lstm: (need to change this in State too)
-    state_size = (3, 30)
+    # state_size = (3, 30)
     # without lstm:
-    # state_size = 30
+    state_size = 30
 
     agent.actor_critic_agent = ActorCriticAgent(state_size,
             ["no_op",
@@ -29,6 +31,9 @@ def main(unused_argv):
             "return_scv",
             "attack"],
              epsilon)
+    all_rewards = []
+    average_rewards = []
+
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
@@ -48,14 +53,36 @@ def main(unused_argv):
                 disable_fog=True) as env:
             while True:
                 agent.setup(env.observation_spec(), env.action_spec())
-
                 timesteps = env.reset()
                 agent.reset()
+                if episode > 0:
+                    all_rewards = all_rewards+[agent.actor_critic_agent.total_reward]
+                    with open("Models/MachineLearning/all_rewards.data", 'wb') as filehandle:
+                        pickle.dump(all_rewards, filehandle)
+                    with open('Models/MachineLearning/all_rewards.txt', mode='w') as filehandle:
+                        for i in all_rewards:
+                            filehandle.write("%s\n" % i)
+
+                    average_count = 5
+                    if episode > 5:
+                        for i in range(len(all_rewards)-average_count):
+                            average_i = 0
+                            for j in range(average_count):
+                                average_i += all_rewards[i+j]
+                            average_rewards = average_rewards+[average_i/average_count]
+
+                        with open("Models/MachineLearning/average_rewards.data", 'wb') as filehandle:
+                            pickle.dump(average_rewards, filehandle)
+                        with open('Models/MachineLearning/average_rewards.txt', mode='w') as filehandle:
+                            for i in average_rewards:
+                                filehandle.write("%s\n" % i)
+
                 episode += 1
-                if epsilon > epsilon_min:
-                    epsilon *= eps_reduction_factor
-                print(epsilon)
+                if agent.actor_critic_agent.epsilon > epsilon_min:
+                    agent.actor_critic_agent.epsilon *= eps_reduction_factor
+                print(agent.actor_critic_agent.epsilon)
                 agent.reward = 0
+                agent.actor_critic_agent.total_reward = 0
                 while True:
                     step_actions = [agent.step(timesteps[0], epsilon)]
 
@@ -65,15 +92,18 @@ def main(unused_argv):
                         else:
                             state, oldscore, map = agent.game_state.get_lstm_state_now(timesteps[0])
                         if agent.reward == 1:
-                            reward = 30000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            # Reward was 30000 before
+                            reward = 5000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            agent.actor_critic_agent.total_reward += reward
                         else:
-                            reward = -30000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            reward = -5000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            agent.actor_critic_agent.total_reward += reward
 
                         agent.actor_critic_agent.buffer.append(
                             [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, reward, state[0], True])
-                        print(agent.steps)
                         if save_game:
                             agent.save_game(path, episode)
+                        print("Total reward: "+str(agent.actor_critic_agent.total_reward))
                         break
                     timesteps = env.step(step_actions)
 

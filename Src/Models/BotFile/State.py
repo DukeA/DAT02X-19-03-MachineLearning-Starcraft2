@@ -60,7 +60,7 @@ class State:
                                           0,
                                           0,
                                           0]])
-        self.lstm_length = 10
+        self.lstm_length = 3
         self.old_lstm = np.asarray(self.initial_state.tolist()*self.lstm_length)
         self.old_lstm = self.old_lstm.reshape((1, self.lstm_length, self.initial_state.shape[1]))
 
@@ -170,9 +170,6 @@ class State:
             # Update the score and reward
 
             bot_obj.game_state_updated = True
-
-
-
         ActionSingleton().set_action(new_action)
 
     def get_state_now(self, obs):
@@ -217,33 +214,32 @@ class State:
         for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
             enemy_units_amount[unit_type] = unit_type_count
 
-
         return np.array([[minerals, vespene, food_used, food_cap, idle_workers,
-                                units_amount[units.Terran.CommandCenter],
-                                units_amount[units.Terran.SupplyDepot]/24,
-                                units_amount[units.Terran.Barracks]/10,
-                                units_amount[units.Terran.Marine]/200,
-                                units_amount[units.Terran.SCV]/200,
-                                enemy_units_amount[units.Terran.SupplyDepot]/24,
-                                (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor]+enemy_units_amount[units.Terran.BarracksTechLab])/10,
-                                (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor]+enemy_units_amount[units.Terran.FactoryTechLab])/10,
-                                (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor]+enemy_units_amount[units.Terran.StarportTechLab])/10,
-                                enemy_units_amount[units.Terran.Refinery]/10,
-                                (enemy_units_amount[units.Terran.CommandCenter]+enemy_units_amount[units.Terran.OrbitalCommand])/5,
-                                enemy_units_amount[units.Terran.Marine]/200,
-                                enemy_units_amount[units.Terran.Marauder]/100,
-                                enemy_units_amount[units.Terran.Medivac]/100,
-                                enemy_units_amount[units.Terran.Reaper]/200,
-                                enemy_units_amount[units.Terran.Hellion]/100,
-                                (enemy_units_amount[units.Terran.VikingAssault]+enemy_units_amount[units.Terran.VikingFighter])/100,
-                                enemy_units_amount[units.Terran.Thor]/33,
-                                (enemy_units_amount[units.Terran.SiegeTank]+enemy_units_amount[units.Terran.SiegeTankSieged])/66,
-                                enemy_units_amount[units.Terran.Cyclone]/66,
-                                enemy_units_amount[units.Terran.Raven]/100,
-                                enemy_units_amount[units.Terran.SCV]/200,
-                                self.last_attacked,
-                                self.units_attacked / 200,
-                                self.bot_obj.steps*8/30000]]), oldscore, obs.observation.feature_minimap.player_relative
+                          units_amount[units.Terran.CommandCenter],
+                          units_amount[units.Terran.SupplyDepot]/24,
+                          units_amount[units.Terran.Barracks]/10,
+                          units_amount[units.Terran.Marine]/200,
+                          units_amount[units.Terran.SCV]/200,
+                          enemy_units_amount[units.Terran.SupplyDepot]/24,
+                          (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor]+enemy_units_amount[units.Terran.BarracksTechLab])/10,
+                          (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor]+enemy_units_amount[units.Terran.FactoryTechLab])/10,
+                          (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor]+enemy_units_amount[units.Terran.StarportTechLab])/10,
+                          enemy_units_amount[units.Terran.Refinery]/10,
+                          (enemy_units_amount[units.Terran.CommandCenter]+enemy_units_amount[units.Terran.OrbitalCommand])/5,
+                          enemy_units_amount[units.Terran.Marine]/200,
+                          enemy_units_amount[units.Terran.Marauder]/100,
+                          enemy_units_amount[units.Terran.Medivac]/100,
+                          enemy_units_amount[units.Terran.Reaper]/200,
+                          enemy_units_amount[units.Terran.Hellion]/100,
+                          (enemy_units_amount[units.Terran.VikingAssault]+enemy_units_amount[units.Terran.VikingFighter])/100,
+                          enemy_units_amount[units.Terran.Thor]/33,
+                          (enemy_units_amount[units.Terran.SiegeTank]+enemy_units_amount[units.Terran.SiegeTankSieged])/66,
+                          enemy_units_amount[units.Terran.Cyclone]/66,
+                          enemy_units_amount[units.Terran.Raven]/100,
+                          enemy_units_amount[units.Terran.SCV]/200,
+                          self.last_attacked,
+                          self.units_attacked / 200,
+                          self.bot_obj.steps*8/30000]]), oldscore, obs.observation.feature_minimap.player_relative
 
     def get_lstm_state_now(self, obs):
         """

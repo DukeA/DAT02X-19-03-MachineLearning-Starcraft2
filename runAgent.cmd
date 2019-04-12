@@ -1,1 +1,1 @@
-cmd /k python agent.py
+cmd /k "C:\Users\Edvin\Documents\Python\SC2MachineLearning\sc2\Scripts\activate"
