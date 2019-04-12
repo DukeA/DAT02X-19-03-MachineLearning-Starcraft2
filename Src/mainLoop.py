@@ -6,9 +6,9 @@ from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 
 def main(unused_argv):
     agent = AiBot()
-    epsilon = 1
+    epsilon = 0.2
     epsilon_min = 0.01
-    eps_reduction_factor = 0.995
+    eps_reduction_factor = 0.999
     save_game = False
     episode = 0
     path = ""
@@ -16,9 +16,9 @@ def main(unused_argv):
     # The code automatically runs on LSTM networks if len(state_size) > 1 and saves to LSTM .h5 and .json files.
 
     # with lstm: (need to change this in State too)
-    state_size = (10, 28)
+    state_size = (3, 30)
     # without lstm:
-    # state_size = 28
+    # state_size = 30
 
     agent.actor_critic_agent = ActorCriticAgent(state_size,
             ["no_op",
@@ -40,7 +40,7 @@ def main(unused_argv):
                     use_feature_units=True,
                     use_raw_units=True,
                     use_camera_position=True),
-                step_mul=5,  # about 200 APM
+                step_mul=8,  # about 200 APM
                 game_steps_per_episode=30000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
@@ -51,7 +51,6 @@ def main(unused_argv):
 
                 timesteps = env.reset()
                 agent.reset()
-                # agent.game_state.reset()
                 episode += 1
                 if epsilon > epsilon_min:
                     epsilon *= eps_reduction_factor
@@ -66,9 +65,9 @@ def main(unused_argv):
                         else:
                             state, oldscore, map = agent.game_state.get_lstm_state_now(timesteps[0])
                         if agent.reward == 1:
-                            reward = 10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            reward = 30000 + (timesteps[0].observation.score_cumulative.score - oldscore)
                         else:
-                            reward = -10000 + (timesteps[0].observation.score_cumulative.score - oldscore)
+                            reward = -30000 + (timesteps[0].observation.score_cumulative.score - oldscore)
 
                         agent.actor_critic_agent.buffer.append(
                             [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, reward, state[0], True])

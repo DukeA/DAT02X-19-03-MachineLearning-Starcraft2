@@ -13,7 +13,7 @@ class State:
     def __init__(self, bot_obj, obs):
         # Obs is actually not used
 
-        # Game state (might actually be obsolete)
+        # Game state
 
         self.units_amount = defaultdict(lambda: 0)  # Amount of each unit. Set to 0 by default
         self.units_amount[units.Terran.SCV] = 12
@@ -30,6 +30,9 @@ class State:
         self.reward = 0
         self.action_issued = None
         self.state_tuple = []
+
+        self.last_attacked = 0
+        self.units_attacked = 0
 
         self.initial_state = np.asarray([[2, 0, 12/200, 15/200, 0,
                                           1/15,
@@ -54,6 +57,8 @@ class State:
                                           0,
                                           0,
                                           12/200,
+                                          0,
+                                          0,
                                           0]])
         self.lstm_length = 10
         self.old_lstm = np.asarray(self.initial_state.tolist()*self.lstm_length)
@@ -178,25 +183,18 @@ class State:
         # Update any state that doesn't require actions
         oldscore = self.oldscore
         self.reward = obs.observation.score_cumulative.score - self.oldscore
-
-        max_minerals = 1500
-        max_vespene = 1500
-
-        if obs.observation.player.minerals <= max_minerals:
-            minerals = obs.observation.player.minerals
+        if obs.observation.player.minerals > 3000:
+            minerals = 1
         else:
-            minerals = max_minerals
-        if obs.observation.player.vespene <= max_vespene:
-            vespene = obs.observation.player.vespene
+            minerals = obs.observation.player.minerals/3000
+
+        if obs.observation.player.vespene > 3000:
+            vespene = 1
         else:
-            vespene = max_vespene
-
-        minerals = int(minerals/25)*25/max_minerals
-        vespene = int(vespene/25)*25/max_vespene
-
-        food_used = obs.observation.player.food_used/200
-        food_cap = obs.observation.player.food_cap/200
-        idle_workers = obs.observation.player.idle_worker_count/200
+            vespene = obs.observation.player.vespene/3000
+        food_used = obs.observation.player.food_used / 200
+        food_cap = obs.observation.player.food_cap / 200
+        idle_workers = obs.observation.player.idle_worker_count/100
 
         self.oldscore = obs.observation.score_cumulative.score
 
@@ -221,7 +219,7 @@ class State:
 
 
         return np.array([[minerals, vespene, food_used, food_cap, idle_workers,
-                                units_amount[units.Terran.CommandCenter]/15,
+                                units_amount[units.Terran.CommandCenter],
                                 units_amount[units.Terran.SupplyDepot]/24,
                                 units_amount[units.Terran.Barracks]/10,
                                 units_amount[units.Terran.Marine]/200,
@@ -243,7 +241,9 @@ class State:
                                 enemy_units_amount[units.Terran.Cyclone]/66,
                                 enemy_units_amount[units.Terran.Raven]/100,
                                 enemy_units_amount[units.Terran.SCV]/200,
-                                self.bot_obj.steps/30000]]), oldscore, obs.observation.feature_minimap.player_relative
+                                self.last_attacked,
+                                self.units_attacked / 200,
+                                self.bot_obj.steps*8/30000]]), oldscore, obs.observation.feature_minimap.player_relative
 
     def get_lstm_state_now(self, obs):
         """

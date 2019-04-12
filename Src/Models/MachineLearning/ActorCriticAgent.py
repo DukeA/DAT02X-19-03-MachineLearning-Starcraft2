@@ -24,10 +24,10 @@ class ActorCriticAgent:
         self.train_indicator = True
         self.BUFFER_SIZE = 100000
         self.BATCH_SIZE = 32
-        self.GAMMA = 0.9
+        self.GAMMA = 0.999999
         self.TAU = 0.1     #Target Network HyperParameters
         self.LRA = 0.0001    #Learning rate for Actor
-        self.LRC = 0.001     #Lerning rate for Critic
+        self.LRC = 0.0001     #Lerning rate for Critic
 
         self.action_space = action_space
         self.action_dim = len(self.action_space)
@@ -61,7 +61,10 @@ class ActorCriticAgent:
         self.total_reward = 0
         self.prev_state = None
         self.prev_actions = None
-        self.buffer = deque(maxlen=4000)
+        self.buffer = deque(maxlen=10000)
+        self.good_buffer = None
+        self.buffer_epsilon = 0.3
+        self.buffer_epsilon_decay = 0.9999
 
 
         self.actions_softmax = tf.nn.softmax(self.actor.model.output[0])
@@ -102,16 +105,33 @@ class ActorCriticAgent:
             })
         action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
+        bonusreward = 0
+        if ((state[0][3]-state[0][2] > 15/200) or state[0][3] == 1) and action_index == 2:
+            bonusreward = -40
+        if (state[0][3]-state[0][2] < 3/200) and action_index == 2:
+            bonusreward = 20
+        if state[0][9] >= 24/200 and action_index == 1:
+            bonusreward = -10
+        if state[0][4] >= 2/100 and action_index == 5:
+            bonusreward = 10
+        if state[0][4] == 0 and action_index == 5:
+            bonusreward = -30
         if self.episode > 0:
             self.buffer.append(
-                [self.prev_state[0], self.prev_actions, game_state.reward, state[0], False])  # Add replay buffer
-
+                [self.prev_state[0], self.prev_actions, game_state.reward+bonusreward, state[0], False])  # Add replay
         self.prev_actions = action_index
         self.prev_state = state
         self.episode += 1
 
         chosen_action = self.action_space[action_index]
+        if chosen_action == "attack":
+            game_state.units_attacked = obs.observation.player.army_count
+            game_state.last_attacked = state[0][-1]
         if(len(self.buffer) > self.BATCH_SIZE):
+            #if self.buffer_epsilon > random.random()):
+            #    training_batch = random.sample(self.good_buffer, self.BATCH_SIZE)
+            #    self.buffer_epsilon *= self.buffer_epsilon_decay
+            #else:
             training_batch = random.sample(self.buffer, self.BATCH_SIZE)
             self.train(training_batch)
 
