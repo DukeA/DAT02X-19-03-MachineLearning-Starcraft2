@@ -10,7 +10,7 @@ def main(unused_argv):
     agent = AiBot()
     epsilon = 1
     epsilon_min = 0.1
-    eps_reduction_factor = 0.95
+    eps_reduction_factor = 0.99
     save_game = False
     episode = 0
     path = ""
@@ -32,14 +32,13 @@ def main(unused_argv):
             "attack"],
              epsilon)
     all_rewards = []
-    average_rewards = []
 
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
                 players=[sc2_env.Agent(sc2_env.Race.terran),
                          sc2_env.Bot(sc2_env.Race.terran,
-                                         sc2_env.Difficulty.easy)],
+                                         sc2_env.Difficulty.very_easy)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True,
@@ -65,6 +64,7 @@ def main(unused_argv):
 
                     average_count = 5
                     if episode > 5:
+                        average_rewards = []
                         for i in range(len(all_rewards)-average_count):
                             average_i = 0
                             for j in range(average_count):
@@ -80,6 +80,8 @@ def main(unused_argv):
                 episode += 1
                 if agent.actor_critic_agent.epsilon > epsilon_min:
                     agent.actor_critic_agent.epsilon *= eps_reduction_factor
+                elif agent.actor_critic_agent.epsilon < epsilon_min:
+                    agent.actor_critic_agent.epsilon = epsilon_min
                 print(agent.actor_critic_agent.epsilon)
                 agent.reward = 0
                 agent.actor_critic_agent.total_reward = 0

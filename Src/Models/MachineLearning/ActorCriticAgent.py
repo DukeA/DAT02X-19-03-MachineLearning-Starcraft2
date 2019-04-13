@@ -93,6 +93,41 @@ class ActorCriticAgent:
         # Batch variables
         # self.loss = 0
 
+    def filter_actions(self, game_state, obs, action_probs):
+        state, _, _ = game_state.get_state_now(obs)
+
+        if obs.observation.player.minerals >= 50:
+            build_scv = 1
+        else:
+            build_scv = 0
+        if obs.observation.player.minerals >= 100:
+            build_supply_depot = 1
+        else:
+            build_supply_depot = 0
+        if obs.observation.player.minerals >= 50 and state[0][7] >= 1:
+            build_marines = 1
+        else:
+            build_marines = 0
+        if obs.observation.player.minerals >= 150 and state[0][6] >= 1:
+            build_barracks = 1
+        else:
+            build_barracks = 0
+        if state[0][4] >= 1:
+            return_scv = 1
+        else:
+            return_scv = 0
+        if state[0][8] >= 1:
+            attack = 1
+        else:
+            attack = 0
+
+        bools = np.asarray([1, build_scv, build_supply_depot, build_marines, build_barracks, return_scv, attack])
+
+        filtered_action_probs = action_probs*bools
+        filtered_action_probs = filtered_action_probs/filtered_action_probs.sum()
+
+        return filtered_action_probs
+
     def predict(self, game_state, obs):
         if isinstance(self.state_dim, int):
             state, oldscore, minimap = game_state.get_state_now(obs)
@@ -101,11 +136,13 @@ class ActorCriticAgent:
 
         if random.random() < self.epsilon:
             action_probs = [1/self.action_dim]*self.action_dim
+            action_probs = self.filter_actions(game_state, obs, action_probs)
             print("Random action")
         else:
             action_probs = self.sess.run(self.actions_softmax, feed_dict={
                 self.actor.state: state
             })
+            action_probs = self.filter_actions(game_state, obs, action_probs)
             print("No_op: "+'%.3e' % action_probs[0] +
                   ".  SCV: "+'%.3e' % action_probs[1] +
                   ".  Supply: "+'%.3e' % action_probs[2] +
@@ -114,6 +151,7 @@ class ActorCriticAgent:
                   ".  Mine: "+'%.3e' % action_probs[5] +
                   ".  Attack: "+'%.3e' % action_probs[6])
         action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
+
         bonusreward = 0
 
         if isinstance(self.state_dim, int):
@@ -124,13 +162,15 @@ class ActorCriticAgent:
             if state[0][9] >= 24/200 and action_index == 1:
                 bonusreward -= 10
             if state[0][4] >= 2/100 and action_index == 5:
-                bonusreward += 10
+                bonusreward += 50
             if state[0][4] == 0 and action_index == 5:
-                bonusreward -= 30
+                bonusreward -= 100
             if state[0][7] == 0 and action_index == 3:
                 bonusreward -= 30
             if state[0][0] > 2000/3000 and action_index == 0:
-                bonusreward -= 30
+                bonusreward -= 50
+            if state[0][8] > 20 and action_index == 6 and state[0][-1] - state[0][-3] > 50:
+                bonusreward += 100
         else:
             if ((state[0][-1][3] - state[0][-1][2] > 15 / 200) or state[0][-1][3] == 1) and action_index == 2:
                 bonusreward = -40
