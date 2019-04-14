@@ -13,7 +13,7 @@ class test_buildFacade(unittest.TestCase):
         value = 2000 % 82
         index =34
         list_value = Build_location.get_location_in_list(self,value, index)
-        should_be = (2000%82) *82 +34
+        should_be = (2000 % 82) * 82 + 34
         assert list_value == should_be
 
 

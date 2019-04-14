@@ -26,35 +26,13 @@ class BuildModelLocations:
         for i in range(x):
             for j in range(y):
                 if BuildModelLocations.check_startLocation_Of_Base(self, build_state):
-                    if j <= 41 and i <= 41:
+                    if (j >= 41 and i >= 41) or (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
                         if build_state[i][j] == 0:
-                            view[i][j] = 10
-                        else:
-                            view[i][j] = build_state[i][j]
-                    elif j >= 41 and i <= 41 or j <= 41 and i >= 41:
-                        if build_state[i][j] == 0:
-                            view[i][j] = 5
-                        else:
-                            view[i][j] = build_state[i][j]
-                    else:
-                        view[i][j] = build_state[i][j]
+                            view[i][j] = 1
                 else:
-                    if j >= 41 and i >= 41:
+                    if (j <= 41 and i <= 41) or  (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
                         if build_state[i][j] == 0:
-                            view[i][j] = 10
-                        else:
-                            view[i][j] = build_state[i][j]
-                    elif j >= 41 and i <= 41:
-                        if build_state[i][j] == 0:
-                            view[i][j] = 5
-                        else:
-                            view[i][j] = build_state[i][j]
-                    elif j <= 41 and i >= 41:
-                        if build_state[i][j] == 0:
-                            view[i][j] = 5
-                        else:
-                            view[i][j] = build_state[i][j]
-
+                            view[i][j] = 1
         return view
 
     """

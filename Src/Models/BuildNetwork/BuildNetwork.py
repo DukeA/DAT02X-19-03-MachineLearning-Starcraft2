@@ -85,7 +85,7 @@ class BuildNetwork:
                                       state[0],False])
         self.prev_actions = action_index
         self.prev_state = state
-        self.episode +=1
+        self.episode += 1
 
         chosen_action = self.action_space[action_index]
         if len((self.memory_Buffer)> self.Batch_Size):
@@ -121,8 +121,8 @@ class BuildNetwork:
                 state_values[idx] = reward
                 target_actor[idx][actions[idx]] = reward - predicted_state_values[idx]
             else:
-                state_values[idx] = reward + self.gamma *next_states_value[idx]
-                target_actor[idx][actions[idx]] = reward +self.gamma *  next_states_value[idx] \
+                state_values[idx] = reward + self.gamma * next_states_value[idx]
+                target_actor[idx][actions[idx]] = reward + self.gamma * next_states_value[idx] \
                                                   - predicted_state_values[idx]
 
         self.build_actor.train_author(states,target_actor)
