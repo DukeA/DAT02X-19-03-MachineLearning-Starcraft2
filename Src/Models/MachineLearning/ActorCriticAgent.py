@@ -93,9 +93,7 @@ class ActorCriticAgent:
         # Batch variables
         # self.loss = 0
 
-    def filter_actions(self, game_state, obs, action_probs):
-        state, _, _ = game_state.get_state_now(obs)
-
+    def filter_actions(self, state, obs, action_probs):
         if obs.observation.player.minerals >= 50:
             build_scv = 1
         else:
@@ -104,19 +102,19 @@ class ActorCriticAgent:
             build_supply_depot = 1
         else:
             build_supply_depot = 0
-        if obs.observation.player.minerals >= 50 and state[0][7] >= 1:
+        if obs.observation.player.minerals >= 50 and state[0][7] >= 1/10:
             build_marines = 1
         else:
             build_marines = 0
-        if obs.observation.player.minerals >= 150 and state[0][6] >= 1:
+        if obs.observation.player.minerals >= 150 and state[0][6] >= 1/24:
             build_barracks = 1
         else:
             build_barracks = 0
-        if state[0][4] >= 1:
+        if state[0][4] >= 1/200:
             return_scv = 1
         else:
             return_scv = 0
-        if state[0][8] >= 1:
+        if state[0][8] >= 1/200:
             attack = 1
         else:
             attack = 0
@@ -124,9 +122,11 @@ class ActorCriticAgent:
         bools = np.asarray([1, build_scv, build_supply_depot, build_marines, build_barracks, return_scv, attack])
 
         filtered_action_probs = action_probs*bools
-        filtered_action_probs = filtered_action_probs/filtered_action_probs.sum()
-
-        return filtered_action_probs
+        if filtered_action_probs.sum() > 0:
+            return filtered_action_probs/filtered_action_probs.sum()
+        else:
+            uniform = np.ones(len(action_probs))*bools
+            return uniform/uniform.sum()
 
     def predict(self, game_state, obs):
         if isinstance(self.state_dim, int):
@@ -136,13 +136,13 @@ class ActorCriticAgent:
 
         if random.random() < self.epsilon:
             action_probs = [1/self.action_dim]*self.action_dim
-            action_probs = self.filter_actions(game_state, obs, action_probs)
+            action_probs = self.filter_actions(state, obs, action_probs)
             print("Random action")
         else:
             action_probs = self.sess.run(self.actions_softmax, feed_dict={
                 self.actor.state: state
             })
-            action_probs = self.filter_actions(game_state, obs, action_probs)
+            action_probs = self.filter_actions(state, obs, action_probs)
             print("No_op: "+'%.3e' % action_probs[0] +
                   ".  SCV: "+'%.3e' % action_probs[1] +
                   ".  Supply: "+'%.3e' % action_probs[2] +
@@ -155,22 +155,7 @@ class ActorCriticAgent:
         bonusreward = 0
 
         if isinstance(self.state_dim, int):
-            if ((state[0][3]-state[0][2] > 15/200) or state[0][3] == 1) and action_index == 2:
-                bonusreward -= 40
-            if (state[0][3]-state[0][2] < 3/200) and action_index == 2:
-                bonusreward += 20
-            if state[0][9] >= 24/200 and action_index == 1:
-                bonusreward -= 10
-            if state[0][4] >= 2/100 and action_index == 5:
-                bonusreward += 50
-            if state[0][4] == 0 and action_index == 5:
-                bonusreward -= 100
-            if state[0][7] == 0 and action_index == 3:
-                bonusreward -= 30
-            if state[0][0] > 2000/3000 and action_index == 0:
-                bonusreward -= 50
-            if state[0][8] > 20 and action_index == 6 and state[0][-1] - state[0][-3] > 50:
-                bonusreward += 100
+                bonusreward = 0
         else:
             if ((state[0][-1][3] - state[0][-1][2] > 15 / 200) or state[0][-1][3] == 1) and action_index == 2:
                 bonusreward = -40

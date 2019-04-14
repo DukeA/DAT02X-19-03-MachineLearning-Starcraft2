@@ -49,9 +49,9 @@ class ActorNetwork(object):
         if isinstance(state_size, int):
             print("Now we build the model")
             S = Input(shape=[state_size])
-            x = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
-            x = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(x)
-            x = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(x)
+            x = Dense(HIDDEN1_UNITS, activation='tanh', kernel_initializer='random_normal')(S)
+            x = Dense(HIDDEN1_UNITS, activation='tanh', kernel_initializer='random_normal')(x)
+            x = Dense(HIDDEN2_UNITS, activation='tanh', kernel_initializer='random_normal')(x)
             V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(x)
             model = Model(inputs=S, outputs=V)
             return model, S, V, model.trainable_weights
