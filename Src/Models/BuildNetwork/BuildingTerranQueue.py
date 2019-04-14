@@ -13,8 +13,9 @@ class BuildingTerranQueue(Enum):
     barracks_techlab = units.Terran.BarracksTechLab.value,
     factory = units.Terran.Factory.value,
     refinary = units.Terran.Refinery.value,
-    starPort = units.Terran.Starport.value,
-    supply_depot = units.Terran.SupplyDepot.value
+    supply_depot = units.Terran.SupplyDepot.value,
+    starPort = units.Terran.Starport.value
+
 
 
 

@@ -21,7 +21,6 @@ class BuildModelLocations:
 
     def set_building_location(self, build_state):
         view = BuildModelLocations.set_buildlocations(self)
-        build_place = []
         x = len(build_state)
         y = len(build_state[0])
         for i in range(x):
@@ -56,8 +55,7 @@ class BuildModelLocations:
                         else:
                             view[i][j] = build_state[i][j]
 
-        n_view = BuildModelLocations.flatten_values(self, view)
-        return n_view
+        return view
 
     """
         :param takes in a value of list 

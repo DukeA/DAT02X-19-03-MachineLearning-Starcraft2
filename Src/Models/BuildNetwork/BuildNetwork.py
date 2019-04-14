@@ -6,17 +6,18 @@ import tensorflow as tf
 from keras import backend
 from werkzeug.wrappers import json
 
+from Models.BuildNetwork.BuildBuffer import BuildBuffer
 from Models.BuildNetwork.Build_Actor import Build_Actor
 from Models.BuildNetwork.Build_Critic_Actor import Build_Critic_Actor
 
 
 class BuildNetwork:
 
-    def __init__(self, build_state, action_state):
+    def __init__(self, build_state, action_state,epsilon):
         self.Batch_Size = 32
         self.Buffer_size = 10000
-        self.lerarning_rate = 0.0001
-        self.epsilon = 1.0
+        self.lerning_rate = 0.0001
+        self.epsilon = epsilon
         self.gamma = 0.9
         self.epsilon_decay = 0.99
         self.tau = 0.125
@@ -40,8 +41,8 @@ class BuildNetwork:
         self.sess = tf.Session(config=self.config)
         backend.set_session(self.sess)
 
-        self.build_actor = Build_Actor()
-        self.crtic_build_Actor = Build_Critic_Actor()
+        self.build_actor = Build_Actor(self.sess, self.build_state,self.action_space, self.lerning_rate, self.Batch_Size, self.tau)
+        self.crtic_build_actor = Build_Critic_Actor(self.sess, self.build_state, self.action_space, self.lerning_rate, self.Batch_Size, self.tau)
 
         self.total_reward = 0
         self.prev_state = None
@@ -52,19 +53,21 @@ class BuildNetwork:
 
         self.sess.run(tf.global_variables_initializer())
 
-        print("Trying to find the loadweights")
+        print("Trying to find the load weights")
         if isinstance(self.action_space, int):
             try:
-                self.load_weights("")
+                self.builder_save_weights("Data/Results/build_actormodel.h5")
+                self.critic_save_weights("Data/Results/critic_build_actormodel.h5")
             except:
                 print("Could load the files")
         else:
             try:
-                self.load_weights("")
+                self.builder_load_weights("Data/Results/build_actormodel.h5")
+                self.critic_load_weights("Data/Results/critic_build_actormodel.h5")
             except:
                 print("Cannot find the weight")
 
-    def predict_neural_network(self, build_Current_state, action_state):
+    def predict_neural_network(self, build_Current_state):
         if isinstance(self.build_state, int):
             state, old_score, map = build_Current_state
         else:
@@ -78,11 +81,11 @@ class BuildNetwork:
             })
         action_index = np.random.choice(range(self.action_space),1,p = action_probs)[0]
         if  self.episode > 0:
-            self.memory_Buffer.append([self.prev_state[0],self.prev_actions,build_Current_state
+            self.memory_Buffer.append([self.prev_state[0],self.prev_actions,build_Current_state.reward,
                                       state[0],False])
         self.prev_actions = action_index
         self.prev_state = state
-        self.episode +=
+        self.episode +=1
 
         chosen_action = self.action_space[action_index]
         if len((self.memory_Buffer)> self.Batch_Size):
@@ -92,12 +95,12 @@ class BuildNetwork:
         if np.mod (self.episode, 30) ==0  and self.episode > 0:
             if self.train_indicaor:
                 if isinstance(self.build_state, int):
-                    self.build_actor.model.save_weights("Models/MachineLearning/actormodel.h5", overwrite=True)
-                    with open("Models/MachineLearning/actormodel.json", "w") as outfile:
+                    self.build_actor.model.save_weights("DATA/Results/build_actormodel.h5", overwrite=True)
+                    with open("DATA/Results/actormodel.json", "w") as outfile:
                         json.dump(self.actor.model.to_json(), outfile)
 
-                    self.critic.model.save_weights("criticmodel.h5", overwrite=True)
-                    with open("criticmodel.json", "w") as outfile:
+                    self.critic.model.save_weights("DATA/Results/criticmodel.h5", overwrite=True)
+                    with open("DATA/Results/criticmodel.json", "w") as outfile:
                         json.dump(self.critic.model.to_json(), outfile)
         return chosen_action
 
@@ -108,39 +111,46 @@ class BuildNetwork:
         next_states = np.asarray([row[3] for row in traning_batch])
         dones = np.asarray([row[4]for row in traning_batch])
 
-        next_states_value = self.crtic_build_Actor
+        next_states_value = self.crtic_build_Actor.crtic_model.predict(next_states)
         state_values = next_states_value
-        predicted_state_valies = self.crtic_build_Actor
-        target_actor = np.zeros((len(predicted_state_valies),self))
+        predicted_state_values = self.crtic_build_Actor.crtic_model.predict(states)
+        target_actor = np.zeros((len(predicted_state_values),self))
 
         for idx, reward in enumerate(rewards):
             if dones[idx]:
                 state_values[idx] = reward
-                target_actor[idx][actions[idx]] = reward - predicted_state_valies[idx]
+                target_actor[idx][actions[idx]] = reward - predicted_state_values[idx]
             else:
                 state_values[idx] = reward + self.gamma *next_states_value[idx]
-                target_actor[idx][actions[idx]] = reward +self.gamma *  next_state_values[idx] \
+                target_actor[idx][actions[idx]] = reward +self.gamma *  next_states_value[idx] \
                                                   - predicted_state_values[idx]
 
+        self.build_actor.train_author(states,target_actor)
+
+        self.crtic_build_Actor.train_crtic(states,target_actor)
 
 
     def probs_to_one_hot(self,probabilites):
         one_hot_tensor =[]
         for prob in probabilites:
-            a = tf.
+            a = tf.constant(prob)
+            one_hot = tf.one_hot(tf.nn.top_k(a).indices, tf.shape(a)[0].eval(session=self.sess))
+            one_hot_tensor.append(one_hot[0])
+        return np.array_split(one_hot_tensor)
 
-    def update_weights(self):
-        self.build_actor.update_athor_values(self)
-        self.crtic_build_Actor.update_crtic_weights(self)
 
-    def load_weights(self, path):
-        list = []
-        list.append(self.build_actor.load_weights(self, path))
-        list.append(self.crtic_build_Actor.load_weights(self, path))
-        return list
+    def train_network(self):
+        return  True
 
-    def save_weights(self, path):
-        list =[]
-        list.append(self.build_actor.save_weights(self, path))
-        list.append(self.crtic_build_Actor.save_weights(self, path))
-        return list
+
+    def builder_load_weights(self, path):
+       self.build_actor.load_weights(path)
+
+    def builder_save_weights(self, path):
+        self.build_actor.save_weights(path)
+
+    def critic_load_weights(self,path):
+        self.crtic_build_actor.load_weights(path)
+
+    def critic_save_weights(self,path):
+        self.crtic_build_actor.save_weights(path)

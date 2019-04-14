@@ -1,9 +1,8 @@
 import numpy as np
 
-from Models.HelperClass.HelperClass import HelperClass
 from Models.BuildNetwork.BuildingTerranQueue import BuildingTerranQueue
 from Models.BuildNetwork.BuildingNeutral import BuildingsNeutral
-from Models.HelperClass.HelperClass import HelperClass
+
 
 """
     The class is a wrapper class for the 
@@ -82,6 +81,7 @@ class BuildModelGather:
     """
 
     def get_units_infrastructre_location(self, obs, building_type):
+        value = building_type
         units = [unit for unit in obs.observation.feature_units
                  if unit.unit_type == building_type]
         if not units:

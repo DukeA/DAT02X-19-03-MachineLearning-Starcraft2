@@ -5,6 +5,7 @@ from Models.BuildOrders.BuildOrdersController import BuildOrdersController
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.BuildNetwork.BuildFacade import BuildFacade
+from Models.BuildNetwork.BuildNetwork import BuildNetwork
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
@@ -28,7 +29,7 @@ class AiBot(base_agent.BaseAgent):
         self.game_state_updated = False
         self.action_finished = False
 
-    def step(self, obs):
+    def step(self, obs,epsilon):
         super(AiBot, self).step(obs)
 
         # first step
@@ -53,7 +54,17 @@ class AiBot(base_agent.BaseAgent):
 
             self.game_state = State()
             # The command center isn't actually in the center of the screen!
-            self.game_state.add_unit_in_progress(self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            self.game_state.add_unit_in_progress(
+                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+
+            self.build_location_state = BuildFacade().set_up(obs)
+
+           # Build_Actions = self.build_location_state.action_list
+
+           # build_space = len(Build_Actions)
+           # build_locations = self.build_location_state.n_build_list
+
+           # self.build_network = BuildNetwork(build_locations, build_space,epsilon)
 
         action = [actions.FUNCTIONS.no_op()]
 
@@ -80,14 +91,17 @@ class AiBot(base_agent.BaseAgent):
            # action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
+            self.build_location_state = BuildFacade().set_up(obs)
             HelperClass.move_camera_to_base_location(self, obs)
-            BuildFacade.set_up(self, obs)
             BuildOrdersController.build_supply_depot(self, obs)
             action = ActionSingleton().get_action()
 
+
         elif self.next_action == "build_barracks":
+            self.build_location_state = BuildFacade().set_up(obs)
             BuildOrdersController.build_barracks(self, obs)
             action = ActionSingleton().get_action()
+
 
         elif self.next_action == "build_refinery":
             BuildOrdersController.build_refinery(self, obs)
