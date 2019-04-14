@@ -54,7 +54,7 @@ def main(unused_argv):
                 episode += 1
                 if agent.actor_critic_agent.epsilon > epsilon_min:
                     agent.actor_critic_agent.epsilon *= eps_reduction_factor
-                if agentagent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.epsilon.buffer_epsilon_min:
+                if agent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.buffer_epsilon_min:
                     agent.actor_critic_agent.buffer_epsilon *= agent.actor_critic_agent.buffer_epsilon_decay
                 print(agent.actor_critic_agent.epsilon)
                 agent.reward = 0
