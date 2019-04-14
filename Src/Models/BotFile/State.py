@@ -25,7 +25,7 @@ class State:
         self.food_used = 12
         self.food_cap = 15
         self.idle_workers = 0
-        self.oldscore = 0
+        self.oldscore = 1000
         self.reward = 0
         self.action_issued = None
         self.state_tuple = []
@@ -39,7 +39,8 @@ class State:
         # [coordinate, unit_type, step it was created, if it has been found]
         self.units_in_progress = []
         self.update_steps_per_unit = 4  # Steps required to add each unit in units_in_progress to a control group
-        self.update_building_step_threshold = 400  # Threshold steps for finding a building before it's removed from
+        # Threshold steps for finding a building before it's removed from
+        self.update_building_step_threshold = 400
         self.units_amounts_updated = False
         self.unit_weight = 50
         self.current_unit = None
@@ -95,12 +96,13 @@ class State:
             else:
                 # This catches the rest
                 if len(obs.observation.last_actions) > 0:
-                    self.action_issued = self.action_space.get(obs.observation.last_actions[0], "no_op")
+                    self.action_issued = self.action_space.get(
+                        obs.observation.last_actions[0], "no_op")
                 else:
                     self.action_issued = "no_op"
 
             # Saves last state and last action in a tuple
-                        # Selects control group 9
+                    # Selects control group 9
             new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]
 
         # Section for adding unselected production building to control group 9.
@@ -135,15 +137,11 @@ class State:
                     new_action = [actions.FUNCTIONS.select_control_group("append", 9)]
             bot_obj.reqSteps = 0
 
-
             # Update the score and reward
 
             bot_obj.game_state_updated = True
 
-
-
         ActionSingleton().set_action(new_action)
-
 
     def get_state_now(self, obs):
         self.state_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
@@ -152,7 +150,13 @@ class State:
 
         # Update any state that doesn't require actions
         oldscore = self.oldscore
-        self.reward = obs.observation.score_cumulative.score - self.oldscore
+        score = (obs.observation.score_cumulative.total_value_units + obs.observation.score_cumulative.total_value_structures +
+                 obs.observation.score_cumulative.killed_value_units +
+                 obs.observation.score_cumulative.killed_value_structures)
+        if score != oldscore:
+            self.reward = (score - self.oldscore)/200
+        else:
+            self.reward = 0
         if obs.observation.player.minerals > 3000:
             minerals = 1
         else:
@@ -162,11 +166,10 @@ class State:
             vespene = 1
         else:
             vespene = obs.observation.player.vespene/3000
-        food_used = obs.observation.player.food_used / 200
-        food_cap = obs.observation.player.food_cap / 200
-        idle_workers = obs.observation.player.idle_worker_count/100
-
-        self.oldscore = obs.observation.score_cumulative.score
+        food_used = obs.observation.player.food_used/200
+        food_cap = obs.observation.player.food_cap/200
+        idle_workers = obs.observation.player.idle_worker_count/200
+        self.oldscore = score
 
         # Filter out SCVs before updating units_amount because they disappear when they go into refineries
         own_units = [u for u in obs.observation.raw_units
@@ -187,33 +190,38 @@ class State:
         for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
             enemy_units_amount[unit_type] = unit_type_count
 
-
         return np.array([[minerals, vespene, food_used, food_cap, idle_workers,
-                                units_amount[units.Terran.CommandCenter],
-                                units_amount[units.Terran.SupplyDepot]/24,
-                                units_amount[units.Terran.Barracks]/10,
-                                units_amount[units.Terran.Marine]/200,
-                                units_amount[units.Terran.SCV]/200,
-                                enemy_units_amount[units.Terran.SupplyDepot]/24,
-                                (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor]+enemy_units_amount[units.Terran.BarracksTechLab])/10,
-                                (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor]+enemy_units_amount[units.Terran.FactoryTechLab])/10,
-                                (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor]+enemy_units_amount[units.Terran.StarportTechLab])/10,
-                                enemy_units_amount[units.Terran.Refinery]/10,
-                                (enemy_units_amount[units.Terran.CommandCenter]+enemy_units_amount[units.Terran.OrbitalCommand])/5,
-                                enemy_units_amount[units.Terran.Marine]/200,
-                                enemy_units_amount[units.Terran.Marauder]/100,
-                                enemy_units_amount[units.Terran.Medivac]/100,
-                                enemy_units_amount[units.Terran.Reaper]/200,
-                                enemy_units_amount[units.Terran.Hellion]/100,
-                                (enemy_units_amount[units.Terran.VikingAssault]+enemy_units_amount[units.Terran.VikingFighter])/100,
-                                enemy_units_amount[units.Terran.Thor]/33,
-                                (enemy_units_amount[units.Terran.SiegeTank]+enemy_units_amount[units.Terran.SiegeTankSieged])/66,
-                                enemy_units_amount[units.Terran.Cyclone]/66,
-                                enemy_units_amount[units.Terran.Raven]/100,
-                                enemy_units_amount[units.Terran.SCV]/200,
-                                self.last_attacked,
-                                self.units_attacked / 200,
-                                self.bot_obj.steps*8/30000]]), oldscore, obs.observation.feature_minimap.player_relative
+                          units_amount[units.Terran.CommandCenter],
+                          units_amount[units.Terran.SupplyDepot]/24,
+                          units_amount[units.Terran.Barracks]/10,
+                          units_amount[units.Terran.Marine]/200,
+                          units_amount[units.Terran.SCV]/200,
+                          enemy_units_amount[units.Terran.SupplyDepot]/24,
+                          (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor] +
+                           enemy_units_amount[units.Terran.BarracksTechLab])/10,
+                          (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor] +
+                           enemy_units_amount[units.Terran.FactoryTechLab])/10,
+                          (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor] +
+                           enemy_units_amount[units.Terran.StarportTechLab])/10,
+                          enemy_units_amount[units.Terran.Refinery]/10,
+                          (enemy_units_amount[units.Terran.CommandCenter] +
+                           enemy_units_amount[units.Terran.OrbitalCommand])/5,
+                          enemy_units_amount[units.Terran.Marine]/200,
+                          enemy_units_amount[units.Terran.Marauder]/100,
+                          enemy_units_amount[units.Terran.Medivac]/100,
+                          enemy_units_amount[units.Terran.Reaper]/200,
+                          enemy_units_amount[units.Terran.Hellion]/100,
+                          (enemy_units_amount[units.Terran.VikingAssault] +
+                           enemy_units_amount[units.Terran.VikingFighter])/100,
+                          enemy_units_amount[units.Terran.Thor]/33,
+                          (enemy_units_amount[units.Terran.SiegeTank] +
+                           enemy_units_amount[units.Terran.SiegeTankSieged])/66,
+                          enemy_units_amount[units.Terran.Cyclone]/66,
+                          enemy_units_amount[units.Terran.Raven]/100,
+                          enemy_units_amount[units.Terran.SCV]/200,
+                          self.last_attacked,
+                          self.units_attacked / 200,
+                          self.bot_obj.steps*8/30000]]), oldscore, obs.observation.feature_minimap.player_relative
 
     @staticmethod
     def get_unselected_production_buildings(obs, on_screen=False):
@@ -228,10 +236,10 @@ class State:
             return [u for u in obs.observation.feature_units
                     if u.alliance == 1 and not u.is_selected
                     and (
-                            u.unit_type == units.Terran.CommandCenter or
-                            u.unit_type == units.Terran.Barracks or
-                            u.unit_type == units.Terran.Factory or
-                            u.unit_type == units.Terran.Starport
+                        u.unit_type == units.Terran.CommandCenter or
+                        u.unit_type == units.Terran.Barracks or
+                        u.unit_type == units.Terran.Factory or
+                        u.unit_type == units.Terran.Starport
                     )]
         else:
             return [u for u in obs.observation.raw_units

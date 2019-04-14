@@ -9,8 +9,10 @@ from keras.optimizers import Adam
 import tensorflow as tf
 import keras.backend as K
 
-HIDDEN1_UNITS = 150
-HIDDEN2_UNITS = 300
+HIDDEN1_UNITS = 200
+HIDDEN2_UNITS = 200
+HIDDEN3_UNITS = 200
+
 
 class ActorNetwork(object):
     def __init__(self, sess, state_size, action_size, BATCH_SIZE, TAU, LEARNING_RATE, UPDATE_STEPS):
@@ -23,15 +25,14 @@ class ActorNetwork(object):
         K.set_session(sess)
 
         # Now create the model
-        self.model, self.state, self.output, self.weights = self.create_actor_network(state_size, action_size)
+        self.model, self.state, self.output, self.weights = self.create_actor_network(
+            state_size, action_size)
         self.target_actor = tf.placeholder(tf.float32)
 
         loss2 = tf.reduce_sum(
             tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.output,
-                                                    labels=self.target_actor))
+                                                       labels=self.target_actor))
         self.optimize = tf.train.AdamOptimizer(self.LEARNING_RATE).minimize(loss2)
-
-
 
     def train(self, states, target_actor):
         self.sess.run(self.optimize, feed_dict={
@@ -43,7 +44,8 @@ class ActorNetwork(object):
         actor_weights = self.model.get_weights()
         actor_target_weights = self.target_model.get_weights()
         for i in range(len(actor_weights)):
-            actor_target_weights[i] = self.TAU * actor_weights[i] + (1 - self.TAU)* actor_target_weights[i]
+            actor_target_weights[i] = self.TAU * actor_weights[i] + \
+                (1 - self.TAU) * actor_target_weights[i]
         self.target_model.set_weights(actor_target_weights)
 
     def create_actor_network(self, state_size, action_dim):
@@ -51,6 +53,7 @@ class ActorNetwork(object):
         S = Input(shape=[state_size])
         h0 = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
         h1 = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(h0)
-        V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(h1)
+        h2 = Dense(HIDDEN3_UNITS, activation='relu', kernel_initializer='random_normal')(h1)
+        V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(h2)
         model = Model(inputs=S, outputs=V)
         return model, S, V, model.trainable_weights
