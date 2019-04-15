@@ -28,11 +28,11 @@ class ArmyControl(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 4:
+        if self.reqSteps == 3:
             if actions.FUNCTIONS.select_army.id in obs.observation.available_actions:
                 new_action = [actions.FUNCTIONS.select_army("select")]
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if location is None:
                 distance = []
 
@@ -54,7 +54,7 @@ class ArmyControl(base_agent.BaseAgent):
             if actions.FUNCTIONS.move_camera.id in obs.observation.available_actions:
                 new_action = [actions.FUNCTIONS.move_camera(location)]
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             has_attack_point = False
             screen_location = [0, 0]
 
@@ -88,11 +88,11 @@ class ArmyControl(base_agent.BaseAgent):
         if self.reqSteps == 0:
             self.reqSteps = 4
 
-        if self.reqSteps == 3:
+        if self.reqSteps == 2:
             if actions.FUNCTIONS.select_army.id in obs.observation.available_actions:
                 new_action = [actions.FUNCTIONS.select_army("select")]
 
-        if self.reqSteps == 2:
+        if self.reqSteps == 1:
             if actions.FUNCTIONS.Move_minimap.id in obs.observation.available_actions:
                 self.action_finished = True
                 new_action = [actions.FUNCTIONS.Move_minimap("now", [location[0], location[1]])]
