@@ -138,11 +138,6 @@ class BuildNetwork:
             one_hot_tensor.append(one_hot[0])
         return np.array_split(one_hot_tensor)
 
-
-    def train_network(self):
-        return  True
-
-
     def builder_load_weights(self, path):
        self.build_actor.load_weights(path)
 

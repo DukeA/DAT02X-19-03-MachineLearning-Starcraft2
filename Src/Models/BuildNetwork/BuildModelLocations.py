@@ -27,11 +27,11 @@ class BuildModelLocations:
             for j in range(y):
                 if BuildModelLocations.check_startLocation_Of_Base(self, build_state):
                     if (j >= 41 and i >= 41) or (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
-                        if build_state[i][j] == 0:
+                        if build_state[i][j] != 0:
                             view[i][j] = 1
                 else:
                     if (j <= 41 and i <= 41) or  (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
-                        if build_state[i][j] == 0:
+                        if build_state[i][j] != 0:
                             view[i][j] = 1
         return view
 
