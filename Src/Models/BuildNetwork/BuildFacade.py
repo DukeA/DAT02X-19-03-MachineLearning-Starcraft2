@@ -24,8 +24,7 @@ class BuildFacade:
         BuildFacade.build_state = BuildModelGather.set_locations(self, obs)
         list = BuildFacade.build_state
         BuildFacade.build_model = BuildModelLocations.set_building_location(self, list)
-        BuildFacade.n_build_list = BuildFacade.flatten_enviorment (self,BuildFacade.build_model)
-        BuildFacade.good_locations = Build_location.get_good_locations(self,BuildFacade.n_build_list)
+        BuildFacade.good_locations = Build_location.get_good_locations(self,BuildFacade.build_model)
         BuildFacade.action_list = BuildFacade.set_Actions(self)
     """
         An method for printing out the  environment on the screen
@@ -68,18 +67,6 @@ class BuildFacade:
         ]
         return build_action
 
-    """
-        An Method which flattens the build_enviorment
-    """
-    def flatten_enviorment(self, list):
-        value_list = []
-        if len(list) <= 0:
-            return list
-        n_list = list
-        for lists in n_list:
-            for units in lists:
-                value_list.append(units)
-        return value_list
 
 
 
