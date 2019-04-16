@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import math
 import argparse
 from keras.models import model_from_json, Model
 from keras.models import Sequential
@@ -41,7 +42,6 @@ class ActorCriticAgent:
         self.EXPLORE = 100000.
         self.episode_count = 2000
         self.max_steps = 1000
-        self.reward = 0
         self.done = False
         self.step = 0
         self.epsilon = epsilon
@@ -61,6 +61,9 @@ class ActorCriticAgent:
         self.critic = CriticNetwork(self.sess, self.state_dim, self.BATCH_SIZE,
                                     self.TAU, self.LRC, self.NUM_STEPS_UNTIL_UPDATE)
 
+        self.actions = tf.placeholder(tf.int32)
+        self.action_one_hot = tf.one_hot(self.actions, self.action_dim)
+
         self.total_reward = 0
         self.prev_state = None
         self.prev_actions = None
@@ -68,7 +71,7 @@ class ActorCriticAgent:
         self.good_buffer = deque(maxlen=8000)
         self.GOOD_GAME = False
         self.buffer_epsilon = 0.5
-        self.buffer_epsilon_decay = 0.9999
+        self.buffer_epsilon_decay = 0.995
         self.buffer_epsilon_min = 0.01
 
         self.actions_softmax = tf.nn.softmax(self.actor.model.output[0])
@@ -91,7 +94,6 @@ class ActorCriticAgent:
 
     def predict(self, game_state, obs):
         state, oldscore, map = game_state.get_state_now(obs)
-
         if self.GOOD_GAME:
 
             if self.build_index >= len(self.build_order):
@@ -145,10 +147,27 @@ class ActorCriticAgent:
         else:
             if random.random() < self.epsilon:
                 action_probs = [1/self.action_dim]*self.action_dim
+                print("Random action")
             else:
                 action_probs = self.sess.run(self.actions_softmax, feed_dict={
                     self.actor.state: state
                 })
+                print("No_op: " + '%.3e' % action_probs[0] +
+
+                      ".  SCV: " + '%.3e' % action_probs[1] +
+
+                      ".  Supply: " + '%.3e' % action_probs[2] +
+
+                      ".  Marine: " + '%.3e' % action_probs[3] +
+
+                      ".  Rax: " + '%.3e' % action_probs[4] +
+
+                      ".  Mine: " + '%.3e' % action_probs[5] +
+
+                      ".  Attack: " + '%.3e' % action_probs[6])
+                #if math.isnan(action_probs[0]):
+                    #weights = self.actor.model.get_weights()
+                    #print("Found nan")
             action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
         bonusreward = 0
@@ -202,6 +221,9 @@ class ActorCriticAgent:
             self.buffer.append(
                 [self.prev_state[0], self.prev_actions, game_state.reward+bonusreward, state[0], False])  # Add replay
 
+        # print("Reward: ", game_state.reward+bonusreward)
+
+        self.total_reward += game_state.reward+bonusreward
         self.prev_actions = action_index
         self.prev_state = state
         self.episode += 1
@@ -244,19 +266,20 @@ class ActorCriticAgent:
         state_values = next_state_values
 
         predicted_state_values = self.critic.model.predict(states)
-        target_actor = np.zeros((len(predicted_state_values), self.action_dim))
 
         for idx, reward in enumerate(rewards):
             if dones[idx]:
                 state_values[idx] = reward
-                target_actor[idx][actions[idx]] = reward - predicted_state_values[idx]
             else:
                 state_values[idx] = reward + self.GAMMA * next_state_values[idx]
-                target_actor[idx][actions[idx]] = reward + self.GAMMA * \
-                    next_state_values[idx] - predicted_state_values[idx]
 
-        self.actor.train(states, target_actor)
+        advantages = [state_val[0] - predicted_state_values[idx][0] for idx, state_val in enumerate(state_values)]
 
+        action_one_hots = self.sess.run(self.action_one_hot, feed_dict={
+            self.actions: actions
+        })
+
+        self.actor.train(states, action_one_hots, advantages)
         self.critic.train(states, state_values)
 
     def probs_to_one_hot(self, probabilities):

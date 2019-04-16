@@ -4,12 +4,13 @@ from Models.BotFile.aiBot import AiBot
 from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 import pickle
 import os
+import matplotlib.pyplot as plt
 
 
 def main(unused_argv):
     agent = AiBot()
-    epsilon = 0.4
-    epsilon_min = 0.01
+    epsilon = 0.2
+    epsilon_min = 0.1
     eps_reduction_factor = 0.99
     save_game = False
     episode = 0
@@ -25,12 +26,20 @@ def main(unused_argv):
                                                  "return_scv",
                                                  "attack"],
                                                 epsilon)
+
+    all_rewards = []
+
+    # Plot setup
+    fig1 = plt.figure()
+    ax1 = fig1.add_subplot(111)
+    ax1.set_title("Score for each game over time")
+
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
                 players=[sc2_env.Agent(sc2_env.Race.terran),
                          sc2_env.Bot(sc2_env.Race.terran,
-                                     sc2_env.Difficulty.very_easy)],
+                                     sc2_env.Difficulty.easy)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True,
@@ -47,17 +56,26 @@ def main(unused_argv):
 
                 timesteps = env.reset()
                 agent.actor_critic_agent.build_index = 0
-                if os.path.isfile('/path/to/file'):
+                if os.path.isfile('good_buffer.data'):
                     filehandler1 = open("good_buffer.data", 'rb')
                     agent.actor_critic_agent.good_buffer = pickle.load(filehandler1)
                 agent.reset()
+                if episode > 0:
+                    all_rewards = all_rewards + [agent.actor_critic_agent.total_reward]
+                    with open("Models/MachineLearning/all_rewards.data", 'wb') as filehandle:
+                        pickle.dump(all_rewards, filehandle)
+                    with open('Models/MachineLearning/all_rewards.txt', mode='w') as filehandle:
+                        for i in all_rewards:
+                            filehandle.write("%s\n" % i)
                 episode += 1
                 if agent.actor_critic_agent.epsilon > epsilon_min:
                     agent.actor_critic_agent.epsilon *= eps_reduction_factor
                 if agent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.buffer_epsilon_min:
                     agent.actor_critic_agent.buffer_epsilon *= agent.actor_critic_agent.buffer_epsilon_decay
-                print(agent.actor_critic_agent.epsilon)
+                print("Epsilon: ", agent.actor_critic_agent.epsilon)
                 agent.reward = 0
+                agent.actor_critic_agent.total_reward = 0
+
                 while True:
                     step_actions = [agent.step(timesteps[0], epsilon)]
 
@@ -65,8 +83,10 @@ def main(unused_argv):
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
                         if agent.reward == 1:
                             reward = 1000
-                        elif agent.reward == -1:
+                            agent.actor_critic_agent.total_reward += reward
+                        else:
                             reward = -1000
+                            agent.actor_critic_agent.total_reward += reward
                         if agent.actor_critic_agent.GOOD_GAME:
                             agent.actor_critic_agent.good_buffer.append(
                                 [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, reward, state[0], True])
@@ -80,6 +100,9 @@ def main(unused_argv):
                             print(len(agent.actor_critic_agent.good_buffer))
                         if save_game:
                             agent.save_game(path, episode)
+                        print("Score: ", timesteps[0].observation.score_cumulative.score)
+                        ax1.scatter(episode, timesteps[0].observation.score_cumulative.score, s=3, c='blue')
+                        plt.pause(0.05)
                         break
                     timesteps = env.step(step_actions)
 
