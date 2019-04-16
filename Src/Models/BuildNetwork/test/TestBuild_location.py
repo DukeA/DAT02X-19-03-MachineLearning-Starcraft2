@@ -22,8 +22,8 @@ class test_buildFacade(unittest.TestCase):
     def test_good_locations(self):
         list = [(81, 81, 0)]
         n_list = Build_location.get_good_points(self, list)
-        assert len(n_list) == 0
-        assert n_list == []
+        assert len(n_list) == 1
+        assert n_list == [(81, 81, 0)]
 
     """
         An method for testing to get a good location
@@ -32,8 +32,8 @@ class test_buildFacade(unittest.TestCase):
     def test_good_location(self):
         list = [(81, 51, 0)]
         n_list = Build_location.get_good_points(self, list)
-        assert len(n_list) == 0
-        assert n_list == []
+        assert len(n_list) == 1
+        assert n_list == [(81, 51, 0)]
 
     """
            An method for testing to get a good location
@@ -44,3 +44,43 @@ class test_buildFacade(unittest.TestCase):
         n_list = Build_location.get_good_points(self, list)
         assert len(n_list) == 1
         assert n_list == [(41, 51, 0)]
+
+    """
+        Test for if the method should be empty
+    """
+
+    def test_location_for_which_aint_valid(self):
+        list = [(-1, -1, 0)]
+        n_build_list = Build_location.get_good_points(self, list)
+        assert len(n_build_list) == 0
+        assert n_build_list == []
+
+        """
+            Test for if the method should be empty
+        """
+
+    def test_location_for_which_aint_valid(self):
+        list = [(-1, 81, 0)]
+        n_build_list = Build_location.get_good_points(self, list)
+        assert len(n_build_list) == 0
+        assert n_build_list == []
+
+    """
+        Test for border cases on the environment
+    """
+
+    def test_location_for_which_aint_valid(self):
+        list = [(-1, 81, 0)]
+        n_build_list = Build_location.get_good_points(self, list)
+        assert len(n_build_list) == 0
+        assert n_build_list == []
+
+    """
+        Test to get the best location from an list of  postions
+    """
+
+    def test_get_biggest_areas(self):
+        list = [(40, 51, 0), (51, 40, 1), (60, 40, 2), (60, 40, 3)]
+        n_build_list = Build_location.get_build_areas(self, list)
+        assert len(0) == 2
+        assert n_build_list == [(60, 40, 2), (60, 40, 3)]
