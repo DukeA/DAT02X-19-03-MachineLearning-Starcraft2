@@ -10,7 +10,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 all_states = []
-train_attack_data_dir = "C:/Users/Claes/Desktop/old_data/attack/"
+train_attack_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/attack/"
 
 all_files = os.listdir(train_attack_data_dir)
 current = 0
@@ -27,7 +27,7 @@ for file in all_files[current:current+increment]:
 #print(len(attack_states))
 
 
-train_build_barracks_data_dir = "C:/Users/Claes/Desktop/old_data/build_barracks/"
+train_build_barracks_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_barracks/"
 all_files = os.listdir(train_build_barracks_data_dir)
 random.shuffle(all_files)
 build_barracks_states = []
@@ -40,7 +40,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_barracks_states))
 
-train_build_factory_data_dir = "C:/Users/Claes/Desktop/old_data/build_factory/"
+train_build_factory_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_factory/"
 all_files = os.listdir(train_build_factory_data_dir)
 random.shuffle(all_files)
 build_factory_states = []
@@ -53,7 +53,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_factory_states))
 
-train_build_hellion_data_dir = "C:/Users/Claes/Desktop/old_data/build_hellion/"
+train_build_hellion_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_hellion/"
 all_files = os.listdir(train_build_hellion_data_dir)
 random.shuffle(all_files)
 build_hellion_states = []
@@ -66,7 +66,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_hellion_states))
 
-train_build_marine_data_dir = "C:/Users/Claes/Desktop/old_data/build_marine/"
+train_build_marine_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_marine/"
 all_files = os.listdir(train_build_marine_data_dir)
 random.shuffle(all_files)
 build_marine_states = []
@@ -79,7 +79,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_marine_states))
 
-train_build_medivac_data_dir = "C:/Users/Claes/Desktop/old_data/build_medivac/"
+train_build_medivac_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_medivac/"
 all_files = os.listdir(train_build_medivac_data_dir)
 random.shuffle(all_files)
 build_medivac_states = []
@@ -92,7 +92,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_medivac_states))
 
-train_build_reaper_data_dir = "C:/Users/Claes/Desktop/old_data/build_reaper/"
+train_build_reaper_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_reaper/"
 all_files = os.listdir(train_build_reaper_data_dir)
 random.shuffle(all_files)
 build_reaper_states = []
@@ -105,7 +105,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_reaper_states))
 
-train_build_refinery_data_dir = "C:/Users/Claes/Desktop/old_data/build_refinery/"
+train_build_refinery_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_refinery/"
 all_files = os.listdir(train_build_refinery_data_dir)
 random.shuffle(all_files)
 build_refinery_states = []
@@ -118,7 +118,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_refinery_states))
 
-train_build_scv_data_dir = "C:/Users/Claes/Desktop/old_data/build_scv/"
+train_build_scv_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_scv/"
 all_files = os.listdir(train_build_scv_data_dir)
 random.shuffle(all_files)
 build_scv_states = []
@@ -131,7 +131,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_scv_states))
 
-train_build_starport_data_dir = "C:/Users/Claes/Desktop/old_data/build_starport/"
+train_build_starport_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_starport/"
 all_files = os.listdir(train_build_starport_data_dir)
 random.shuffle(all_files)
 build_starport_states = []
@@ -144,7 +144,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_starport_states))
 
-train_build_supply_depot_data_dir = "C:/Users/Claes/Desktop/old_data/build_supply_depot/"
+train_build_supply_depot_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_supply_depot/"
 all_files = os.listdir(train_build_supply_depot_data_dir)
 random.shuffle(all_files)
 build_supply_depot_states = []
@@ -157,7 +157,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_supply_depot_states))
 
-train_build_viking_data_dir = "C:/Users/Claes/Desktop/old_data/build_viking/"
+train_build_viking_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_viking/"
 all_files = os.listdir(train_build_viking_data_dir)
 random.shuffle(all_files)
 build_viking_states = []
@@ -170,7 +170,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(build_viking_states))
 
-train_expand_data_dir = "C:/Users/Claes/Desktop/old_data/expand/"
+train_expand_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/expand/"
 all_files = os.listdir(train_expand_data_dir)
 random.shuffle(all_files)
 expand_states = []
@@ -183,7 +183,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(expand_states))
 
-train_no_op_data_dir = "C:/Users/Claes/Desktop/old_data/no_op/"
+train_no_op_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/no_op/"
 all_files = os.listdir(train_no_op_data_dir)
 random.shuffle(all_files)
 no_op_states = []
@@ -196,7 +196,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(no_op_states))
 
-train_retreat_data_dir = "C:/Users/Claes/Desktop/old_data/retreat/"
+train_retreat_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/retreat/"
 all_files = os.listdir(train_retreat_data_dir)
 random.shuffle(all_files)
 retreat_states = []
@@ -209,7 +209,7 @@ for file in all_files[current:current+increment]:
 
 #print(len(retreat_states))
 
-train_return_scv_data_dir = "C:/Users/Claes/Desktop/old_data/return_scv/"
+train_return_scv_data_dir = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/return_scv/"
 all_files = os.listdir(train_return_scv_data_dir)
 random.shuffle(all_files)
 return_scv_states = []
@@ -260,7 +260,7 @@ return_scv_states = return_scv_states[:lowest_length]
 all_states = attack_states + build_barracks_states + build_factory_states + build_hellion_states \
 + build_marine_states + build_medivac_states + build_reaper_states +  build_refinery_states \
 + build_scv_states + build_starport_states + build_supply_depot_states + build_viking_states \
-+ expand_states + no_op_states + retreat_states + return_scv_states
++ expand_states + no_op_states + return_scv_states #+ retreat_states 
 
 
 ##print(len(all_states))
@@ -474,4 +474,4 @@ plt.legend()
 
 plt.show()
 
-network.save("C:/Users/Claes/Desktop/TestModels/test.h5")
+network.save("C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/imitation_models/test2.h5")

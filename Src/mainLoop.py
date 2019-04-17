@@ -1,12 +1,13 @@
 from pysc2.env import sc2_env
 from pysc2.lib import features
 from Models.BotFile.aiBot import AiBot
-
+from Models.MachineLearning.ImitationAgent import ImitationAgent
 
 def main(unused_argv):
     agent = AiBot()
-    save_game = True
+    save_game = False
     episode = 0
+    agent.imitation_agent = ImitationAgent()
     path1 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/no_op/"
     path2 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_scv/"
     path3 = "C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/Data/build_supply_depot/"
@@ -29,7 +30,7 @@ def main(unused_argv):
                 map_name="AbyssalReef",
                 players=[sc2_env.Agent(sc2_env.Race.terran),
                          sc2_env.Bot(sc2_env.Race.terran,
-                                         sc2_env.Difficulty.easy)],
+                                         sc2_env.Difficulty.hard)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True,

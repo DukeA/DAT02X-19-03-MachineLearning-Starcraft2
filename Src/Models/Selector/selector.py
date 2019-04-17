@@ -1,28 +1,22 @@
 import random
 from Models.HelperClass.IsPossible import IsPossible
+from Models.MachineLearning.ImitationAgent import ImitationAgent
 
 class Selector():
 
+    def __init__(self):
+        super(Selector, self).__init__()
+
     def selector(self, obs):
+
 
         if self.reqSteps == 0 and not self.game_state_updated:
             return "updateState"
         else:
             self.game_state_updated = False
-            # 16 steps per sekund, men kompenserar också för att step_mul = 5. 1.4 kompenserar för in-game time.
-            if self.steps < 16 * 60 * 5 / 5 * 1.4:
-                build_actions = Selector.possible_build_actions(self, obs)
-                return (random.choice(build_actions))
-            else:
-                action = random.random()
-                if action <= 0.25:
-                    attack_actions = Selector.possible_attack_actions(self)
-                    return (random.choice(attack_actions))
-                else:
-                    build_actions = Selector.possible_build_actions(self, obs)
-                return (random.choice(build_actions))
+            return "no_op"
 
-        return (random.choice(Selector.all_possible_actions(self, obs)))
+        return ("no_op")
 
 
     def possible_build_actions(self, obs):

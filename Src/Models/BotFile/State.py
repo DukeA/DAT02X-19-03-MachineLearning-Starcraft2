@@ -82,6 +82,135 @@ class State:
         }
         # For reference, the rest of the action space is:
         # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
+    def get_normalized_game_state(self, bot_obj, obs):
+        minerals = self.minerals
+        gas = self.vespene
+        food_used = self.food_used
+        food_cap = self.food_cap
+        idle_workers =  self.idle_workers
+        units_amount = self.units_amount
+        enemy_units_amount = self.enemy_units_amount
+        steps = bot_obj.steps
+
+        command_centers = units_amount[units.Terran.CommandCenter.value]
+        supply_depots = units_amount[units.Terran.SupplyDepot.value]
+        refineries = units_amount[units.Terran.Refinery.value]
+        barracks = units_amount[units.Terran.Barracks.value]
+        factories = units_amount[units.Terran.Factory.value]
+        starports = units_amount[units.Terran.Starport.value]
+        scvs = units_amount[units.Terran.SCV.value]
+        marines = units_amount[units.Terran.Marine.value]
+        hellions = units_amount[units.Terran.Hellion.value]
+        medivacs = units_amount[units.Terran.Medivac.value]
+        reapers = units_amount[units.Terran.Reaper.value]
+        vikings = units_amount[units.Terran.VikingFighter.value]
+        
+        enemy_command_centers = enemy_units_amount[units.Terran.CommandCenter.value]
+        enemy_supply_depots = enemy_units_amount[units.Terran.SupplyDepot.value]
+        enemy_refineries = enemy_units_amount[units.Terran.Refinery.value]
+        enemy_barracks = enemy_units_amount[units.Terran.Barracks.value]
+        enemy_factories = enemy_units_amount[units.Terran.Factory.value]
+        enemy_starports = enemy_units_amount[units.Terran.Starport.value]
+        enemy_scvs = enemy_units_amount[units.Terran.SCV.value]
+        enemy_marines = enemy_units_amount[units.Terran.Marine.value]
+        enemy_hellions = enemy_units_amount[units.Terran.Hellion.value]
+        enemy_medivacs = enemy_units_amount[units.Terran.Medivac.value]
+        enemy_reapers = enemy_units_amount[units.Terran.Reaper.value]
+        enemy_vikings = enemy_units_amount[units.Terran.VikingFighter.value]
+
+        minerals = minerals/(25*100)
+        if minerals > 1:
+            minerals = 1
+        gas = gas/(25*100)
+        if gas > 1:
+            gas = 1
+        food_used = food_used/200
+        food_cap = food_cap/200
+        idle_workers = idle_workers/25
+        if idle_workers > 1:
+            idle_workers = 1
+        steps = int(steps/(1346/(5*12))) #5 second intervalls
+        steps = steps/300
+        if steps > 1:
+            steps = 1
+        command_centers = command_centers/10
+        if command_centers > 1:
+            command_centers = 1
+        supply_depots = supply_depots/25
+        if supply_depots > 1:
+            supply_depots = 1
+        refineries = refineries/20
+        if refineries > 1:
+            refineries = 1
+        barracks = barracks/10
+        if barracks > 1:
+            barracks = 1
+        factories = factories/10
+        if factories > 1:
+            factories = 1
+        starports = starports/10
+        if starports > 1:
+            startports = 1
+        scvs = scvs/50
+        if scvs > 1:
+            scvs = 1
+        marines = marines/50
+        if marines > 1:
+            marines = 1
+        hellions = hellions/50
+        if hellions > 1:
+            hellions = 1
+        medivacs = medivacs/50
+        if medivacs > 1:
+            medivacs = 1
+        reapers = reapers/50
+        if reapers > 1:
+            reapers = 1
+        vikings = vikings/50
+        if vikings > 1:
+            vikings = 1
+        enemy_command_centers = enemy_command_centers/10
+        if enemy_command_centers > 1:
+            enemy_command_centers = 1
+        enemy_supply_depots = enemy_supply_depots/25
+        if enemy_supply_depots > 1:
+            enemy_supply_depots = 1
+        enemy_refineries = enemy_refineries/20
+        if enemy_refineries > 1:
+            enemy_refineries = 1
+        enemy_barracks = enemy_barracks/10
+        if enemy_barracks > 1:
+            enemy_barracks = 1
+        enemy_factories = enemy_factories/10
+        if enemy_factories > 1:
+            enemy_factories = 1
+        enemy_starports = enemy_starports/10
+        if enemy_starports > 1:
+            enemy_startports = 1
+        enemy_scvs = enemy_scvs/50
+        if enemy_scvs > 1:
+            enemy_scvs = 1
+        enemy_marines = enemy_marines/50
+        if enemy_marines > 1:
+            enemy_marines = 1
+        enemy_hellions = enemy_hellions/50
+        if enemy_hellions > 1:
+            enemy_hellions = 1
+        enemy_medivacs = enemy_medivacs/50
+        if enemy_medivacs > 1:
+            enemy_medivacs = 1
+        enemy_reapers = enemy_reapers/50
+        if enemy_reapers > 1:
+            enemy_reapers = 1
+        enemy_vikings = enemy_vikings/50
+        if enemy_vikings > 1:
+            enemy_vikings = 1
+        
+        return [minerals, gas, food_used, food_cap, idle_workers, steps, command_centers, supply_depots,
+        refineries, barracks, factories, starports, scvs, marines, hellions, medivacs, reapers, vikings, 
+        enemy_command_centers, enemy_supply_depots, enemy_refineries, enemy_barracks, enemy_factories, 
+        enemy_starports, enemy_scvs, enemy_marines, enemy_hellions, enemy_medivacs, enemy_reapers,
+        enemy_vikings]
 
     def get_state(self):
         """

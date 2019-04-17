@@ -11,12 +11,19 @@ from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
 from Models.Selector.HardCodedSelector import HardCodedSelector
-
+from Models.MachineLearning.ImitationAgent import ImitationAgent
+import keras
+import tensorflow as tf
 import os
 import pickle
+import numpy as np
+import random
 
 
 class AiBot(base_agent.BaseAgent):
+
+    model = tf.keras.models.load_model("C:/Users/Claes/Desktop/DAT02X-19-03-MachineLearning-Starcraft2/Src/imitation_models/test.h5", compile=True)
+
     def __init__(self):
         super(AiBot, self).__init__()
         self.base_location = None
@@ -37,6 +44,7 @@ class AiBot(base_agent.BaseAgent):
         self.hasTechlab = False
         self.hasFactory = False
         self.hasBarrack = False
+        self.imitation_agent = None
 
     def save_game(self, path1, path2, path3, path4,
         path6, path7, path8, path9, path10, path11, path12, 
@@ -172,7 +180,55 @@ class AiBot(base_agent.BaseAgent):
 
         if self.reqSteps == 0 or self.reqSteps == -1:
             self.earlier_action = self.next_action
-            self.next_action = HardCodedSelector.hardCodedSelector(self, obs)
+            if self.reqSteps == 0 and not self.game_state_updated:
+                self.next_action = "updateState"
+            else:
+                self.game_state_updated = False
+                state = np.asarray(self.game_state.get_normalized_game_state(self, obs))
+                prediction = self.model.predict(np.asarray([state]))[0]
+                
+                prediction_list = []
+                for i in range(1): #if you want to random between highest predicted actions set range higher
+                    index = np.argmax(prediction)
+                    prediction_list.append(index)
+                    prediction[index] = 0.0
+
+                choice = random.choice(prediction_list)
+                if choice == 0:
+                    self.next_action = "attack"
+                elif choice == 1:
+                    self.next_action = "build_barracks"
+                elif choice == 2:
+                    self.next_action = "build_factory"
+                elif choice == 3:
+                    self.next_action = "build_hellion"
+                elif choice == 4:
+                    self.next_action = "build_marine"
+                elif choice == 5:
+                    self.next_action = "build_medivac"
+                elif choice == 6:
+                    self.next_action = "build_reaper"
+                elif choice == 7:
+                    self.next_action = "build_refinery"
+                elif choice == 8:
+                    self.next_action = "build_scv"
+                elif choice == 9:
+                    self.next_action = "build_starport"
+                elif choice == 10:
+                    self.next_action = "build_supply_depot"
+                elif choice == 11:
+                    self.next_action = "build_viking"
+                elif choice == 12:
+                    self.next_action = "expand"
+                elif choice == 13:
+                    self.next_action = "no_op"
+                elif choice == 14:
+                    self.next_action = "retreat"
+                elif choice == 15:
+                    self.next_action = "return_scv" 
+                else:
+                    print("no_op")
+                    self.next_action = "no_op"
 
         if self.next_action == "updateState":
             self.game_state.update_state(self, obs)
@@ -182,7 +238,7 @@ class AiBot(base_agent.BaseAgent):
             BuildOrdersController.build_expand(self, obs)
             action = ActionSingleton().get_action()
 
-        elif self.next_action == "build_scv":  # build scv
+        elif self.next_action == "build_scv": # build scv
             UnitBuildOrdersController.build_scv(self, obs)
             action = ActionSingleton().get_action()
 
