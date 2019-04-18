@@ -71,7 +71,7 @@ class ActorCriticAgent:
         self.good_buffer = deque(maxlen=8000)
         self.GOOD_GAME = False
         self.buffer_epsilon = 0.5
-        self.buffer_epsilon_decay = 0.995
+        self.buffer_epsilon_decay = 1
         self.buffer_epsilon_min = 0.01
 
         self.actions_softmax = tf.nn.softmax(self.actor.model.output[0])
@@ -165,27 +165,27 @@ class ActorCriticAgent:
                       ".  Mine: " + '%.3e' % action_probs[5] +
 
                       ".  Attack: " + '%.3e' % action_probs[6])
-                #if math.isnan(action_probs[0]):
-                    #weights = self.actor.model.get_weights()
-                    #print("Found nan")
+                # if math.isnan(action_probs[0]):
+                #weights = self.actor.model.get_weights()
+                #print("Found nan")
             action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
         bonusreward = 0
         # discourage bad supplydepots
         if ((state[0][3]-state[0][2] > 15/200) or state[0][3] == 1) and action_index == 2:
-            bonusreward = -1
+            bonusreward = -40
         # encourage good supplydepots
-        if (state[0][3]-state[0][2] < 3/200) and action_index == 2:
-            bonusreward = 1
+        # if (state[0][3]-state[0][2] < 3/200) and action_index == 2:
+        #     bonusreward = 80
         # discourage too many scvs
         if state[0][9] >= 24/200 and action_index == 1:
-            bonusreward = -1
+            bonusreward = -20
         # encourage return scv
         if state[0][4] >= 2/200 and action_index == 5:
-            bonusreward = 1
+            bonusreward = 20
         # discourage doing nothing
-        if state[0][0] > 500/3000 and action_index == 0:
-            bonusreward = -1
+        # if state[0][0] > 500/3000 and action_index == 0:
+        #     bonusreward = -40
 
         # checking if returnscv possible
         if state[0][4] == 0 and action_index == 5:
@@ -273,7 +273,8 @@ class ActorCriticAgent:
             else:
                 state_values[idx] = reward + self.GAMMA * next_state_values[idx]
 
-        advantages = [state_val[0] - predicted_state_values[idx][0] for idx, state_val in enumerate(state_values)]
+        advantages = [state_val[0] - predicted_state_values[idx][0]
+                      for idx, state_val in enumerate(state_values)]
 
         action_one_hots = self.sess.run(self.action_one_hot, feed_dict={
             self.actions: actions

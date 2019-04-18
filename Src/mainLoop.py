@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 def main(unused_argv):
     agent = AiBot()
-    epsilon = 0.2
-    epsilon_min = 0.1
+    epsilon = 0.01
+    epsilon_min = 0.01
     eps_reduction_factor = 0.99
     save_game = False
     episode = 0
@@ -30,9 +30,9 @@ def main(unused_argv):
     all_rewards = []
 
     # Plot setup
-    fig1 = plt.figure()
-    ax1 = fig1.add_subplot(111)
-    ax1.set_title("Score for each game over time")
+    fig, ax = plt.subplots(num=1)
+    ax.plot()
+    ax.set_title("Score for each game over time")
 
     try:
         with sc2_env.SC2Env(
@@ -82,10 +82,10 @@ def main(unused_argv):
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
                         if agent.reward == 1:
-                            reward = 1000
+                            reward = 10000
                             agent.actor_critic_agent.total_reward += reward
                         else:
-                            reward = -1000
+                            reward = -3000
                             agent.actor_critic_agent.total_reward += reward
                         if agent.actor_critic_agent.GOOD_GAME:
                             agent.actor_critic_agent.good_buffer.append(
@@ -101,8 +101,9 @@ def main(unused_argv):
                         if save_game:
                             agent.save_game(path, episode)
                         print("Score: ", timesteps[0].observation.score_cumulative.score)
-                        ax1.scatter(episode, timesteps[0].observation.score_cumulative.score, s=3, c='blue')
-                        plt.pause(0.05)
+                        ax.scatter(
+                            episode, timesteps[0].observation.score_cumulative.score, s=3, c='blue')
+                        fig.savefig("score.png")
                         break
                     timesteps = env.step(step_actions)
 

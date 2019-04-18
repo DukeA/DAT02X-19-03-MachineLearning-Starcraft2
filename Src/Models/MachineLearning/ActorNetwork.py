@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import math
 from keras.initializers import normal, identity
@@ -8,7 +9,6 @@ from keras.layers import Dense, Flatten, Input, merge, Lambda
 from keras.optimizers import Adam
 import tensorflow as tf
 import keras.backend as K
-import matplotlib.pyplot as plt
 
 
 HIDDEN1_UNITS = 200
@@ -37,7 +37,8 @@ class ActorNetwork(object):
         self.action_one_hot = tf.placeholder(dtype=tf.float32)
         self.advantages = tf.placeholder(dtype=tf.float32)
 
-        negative_likelihoods = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.action_one_hot, logits=self.model_policy)
+        negative_likelihoods = tf.nn.softmax_cross_entropy_with_logits_v2(
+            labels=self.action_one_hot, logits=self.model_policy)
         weighted_negative_likelihoods = tf.multiply(negative_likelihoods, self.advantages)
         self.policy_loss = tf.reduce_mean(weighted_negative_likelihoods)
 
@@ -45,7 +46,7 @@ class ActorNetwork(object):
 
         total_loss = self.policy_loss - self.entropy_loss * self.ENTROPY_WEIGHT
 
-        optimizer = tf.train.AdamOptimizer(learning_rate=self.LEARNING_RATE)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.LEARNING_RATE)
         self.gradients = optimizer.compute_gradients(total_loss)
         capped_gvs = [(self.ClipIfNotNone(grad), var) for grad, var in self.gradients]
         self.optimize = optimizer.apply_gradients(capped_gvs)
@@ -56,37 +57,45 @@ class ActorNetwork(object):
 
         self.predict_iter = 0
         self.plot_iter = 0
+        #
+        f, (ax1, ax2, ax3) = plt.subplots(3, 1, num=2)
 
-        self.fig = plt.figure()
-        self.ax1 = self.fig.add_subplot(311)
+        self.fig = f
+
+        self.ax1 = ax1
+        self.ax1.plot()
         self.ax1.set_title("Policy loss averaged over 50 values")
-        self.ax2 = self.fig.add_subplot(312)
+
+        self.ax2 = ax2
+        self.ax2.plot()
         self.ax2.set_title("Weighted entropy loss averaged over 50 values")
-        self.ax3 = self.fig.add_subplot(313)
+
+        self.ax3 = ax3
+        self.ax3.plot()
         self.ax3.set_title("Total loss averaged over 50 values")
         plt.subplots_adjust(hspace=0.5)
 
         self.sess.run(tf.global_variables_initializer())
 
     def train(self, states, action_one_hot, advantages):
-        #grads = self.sess.run(self.gradients, feed_dict={
+        # grads = self.sess.run(self.gradients, feed_dict={
         #    self.state: states,
         #    self.action_one_hot: action_one_hot,
         #    self.advantages: advantages
-        #})
+        # })
         self.sess.run(self.optimize, feed_dict={
             self.state: states,
             self.action_one_hot: action_one_hot,
             self.advantages: advantages
         })
-        #test1 = self.sess.run(self.model_policy, feed_dict={
+        # test1 = self.sess.run(self.model_policy, feed_dict={
         #    self.state: states,
-        #})
-        #print(test1)
-        #test = self.sess.run(self.softmax_policy, feed_dict={
+        # })
+        # print(test1)
+        # test = self.sess.run(self.softmax_policy, feed_dict={
         #    self.state: states,
-        #})
-        #print(test)
+        # })
+        # print(test)
         policy_loss = self.sess.run(self.policy_loss, feed_dict={
             self.state: states,
             self.action_one_hot: action_one_hot,
@@ -102,9 +111,11 @@ class ActorNetwork(object):
         self.avg_entropy_loss += entropy_loss
         if self.predict_iter >= self.num_avg:
             self.ax1.scatter(self.plot_iter, self.avg_policy_loss/self.num_avg, s=3, c='blue')
-            self.ax2.scatter(self.plot_iter, self.avg_entropy_loss/self.num_avg*self.ENTROPY_WEIGHT, s=3, c='blue')
-            self.ax3.scatter(self.plot_iter, (self.avg_policy_loss+self.avg_entropy_loss*self.ENTROPY_WEIGHT)/self.num_avg, s=3, c='blue')
-            plt.pause(0.05)
+            self.ax2.scatter(self.plot_iter, self.avg_entropy_loss /
+                             self.num_avg*self.ENTROPY_WEIGHT, s=3, c='blue')
+            self.ax3.scatter(self.plot_iter, (self.avg_policy_loss +
+                                              self.avg_entropy_loss*self.ENTROPY_WEIGHT)/self.num_avg, s=3, c='blue')
+            self.fig.savefig("loss.png")
             self.avg_policy_loss = 0
             self.avg_entropy_loss = 0
             self.plot_iter += 1
