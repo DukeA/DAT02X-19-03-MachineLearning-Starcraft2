@@ -68,7 +68,7 @@ class Build_location:
 
         for i in range(1, Row):
             for j in range(1, Column):
-                if lists[i][j] == 0:
+                if lists[i][j] == 1:
                     State[i][j] = min(State[i][j - 1], State[i - 1][j],
                                       State[i - 1][j - 1]) + 1
                 else:
@@ -80,7 +80,7 @@ class Build_location:
             max_j = 0
             for i in range(Row):
                 for j in range(Column):
-                    if (max_of_s < State[i][j]):
+                    if (max_of_s <= State[i][j]):
                         max_of_s = State[i][j]
                         max_i = i
                         max_j = j
@@ -92,8 +92,12 @@ class Build_location:
                     State[i][j] = -1
 
 
-            if State[81][81] == -1:
-                done = True
+            for i in range(Row):
+                if max(State[i]) == 0:
+                    done = True
+                else:
+                    done = False
+                    break
 
 
-        return State
+        return build_areas
