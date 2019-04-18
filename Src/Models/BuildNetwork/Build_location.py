@@ -91,6 +91,7 @@ class Build_location:
                 for j in range(max_j, max_j - max_of_s, -1):
                     State[i][j] = -1
 
+
             if State[81][81] == -1:
                 done = True
 
