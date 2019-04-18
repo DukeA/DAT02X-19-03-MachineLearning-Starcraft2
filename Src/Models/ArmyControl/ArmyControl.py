@@ -62,7 +62,7 @@ class ArmyControl(base_agent.BaseAgent):
                 x = random.randint(20, 60)
                 y = random.randint(20, 60)
                 if obs.observation.feature_screen[5][y][x] == 0:  # Finds a point without any units
-                    screen_location = [y, x]
+                    screen_location = [x, y]
                     has_attack_point = True
 
             if actions.FUNCTIONS.Attack_screen.id in obs.observation.available_actions:
