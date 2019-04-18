@@ -90,7 +90,7 @@ class Build_location:
             for i in range(max_i, max_i - max_of_s, -1):
                 for j in range(max_j, max_j - max_of_s, -1):
                     State[i][j] = -1
-            for i
+
             if State[81][81] == -1:
                 done = True
 
