@@ -65,12 +65,25 @@ class Build_location:
         Column = len(lists[0])
 
         State = [[0 for k in range(Column)] for l in range(Row)]
-
+        row_State = [[0 for k in range(Column)] for l in range(Row)]
+        col_State = [[0 for k in range(Column)] for l in range(Row)]
         for i in range(1, Row):
             for j in range(1, Column):
                 if lists[i][j] == 1:
                     State[i][j] = min(State[i][j - 1], State[i - 1][j],
                                       State[i - 1][j - 1]) + 1
+                else:
+                    State[i][j] = 0
+        for i in range(1, Row):
+            for j in range(1, Column):
+                if lists[i][j] == 1:
+                    row_State[i][j] = 0 + i
+                else:
+                    State[i][j] = 0
+        for i in range(1, Row):
+            for j in range(1, Column):
+                if lists[i][j] == 1:
+                    col_State[i][j] = 0 + j
                 else:
                     State[i][j] = 0
 
@@ -84,13 +97,10 @@ class Build_location:
                         max_of_s = State[i][j]
                         max_i = i
                         max_j = j
-
             build_areas.append([max_i, max_j, max_of_s])
-
             for i in range(max_i, max_i - max_of_s, -1):
                 for j in range(max_j, max_j - max_of_s, -1):
                     State[i][j] = -1
-
 
             for i in range(Row):
                 if max(State[i]) == 0:
@@ -98,6 +108,5 @@ class Build_location:
                 else:
                     done = False
                     break
-
 
         return build_areas

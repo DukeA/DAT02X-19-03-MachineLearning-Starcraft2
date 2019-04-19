@@ -190,21 +190,35 @@ class test_buildFacade(unittest.TestCase):
                       [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
         n_build_list = Build_location.get_surronding_area(self, this_list4)
-        assert len(n_build_list) == 2
+        assert len(n_build_list) == 3
+
+        """
+            The test method for checking uneven base location
+        """
+
+    def test_method_for_uneven_base1(self):
+        test_list6 = [[0, 0, 0, 0, 0, 0, 0],
+                      [0, 1, 1, 1, 1, 1, 0],
+                      [0, 1, 1, 1, 1, 1, 0],
+                      [0, 1, 1, 1, 1, 1, 0],
+                      [0, 1, 1, 1, 1, 1, 0],
+                      [0, 0, 0, 0, 0, 0, 0]]
+        n_build_list = Build_location.get_surronding_area(self, test_list6)
+        assert len(n_build_list) == 1
 
     """
         The test method for checking uneven base location
     """
 
-    def test_method_for_uneven_base(self):
+    def test_method_for_uneven_base2(self):
         test_list6 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                       [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                       [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                       [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                       [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-        n_build_list = Build_location.get_surronding_area(self,test_list6)
-        assert  n_build_list == 1
+        n_build_list = Build_location.get_surronding_area(self, test_list6)
+        assert len(n_build_list) == 1
 
     """
         The following method is to check for 
