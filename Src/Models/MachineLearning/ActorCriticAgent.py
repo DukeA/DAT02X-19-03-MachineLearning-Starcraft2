@@ -13,13 +13,9 @@ import json
 from Models.MachineLearning.ReplayBuffer import ReplayBuffer
 from Models.MachineLearning.ActorNetwork import ActorNetwork
 from Models.MachineLearning.CriticNetwork import CriticNetwork
-from Models.MachineLearning.OU import OU
 import timeit
 
 from collections import deque
-
-OU = OU()  # Ornstein-Uhlenbeck Process
-
 
 class ActorCriticAgent:
     def __init__(self, state_dim, action_space, epsilon):
