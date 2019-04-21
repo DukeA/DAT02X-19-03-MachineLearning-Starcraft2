@@ -59,12 +59,12 @@ class AiBot(base_agent.BaseAgent):
 
             self.build_location_state = BuildFacade().set_up(obs)
 
-           # Build_Actions = self.build_location_state.action_list
+            Build_Actions = self.build_location_state.action_list
 
-           # build_space = len(Build_Actions)
-           # build_locations = self.build_location_state.n_build_list
+            build_space = len(Build_Actions)
+            build_locations = self.build_location_state.n_build_list
 
-           # self.build_network = BuildNetwork(build_locations, build_space,epsilon)
+            self.build_network = BuildNetwork(build_locations, build_space,epsilon)
 
         action = [actions.FUNCTIONS.no_op()]
 

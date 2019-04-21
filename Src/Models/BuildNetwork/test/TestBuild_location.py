@@ -157,14 +157,30 @@ class test_buildFacade(unittest.TestCase):
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
         n_build_list = Build_location.get_surronding_area(self, this_list4)
         assert len(n_build_list) == 3
+        """
+            Check for all uneven build_areas
+        """
 
-        """
-            Check for two even build areas with the same size
-        """
+    def test_odd_size_location(self):
+        this_list_odd = [[0, 0, 0, 0, 0],
+                         [0, 1, 1, 1, 0],
+                         [0, 1, 1, 1, 0],
+                         [0, 1, 1, 1, 0],
+                         [0, 1, 1, 1, 0],
+                         [0, 1, 1, 1, 0],
+                         [0, 1, 1, 1, 0],
+                         [0, 1, 1, 1, 0],
+                         [0, 0, 0, 0, 0]]
+        n_build_list = Build_location.get_surronding_area(self, this_list_odd)
+        assert len(n_build_list) == 1
+
+    """
+        Check for two even build areas with the same size
+    """
 
     def test_method_for_different_size2(self):
         this_list4 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
+                      [0, 1, 1, 0, 0, 0, 1, 1, 1, 0],
                       [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
                       [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
                       [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
@@ -221,7 +237,7 @@ class test_buildFacade(unittest.TestCase):
         assert len(n_build_list) == 1
 
     """
-        The following method is to check for 
+        The following method is an mock of how the environment looks like  for the testing  it.
     """
 
     def test_mock_for_Build_Placement(self):
@@ -239,4 +255,43 @@ class test_buildFacade(unittest.TestCase):
                       [0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0],
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
         n_build_list = Build_location.get_surronding_area(self, this_list5)
-        assert n_build_list == 7
+        assert len(n_build_list) == 7
+
+    """
+        Check if the build_location is empty 
+    """
+
+    def test_build_location_empty(self):
+        this_build_area = [()]
+        n_build_list = Build_location.build_location(self, this_build_area)
+        assert len(n_build_list) == 0
+
+    """
+        Check if the following calculation is then all zeros
+    """
+
+    def test_build_location_zeros(self):
+        this_build_area = [(0, 0, 0, 0)]
+        n_build_list = Build_location.build_location(self, this_build_area)
+        assert len(n_build_list) == 0
+
+    """
+        Get's the middle location for that possible point where  they can build
+    """
+
+    def test_gettting_middle_build_area(self):
+        this_build_area = [(2, 2, 2, 2)]
+        n_build_list = Build_location.build_location(self, this_build_area)
+        assert len(n_build_list) == 1
+        value = n_build_list[0]
+        assert value == (1, 1, 4)
+
+    """
+        Get the position to the left of the 
+    """
+    def test_odd_build_areas(self):
+        this_build_area = [(3, 3, 3, 3)]
+        n_build_list = Build_location.build_location(self, this_build_area)
+        assert len(n_build_list) == 1
+        value = n_build_list[0]
+        assert value == [(2, 2, 9)]
