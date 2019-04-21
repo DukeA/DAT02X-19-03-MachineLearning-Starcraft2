@@ -6,6 +6,7 @@ from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersControll
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.BuildNetwork.BuildFacade import BuildFacade
 from Models.BuildNetwork.BuildNetwork import BuildNetwork
+from Models.BuildNetwork.Buildsingelton import Buildsingelton
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector

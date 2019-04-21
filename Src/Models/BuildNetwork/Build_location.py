@@ -85,6 +85,8 @@ class Build_location:
                         State[i][j] = State[i - 1][j] + 1
                 high_value = max(State[i])
                 for x in range(3, high_value + 1):
+                    current_length = 0
+                    length = 0
                     for y in range(0, Column):
                         if State[i][y] >= x:
                             current_length += 1
@@ -100,9 +102,10 @@ class Build_location:
                         y_pos = y_tmp_max_pos
                         height = length
                         max_area = area
-                    length = 0
-
-            build_areas.append([x_pos, y_pos, width, height])
+            if x_pos != 0 and y_pos !=0 and width != 0 and height != 0:
+                build_areas.append((x_pos, y_pos, width, height))
+            else:
+                return  build_areas
 
             for i in range(x_pos, x_pos - width, -1):
                 for j in range(y_pos, y_pos - height, -1):
