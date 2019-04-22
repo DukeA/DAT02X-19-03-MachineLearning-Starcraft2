@@ -13,7 +13,7 @@ from Models.BuildNetwork.Build_Critic_Actor import Build_Critic_Actor
 
 class BuildNetwork:
 
-    def __init__(self, build_state, action_state,epsilon):
+    def __init__(self, build_state, action_state, epsilon):
         self.Batch_Size = 32
         self.Buffer_size = 10000
         self.lerning_rate = 0.0001
@@ -41,8 +41,10 @@ class BuildNetwork:
         self.sess = tf.Session(config=self.config)
         backend.set_session(self.sess)
 
-        self.build_actor = Build_Actor(self.sess, self.build_state,self.action_space, self.lerning_rate, self.Batch_Size, self.tau)
-        self.crtic_build_actor = Build_Critic_Actor(self.sess, self.build_state, self.action_space, self.lerning_rate, self.Batch_Size, self.tau)
+        self.build_actor = Build_Actor(self.sess, self.build_state, self.action_space, self.lerning_rate,
+                                       self.Batch_Size, self.tau)
+        self.crtic_build_actor = Build_Critic_Actor(self.sess, self.build_state, self.action_space, self.lerning_rate,
+                                                    self.Batch_Size, self.tau)
 
         self.total_reward = 0
         self.prev_state = None
@@ -71,28 +73,28 @@ class BuildNetwork:
         if isinstance(self.build_state, int):
             state, old_score, map = build_Current_state
         else:
-            state,old_score,map =  build_Current_state
+            state, old_score, map = build_Current_state
 
         if random.random() < self.epsilon:
-            action_probs =[1/self.action_space]*self.action_space
+            action_probs = [1 / self.action_space] * self.action_space
         else:
             action_probs = self.sess.run(self.actions_softmax, feed_dict={
                 self.build_actor: state
             })
-        action_index = np.random.choice(range(self.action_space),1,p = action_probs)[0]
-        if  self.episode > 0:
-            self.memory_Buffer.append([self.prev_state[0],self.prev_actions,build_Current_state.reward,
-                                      state[0],False])
+        action_index = np.random.choice(range(self.action_space), 1, p=action_probs)[0]
+        if self.episode > 0:
+            self.memory_Buffer.append([self.prev_state[0], self.prev_actions, build_Current_state.reward,
+                                       state[0], False])
         self.prev_actions = action_index
         self.prev_state = state
         self.episode += 1
 
         chosen_action = self.action_space[action_index]
-        if len((self.memory_Buffer)> self.Batch_Size):
-            traning_batch = random.sample(self.memory_Buffer,self.Batch_Size)
-            self.train_neural_network(self,traning_batch)
+        if len((self.memory_Buffer) > self.Batch_Size):
+            traning_batch = random.sample(self.memory_Buffer, self.Batch_Size)
+            self.train_neural_network(self, traning_batch)
 
-        if np.mod (self.episode, 30) ==0  and self.episode > 0:
+        if np.mod(self.episode, 30) == 0 and self.episode > 0:
             if self.train_indicaor:
                 if isinstance(self.build_state, int):
                     self.build_actor.model.save_weights("DATA/Results/build_actormodel.h5", overwrite=True)
@@ -106,15 +108,15 @@ class BuildNetwork:
 
     def train_neural_network(self, traning_batch):
         states = np.asarray([row[0] for row in traning_batch])
-        actions = np.asarray([row[1]for row in traning_batch])
-        rewards = np.asarray([row[2]for row in traning_batch])
+        actions = np.asarray([row[1] for row in traning_batch])
+        rewards = np.asarray([row[2] for row in traning_batch])
         next_states = np.asarray([row[3] for row in traning_batch])
-        dones = np.asarray([row[4]for row in traning_batch])
+        dones = np.asarray([row[4] for row in traning_batch])
 
         next_states_value = self.crtic_build_Actor.crtic_model.predict(next_states)
         state_values = next_states_value
         predicted_state_values = self.crtic_build_Actor.crtic_model.predict(states)
-        target_actor = np.zeros((len(predicted_state_values),self))
+        target_actor = np.zeros((len(predicted_state_values), self))
 
         for idx, reward in enumerate(rewards):
             if dones[idx]:
@@ -125,13 +127,12 @@ class BuildNetwork:
                 target_actor[idx][actions[idx]] = reward + self.gamma * next_states_value[idx] \
                                                   - predicted_state_values[idx]
 
-        self.build_actor.train_author(states,target_actor)
+        self.build_actor.train_author(states, target_actor)
 
-        self.crtic_build_Actor.train_crtic(states,target_actor)
+        self.crtic_build_Actor.train_crtic(states, target_actor)
 
-
-    def probs_to_one_hot(self,probabilites):
-        one_hot_tensor =[]
+    def probs_to_one_hot(self, probabilites):
+        one_hot_tensor = []
         for prob in probabilites:
             a = tf.constant(prob)
             one_hot = tf.one_hot(tf.nn.top_k(a).indices, tf.shape(a)[0].eval(session=self.sess))
@@ -139,13 +140,13 @@ class BuildNetwork:
         return np.array_split(one_hot_tensor)
 
     def builder_load_weights(self, path):
-       self.build_actor.load_weights(path)
+        self.build_actor.load_weights(path)
 
     def builder_save_weights(self, path):
         self.build_actor.save_weights(path)
 
-    def critic_load_weights(self,path):
+    def critic_load_weights(self, path):
         self.crtic_build_actor.load_weights(path)
 
-    def critic_save_weights(self,path):
+    def critic_save_weights(self, path):
         self.crtic_build_actor.save_weights(path)

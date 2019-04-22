@@ -14,8 +14,9 @@ class Build_Actor:
         self.batch_size = batch_size
         self.Tau = tau
         backend.set_session(sess)
+        value =self.build_model[0]
         self.build_author_model, self.build_author_state, \
-        self.build_author_output, self.build_suthor_weights = Build_Actor.create_actor_model(self,self.build_model, self.action_size)
+        self.build_author_output, self.build_author_weights = Build_Actor.create_actor_model(self,self.build_model, self.action_size)
         self.target_build_author = tf.placeholder(tf.float32)
         self.build_author_optmizer= Adam(lr=self.learning_rate)
         self.build_author_model.compile(optimizer=self.build_author_optmizer, loss='mse')

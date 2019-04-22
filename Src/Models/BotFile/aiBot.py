@@ -13,6 +13,7 @@ from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
 
+
 class AiBot(base_agent.BaseAgent):
     def __init__(self):
         super(AiBot, self).__init__()
@@ -29,8 +30,9 @@ class AiBot(base_agent.BaseAgent):
         self.game_state = None
         self.game_state_updated = False
         self.action_finished = False
+        self.oldScore = 0
 
-    def step(self, obs,epsilon):
+    def step(self, obs, epsilon):
         super(AiBot, self).step(obs)
 
         # first step
@@ -58,14 +60,16 @@ class AiBot(base_agent.BaseAgent):
             self.game_state.add_unit_in_progress(
                 self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
-            self.build_location_state = BuildFacade().set_up(obs)
+            self.build_States = BuildFacade.set_up(self, obs)
+            self.build_state = self.build_States[1]
 
-            Build_Actions = self.build_location_state.action_list
+            build_Actions = self.build_States[2]
 
-            build_space = len(Build_Actions)
-            build_locations = self.build_location_state.n_build_list
+            build_locations = self.build_States[0]
 
-            self.build_network = BuildNetwork(build_locations, build_space,epsilon)
+            self.build_network = BuildNetwork(build_locations, build_Actions, epsilon)
+
+            self.locations = BuildNetwork.predict_neural_network(self, self.build_States)
 
         action = [actions.FUNCTIONS.no_op()]
 
@@ -85,11 +89,11 @@ class AiBot(base_agent.BaseAgent):
             UnitBuildOrdersController.build_scv(self, obs)
             action = ActionSingleton().get_action()
 
-        #elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
-         #   if self.reqSteps == 0:
-          #      self.DistributeSCVInstance = DistributeSCV()
-           # self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
-           # action = ActionSingleton().get_action()
+        # elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
+        #   if self.reqSteps == 0:
+        #      self.DistributeSCVInstance = DistributeSCV()
+        # self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
+        # action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
             HelperClass.move_camera_to_base_location(self, obs)

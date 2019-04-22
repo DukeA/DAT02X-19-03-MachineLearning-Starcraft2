@@ -19,7 +19,7 @@ class Build_Critic_Actor:
 
         backend.set_session(sess)
         self.crtic_model,self.crtic_state,\
-        self.crtic_output,self.crtic_weight = Build_Critic_Actor.create_crtic_model(self,build_model,action_model)
+        self.crtic_output,self.crtic_weight = Build_Critic_Actor.create_crtic_model(self,self.build_model,action_model)
         self.target_actor = tf.placeholder(tf.float32)
         self.crtic_build_optimizer = Adam(lr=self.Learning_rate)
         self.crtic_model.compile(optimizer=self.crtic_build_optimizer, loss='mse')

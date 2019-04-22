@@ -4,23 +4,6 @@ import math
 class Build_location:
     LIST = []
 
-    """
-        :param lists - The lists of the points in the environment
-        An method which  separates out the values of where the 
-    """
-
-    def get_good_points(self, list):
-        if len(list) <= 0:
-            return list
-        point_list = []
-        n_list = list
-        for points in n_list:
-            value_x = points[0]
-            value_y = points[1]
-            if value_x != -1 and value_x != 81:
-                if value_y != -1 and value_y != 81:
-                    point_list.append(points)
-        return point_list
 
     """
         :param lists - The value where the location of the points are located.
@@ -34,26 +17,9 @@ class Build_location:
         Build_location.LIST = lists
         build_location = []
         list = Build_location.get_surronding_area(self, Build_location.LIST)
-        performed_build_location = Build_location().get_good_points(build_location)
-        list_locations = Build_location().get_build_areas(performed_build_location)
-        build_points = Build_location().build_location(list_locations)
-        return performed_build_location
+        build_points = Build_location().build_location(list)
+        return build_points
 
-    """
-        :param lists - The lists of the building points
-         The method should take all the values of the point and create an area where it is best to build
-    """
-
-    def get_build_areas(self, list):
-        if len(list) <= 0:
-            return [(0, 0, 0)]
-        n_list = list
-        builid_location = []
-        for i in list:
-            start_location = i[2] - i[0]
-            end_location = i[2] - i[1]
-            builid_location.append(start_location, end_location, i[2])
-        return builid_location
 
     """
         :param lists -The building list with all the coordinates for the map
@@ -105,7 +71,7 @@ class Build_location:
             if x_pos != 0 and y_pos !=0 and width != 0 and height != 0:
                 build_areas.append((x_pos, y_pos, width, height))
             else:
-                return  build_areas
+                return build_areas
 
             for i in range(x_pos, x_pos - width, -1):
                 for j in range(y_pos, y_pos - height, -1):
