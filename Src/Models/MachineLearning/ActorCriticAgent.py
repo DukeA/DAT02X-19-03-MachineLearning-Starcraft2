@@ -19,13 +19,24 @@ from collections import deque
 
 class ActorCriticAgent:
     def __init__(self, state_dim, action_space, epsilon):
+
+        ############### Hyperparameters #################
+
         self.train_indicator = True
-        self.BUFFER_SIZE = 100000
         self.BATCH_SIZE = 64
         self.GAMMA = 0.9995
         self.TAU = 0.1  # Target Network HyperParameters
-        self.LRA = 0.00001  # Learning rate for Actor
-        self.LRC = 0.00001  # Lerning rate for Critic
+        self.LRA = 0.000001  # Learning rate for Actor
+        self.LRC = 0.000001  # Lerning rate for Critic
+
+        self.buffer = deque(maxlen=5000)
+        self.good_buffer = deque(maxlen=8000)
+        self.GOOD_GAME = False
+        self.buffer_epsilon = 0.
+        self.buffer_epsilon_decay = 0.99
+        self.buffer_epsilon_min = 0.0
+
+        ################ Other stuff #####################
 
         self.action_space = action_space
         self.action_dim = len(self.action_space)
@@ -33,13 +44,6 @@ class ActorCriticAgent:
 
         np.random.seed(1337)
 
-        self.vision = False
-
-        self.EXPLORE = 100000.
-        self.episode_count = 2000
-        self.max_steps = 1000
-        self.done = False
-        self.step = 0
         self.epsilon = epsilon
         self.indicator = 0
         self.episode = 0
@@ -63,13 +67,6 @@ class ActorCriticAgent:
         self.total_reward = 0
         self.prev_state = None
         self.prev_actions = None
-        self.buffer = deque(maxlen=5000)
-        self.good_buffer = deque(maxlen=8000)
-        self.GOOD_GAME = False
-        self.buffer_epsilon = 0.75
-        self.buffer_epsilon_decay = 1
-        self.buffer_epsilon_min = 0.01
-
         self.bonusreward = 0
 
         self.actions_softmax = tf.nn.softmax(self.actor.model.output[0])
@@ -150,19 +147,19 @@ class ActorCriticAgent:
                 action_probs = self.sess.run(self.actions_softmax, feed_dict={
                     self.actor.state: state
                 })
-                # print("No_op: " + '%.3e' % action_probs[0] +
-                #
-                #       ".  SCV: " + '%.3e' % action_probs[1] +
-                #
-                #       ".  Supply: " + '%.3e' % action_probs[2] +
-                #
-                #       ".  Marine: " + '%.3e' % action_probs[3] +
-                #
-                #       ".  Rax: " + '%.3e' % action_probs[4] +
-                #
-                #       ".  Mine: " + '%.3e' % action_probs[5] +
-                #
-                #       ".  Attack: " + '%.3e' % action_probs[6])
+                #print("No_op: " + '%.3e' % action_probs[0] +
+
+                 #     ".  SCV: " + '%.3e' % action_probs[1] +
+
+                  #    ".  Supply: " + '%.3e' % action_probs[2] +
+
+                   #   ".  Marine: " + '%.3e' % action_probs[3] +
+
+                    #  ".  Rax: " + '%.3e' % action_probs[4] +
+
+                     # ".  Mine: " + '%.3e' % action_probs[5] +
+
+                      #".  Attack: " + '%.3e' % action_probs[6])
                 # if math.isnan(action_probs[0]):
                 #weights = self.actor.model.get_weights()
                 #print("Found nan")

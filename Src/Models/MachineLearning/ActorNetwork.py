@@ -11,8 +11,8 @@ import tensorflow as tf
 import keras.backend as K
 
 
-HIDDEN1_UNITS = 200
-HIDDEN2_UNITS = 200
+HIDDEN1_UNITS = 16
+HIDDEN2_UNITS = 32
 HIDDEN3_UNITS = 200
 
 

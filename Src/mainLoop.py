@@ -31,6 +31,8 @@ def main(unused_argv):
                                                  "attack"],
                                                 epsilon)
 
+    game_results = []
+    latest_result = 0
     all_rewards = []
 
     # Plot setup
@@ -74,18 +76,22 @@ def main(unused_argv):
                 agent.reset()
                 if episode > 0:
                     all_rewards = all_rewards + [agent.actor_critic_agent.total_reward]
-                    with open("Models/MachineLearning/all_rewards.data", 'wb') as filehandle:
-                        pickle.dump(all_rewards, filehandle)
-                    with open('Models/MachineLearning/all_rewards.txt', mode='w') as filehandle:
+                    with open('all_rewards.txt', mode='w') as filehandle:
                         for i in all_rewards:
+                            filehandle.write("%s\n" % i)
+                    game_results = game_results + [latest_result]
+                    with open('game_results.txt', mode='w') as filehandle:
+                        for i in game_results:
                             filehandle.write("%s\n" % i)
                 episode += 1
                 if agent.actor_critic_agent.epsilon > epsilon_min:
                     agent.actor_critic_agent.epsilon *= eps_reduction_factor
                 if agent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.buffer_epsilon_min:
                     agent.actor_critic_agent.buffer_epsilon *= agent.actor_critic_agent.buffer_epsilon_decay
-                #print("Epsilon: ", agent.actor_critic_agent.epsilon)
+
+                # For determining win/loss/tie
                 agent.reward = 0
+                # For plotting total reward
                 agent.actor_critic_agent.total_reward = 0
 
                 while True:
@@ -93,16 +99,33 @@ def main(unused_argv):
 
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
+
+                        # If it won
                         if agent.reward == 1:
                             last_100.append(1)
+                            latest_result = 1
+                            end_reward = 10000
+                        # If it lost
+                        elif agent.reward == -1:
+                            last_100.append(0)
+                            latest_result = 0
+                            end_reward = -10000
+                        # If time's up
                         else:
                             last_100.append(0)
+                            latest_result = 0
+                            end_reward = -10000
+
+                        agent.actor_critic_agent.total_reward += end_reward
+
                         if agent.actor_critic_agent.GOOD_GAME:
                             agent.actor_critic_agent.good_buffer.append(
-                                [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, agent.reward*10000, state[0], True])
+                                [agent.actor_critic_agent.prev_state[0],
+                                 agent.actor_critic_agent.prev_actions, end_reward, state[0], True])
                         else:
                             agent.actor_critic_agent.buffer.append(
-                                [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, agent.reward*10000, state[0], True])
+                                [agent.actor_critic_agent.prev_state[0],
+                                 agent.actor_critic_agent.prev_actions, end_reward, state[0], True])
 
                         if save_buffer:
                             filehandler = open("good_buffer.data", 'wb')
