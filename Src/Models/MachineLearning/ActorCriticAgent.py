@@ -26,7 +26,7 @@ class ActorCriticAgent:
         self.train_indicator = True
         self.BUFFER_SIZE = 100000
         self.BATCH_SIZE = 64
-        self.GAMMA = 1
+        self.GAMMA = 0.9995
         self.TAU = 0.1  # Target Network HyperParameters
         self.LRA = 0.00001  # Learning rate for Actor
         self.LRC = 0.00001  # Lerning rate for Critic
@@ -67,12 +67,14 @@ class ActorCriticAgent:
         self.total_reward = 0
         self.prev_state = None
         self.prev_actions = None
-        self.buffer = deque(maxlen=8000)
+        self.buffer = deque(maxlen=5000)
         self.good_buffer = deque(maxlen=8000)
         self.GOOD_GAME = False
-        self.buffer_epsilon = 0.5
+        self.buffer_epsilon = 0.75
         self.buffer_epsilon_decay = 1
         self.buffer_epsilon_min = 0.01
+
+        self.bonusreward = 0
 
         self.actions_softmax = tf.nn.softmax(self.actor.model.output[0])
 
@@ -147,83 +149,84 @@ class ActorCriticAgent:
         else:
             if random.random() < self.epsilon:
                 action_probs = [1/self.action_dim]*self.action_dim
-                print("Random action")
+                # "print("Random action")
             else:
                 action_probs = self.sess.run(self.actions_softmax, feed_dict={
                     self.actor.state: state
                 })
-                print("No_op: " + '%.3e' % action_probs[0] +
-
-                      ".  SCV: " + '%.3e' % action_probs[1] +
-
-                      ".  Supply: " + '%.3e' % action_probs[2] +
-
-                      ".  Marine: " + '%.3e' % action_probs[3] +
-
-                      ".  Rax: " + '%.3e' % action_probs[4] +
-
-                      ".  Mine: " + '%.3e' % action_probs[5] +
-
-                      ".  Attack: " + '%.3e' % action_probs[6])
+                # print("No_op: " + '%.3e' % action_probs[0] +
+                #
+                #       ".  SCV: " + '%.3e' % action_probs[1] +
+                #
+                #       ".  Supply: " + '%.3e' % action_probs[2] +
+                #
+                #       ".  Marine: " + '%.3e' % action_probs[3] +
+                #
+                #       ".  Rax: " + '%.3e' % action_probs[4] +
+                #
+                #       ".  Mine: " + '%.3e' % action_probs[5] +
+                #
+                #       ".  Attack: " + '%.3e' % action_probs[6])
                 # if math.isnan(action_probs[0]):
                 #weights = self.actor.model.get_weights()
                 #print("Found nan")
             action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
-        bonusreward = 0
+        # print(game_state.reward+bonusreward)
+        if self.GOOD_GAME and self.episode > 0:
+            self.good_buffer.append([self.prev_state[0], self.prev_actions,
+                                     0, state[0], False])
+
+        elif self.episode > 0:
+            self.buffer.append(
+                [self.prev_state[0], self.prev_actions, 0, state[0], False])  # Add replay
+
+        # print("Reward: ", game_state.reward+bonusreward)
+
         # discourage bad supplydepots
-        if ((state[0][3]-state[0][2] > 15/200) or state[0][3] == 1) and action_index == 2:
-            bonusreward = -40
+        # if ((state[0][3]-state[0][2] > 15/200) or state[0][3] == 1) and action_index == 2:
+        #     self.bonusreward = -100
+            #print(self.bonusreward + game_state.reward)
         # encourage good supplydepots
         # if (state[0][3]-state[0][2] < 3/200) and action_index == 2:
         #     bonusreward = 80
         # discourage too many scvs
-        if state[0][9] >= 24/200 and action_index == 1:
-            bonusreward = -20
+        # if state[0][9] >= 24/200 and action_index == 1:
+        #     self.bonusreward = -80
         # encourage return scv
-        if state[0][4] >= 2/200 and action_index == 5:
-            bonusreward = 20
+        # if state[0][4] >= 2/200 and action_index == 5 and not state[0][4] >= 20:
+        #     self.bonusreward = 20
         # discourage doing nothing
         # if state[0][0] > 500/3000 and action_index == 0:
         #     bonusreward = -40
 
         # checking if returnscv possible
-        if state[0][4] == 0 and action_index == 5:
-            # print("bad return")
-            bonusreward = -1
-        # check if build marine is possible
-        if (state[0][7] == 0 or state[0][0] < 50/3000 or state[0][3]-state[0][2] == 0) and action_index == 3:
-            # print("bad marine")
-            bonusreward = -1
-        # check is build scv is possible
-        if (state[0][5] == 0 or state[0][0] < 50/3000 or state[0][3]-state[0][2] == 0) and action_index == 1:
-            # print("bad scv")
-            bonusreward = -1
-        # check build supply depot possible
-        if state[0][0] < 100/3000 and action_index == 2:
-            # print("bad supplydepot")
-            bonusreward = -1
-        # check build barracks possible
-        if (state[0][6] == 0 or state[0][0] < 150/3000) and action_index == 4:
-            # print("bad barrack")
-            bonusreward = -1
-        # check if attack is possible
-        if state[0][8] <= 5/200 and action_index == 6:
-            # print("bad attack")
-            bonusreward = -1
+        # if state[0][4] == 0 and action_index == 5:
+        #     # print("bad return")
+        #     bonusreward = -1
+        # # check if build marine is possible
+        # if (state[0][7] == 0 or state[0][0] < 50/3000 or state[0][3]-state[0][2] == 0) and action_index == 3:
+        #     # print("bad marine")
+        #     bonusreward = -1
+        # # check is build scv is possible
+        # if (state[0][5] == 0 or state[0][0] < 50/3000 or state[0][3]-state[0][2] == 0) and action_index == 1:
+        #     # print("bad scv")
+        #     bonusreward = -1
+        # # check build supply depot possible
+        # if state[0][0] < 100/3000 and action_index == 2:
+        #     # print("bad supplydepot")
+        #     bonusreward = -1
+        # # check build barracks possible
+        # if (state[0][6] == 0 or state[0][0] < 150/3000) and action_index == 4:
+        #     # print("bad barrack")
+        #     bonusreward = -1
+        # # check if attack is possible
+        # if state[0][8] <= 5/200 and action_index == 6:
+        #     # print("bad attack")
+        #     bonusreward = -1
 
-        # print(game_state.reward+bonusreward)
-        if self.GOOD_GAME and self.episode > 0:
-            self.good_buffer.append([self.prev_state[0], self.prev_actions,
-                                     game_state.reward+bonusreward, state[0], False])
-
-        elif self.episode > 0:
-            self.buffer.append(
-                [self.prev_state[0], self.prev_actions, game_state.reward+bonusreward, state[0], False])  # Add replay
-
-        # print("Reward: ", game_state.reward+bonusreward)
-
-        self.total_reward += game_state.reward+bonusreward
+        self.total_reward += game_state.reward+self.bonusreward
+        self.bonusreward = 0
         self.prev_actions = action_index
         self.prev_state = state
         self.episode += 1

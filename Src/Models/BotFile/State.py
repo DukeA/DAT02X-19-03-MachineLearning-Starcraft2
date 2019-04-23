@@ -151,11 +151,11 @@ class State:
         # Update any state that doesn't require actions
         oldscore = self.oldscore
         score = obs.observation.score_cumulative.score
-        #(obs.observation.score_cumulative.total_value_units + obs.observation.score_cumulative.total_value_structures +
-        #obs.observation.score_cumulative.killed_value_units +
-        #obs.observation.score_cumulative.killed_value_structures)
+        # (obs.observation.score_cumulative.total_value_units + obs.observation.score_cumulative.total_value_structures +
+        # obs.observation.score_cumulative.killed_value_units +
+        # obs.observation.score_cumulative.killed_value_structures)
         if score != oldscore:
-            self.reward = (score - self.oldscore)/200
+            self.reward = score - self.oldscore
         else:
             self.reward = 0
         if obs.observation.player.minerals > 3000:

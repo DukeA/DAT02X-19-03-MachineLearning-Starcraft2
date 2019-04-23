@@ -4,18 +4,22 @@ from Models.BotFile.aiBot import AiBot
 from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 import pickle
 import os
+from collections import deque
 import matplotlib.pyplot as plt
 
 
 def main(unused_argv):
     agent = AiBot()
-    epsilon = 0.01
-    epsilon_min = 0.01
+    epsilon = 0
+    epsilon_min = 0
     eps_reduction_factor = 0.99
     save_game = False
     episode = 0
     path = ""
     save_buffer = False
+
+    last_100 = deque(maxlen=100)
+    iter = 1
 
     agent.actor_critic_agent = ActorCriticAgent(30,
                                                 ["no_op",
@@ -34,6 +38,14 @@ def main(unused_argv):
     ax.plot()
     ax.set_title("Score for each game over time")
 
+    fig2, ax2 = plt.subplots(num=3)
+    ax2.plot()
+    ax2.set_title("win%")
+
+    fig3, ax3 = plt.subplots(num=4)
+    ax3.plot()
+    ax3.set_title("totalreward")
+
     try:
         with sc2_env.SC2Env(
                 map_name="AbyssalReef",
@@ -49,7 +61,7 @@ def main(unused_argv):
                 game_steps_per_episode=30000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
                 # save_replay_episodes=1, #How often do you save replays
                 # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
-                visualize=True,
+                visualize=False,
                 disable_fog=True) as env:
             while True:
                 agent.setup(env.observation_spec(), env.action_spec())
@@ -72,7 +84,7 @@ def main(unused_argv):
                     agent.actor_critic_agent.epsilon *= eps_reduction_factor
                 if agent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.buffer_epsilon_min:
                     agent.actor_critic_agent.buffer_epsilon *= agent.actor_critic_agent.buffer_epsilon_decay
-                print("Epsilon: ", agent.actor_critic_agent.epsilon)
+                #print("Epsilon: ", agent.actor_critic_agent.epsilon)
                 agent.reward = 0
                 agent.actor_critic_agent.total_reward = 0
 
@@ -82,17 +94,15 @@ def main(unused_argv):
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])
                         if agent.reward == 1:
-                            reward = 10000
-                            agent.actor_critic_agent.total_reward += reward
+                            last_100.append(1)
                         else:
-                            reward = -3000
-                            agent.actor_critic_agent.total_reward += reward
+                            last_100.append(0)
                         if agent.actor_critic_agent.GOOD_GAME:
                             agent.actor_critic_agent.good_buffer.append(
-                                [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, reward, state[0], True])
+                                [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, agent.reward*10000, state[0], True])
                         else:
                             agent.actor_critic_agent.buffer.append(
-                                [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, reward, state[0], True])
+                                [agent.actor_critic_agent.prev_state[0], agent.actor_critic_agent.prev_actions, agent.reward*10000, state[0], True])
 
                         if save_buffer:
                             filehandler = open("good_buffer.data", 'wb')
@@ -104,6 +114,14 @@ def main(unused_argv):
                         ax.scatter(
                             episode, timesteps[0].observation.score_cumulative.score, s=3, c='blue')
                         fig.savefig("score.png")
+
+                        if len(last_100) == last_100.maxlen:
+                            percent = sum(last_100) / 100
+                            ax2.scatter(iter, percent, s=3, c='blue')
+                            iter += 1
+                            fig2.savefig("winpercent.png")
+                        ax3.scatter(episode, agent.actor_critic_agent.total_reward, s=3, c='blue')
+                        fig3.savefig("total_reward.png")
                         break
                     timesteps = env.step(step_actions)
 

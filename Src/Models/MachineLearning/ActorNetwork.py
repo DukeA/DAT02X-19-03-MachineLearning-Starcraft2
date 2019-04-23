@@ -23,7 +23,7 @@ class ActorNetwork(object):
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
         self.UPDATE_STEPS = UPDATE_STEPS
-        self.ENTROPY_WEIGHT = 0.01
+        self.ENTROPY_WEIGHT = 0.02
 
         K.set_session(sess)
 
@@ -109,18 +109,18 @@ class ActorNetwork(object):
 
         self.avg_policy_loss += policy_loss
         self.avg_entropy_loss += entropy_loss
-        if self.predict_iter >= self.num_avg:
-            self.ax1.scatter(self.plot_iter, self.avg_policy_loss/self.num_avg, s=3, c='blue')
-            self.ax2.scatter(self.plot_iter, self.avg_entropy_loss /
-                             self.num_avg*self.ENTROPY_WEIGHT, s=3, c='blue')
-            self.ax3.scatter(self.plot_iter, (self.avg_policy_loss +
-                                              self.avg_entropy_loss*self.ENTROPY_WEIGHT)/self.num_avg, s=3, c='blue')
-            self.fig.savefig("loss.png")
-            self.avg_policy_loss = 0
-            self.avg_entropy_loss = 0
-            self.plot_iter += 1
-            self.predict_iter = 0
-        self.predict_iter += 1
+        # if self.predict_iter >= self.num_avg:
+        #     self.ax1.scatter(self.plot_iter, self.avg_policy_loss/self.num_avg, s=3, c='blue')
+        #     self.ax2.scatter(self.plot_iter, self.avg_entropy_loss /
+        #                      self.num_avg*self.ENTROPY_WEIGHT, s=3, c='blue')
+        #     self.ax3.scatter(self.plot_iter, (self.avg_policy_loss +
+        #                                       self.avg_entropy_loss*self.ENTROPY_WEIGHT)/self.num_avg, s=3, c='blue')
+        #     self.fig.savefig("loss.png")
+        #     self.avg_policy_loss = 0
+        #     self.avg_entropy_loss = 0
+        #     self.plot_iter += 1
+        #     self.predict_iter = 0
+        # self.predict_iter += 1
         #print("Plot iter: ", self.plot_iter)
         #print("Predict iter: ", self.predict_iter)
 
@@ -142,7 +142,6 @@ class ActorNetwork(object):
         S = Input(shape=[state_size])
         h0 = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
         h1 = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(h0)
-        h2 = Dense(HIDDEN3_UNITS, activation='relu', kernel_initializer='random_normal')(h1)
-        V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(h2)
+        V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(h1)
         model = Model(inputs=S, outputs=V)
         return model, S, V, model.trainable_weights
