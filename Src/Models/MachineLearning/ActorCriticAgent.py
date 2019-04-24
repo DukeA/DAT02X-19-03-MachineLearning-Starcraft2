@@ -26,8 +26,8 @@ class ActorCriticAgent:
         self.BATCH_SIZE = 64
         self.GAMMA = 0.9995
         self.TAU = 0.1  # Target Network HyperParameters
-        self.LRA = 0.000001  # Learning rate for Actor
-        self.LRC = 0.000001  # Lerning rate for Critic
+        self.LRA = 0.00001  # Learning rate for Actor
+        self.LRC = 0.0001  # Lerning rate for Critic
 
         self.buffer = deque(maxlen=5000)
         self.good_buffer = deque(maxlen=8000)
@@ -90,80 +90,28 @@ class ActorCriticAgent:
     def predict(self, game_state, obs):
         state, oldscore, map = game_state.get_state_now(obs)
         if self.GOOD_GAME:
-
-            if self.build_index >= len(self.build_order):
-                if state[0][7] < 6/10:
-                    if state[0][0] >= 150/3000:
-                        action_index = 4
-                    elif state[0][4] >= 1/200:
-                        action_index = 5
-                    else:
-                        action_index = 0
-                elif state[0][8] >= 10/200 and random.random() < 0.1:
-                    action_index = 6
-                elif state[0][4] >= 1/200:
-                    action_index = 5
-                elif state[0][3]-state[0][2] <= 3/200 and state[0][0] > 100/3000:
-                    action_index = 2
-                elif state[0][3]-state[0][2] >= 1/200 and state[0][0] > 50/3000:
-                    action_index = 3
-                elif state[0][4] >= 1/200:
-                    action_index = 5
-                else:
-                    action_index = 0
-            else:
-                build = self.build_order[self.build_index]
-                if build == "scv":
-                    if state[0][0] >= 50/3000 and state[0][3]-state[0][2] >= 1/200:
-                        action_index = 1
-                        self.build_index += 1
-                    elif state[0][4] >= 1/200:
-                        action_index = 5
-                    else:
-                        action_index = 0
-
-                if build == "supply":
-                    if state[0][0] >= 100/3000:
-                        action_index = 2
-                        self.build_index += 1
-                    elif state[0][4] >= 1/200:
-                        action_index = 5
-                    else:
-                        action_index = 0
-
-                if build == "barracks":
-                    if state[0][0] >= 150/3000:
-                        action_index = 4
-                        self.build_index += 1
-                    elif state[0][4] >= 1/200:
-                        action_index = 5
-                    else:
-                        action_index = 0
+            action_probs = self.help_policy([state])[0]
         else:
-            if random.random() < self.epsilon:
-                action_probs = [1/self.action_dim]*self.action_dim
-                # "print("Random action")
-            else:
-                action_probs = self.sess.run(self.actions_softmax, feed_dict={
-                    self.actor.state: state
-                })
-                #print("No_op: " + '%.3e' % action_probs[0] +
-
-                 #     ".  SCV: " + '%.3e' % action_probs[1] +
-
-                  #    ".  Supply: " + '%.3e' % action_probs[2] +
-
-                   #   ".  Marine: " + '%.3e' % action_probs[3] +
-
-                    #  ".  Rax: " + '%.3e' % action_probs[4] +
-
-                     # ".  Mine: " + '%.3e' % action_probs[5] +
-
-                      #".  Attack: " + '%.3e' % action_probs[6])
-                # if math.isnan(action_probs[0]):
-                #weights = self.actor.model.get_weights()
-                #print("Found nan")
-            action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
+            action_probs = self.sess.run(self.actions_softmax, feed_dict={
+                self.actor.state: state
+            })
+            # print("No_op: " + '%.3e' % action_probs[0] +
+            #
+            #       ".  SCV: " + '%.3e' % action_probs[1] +
+            #
+            #       ".  Supply: " + '%.3e' % action_probs[2] +
+            #
+            #       ".  Marine: " + '%.3e' % action_probs[3] +
+            #
+            #       ".  Rax: " + '%.3e' % action_probs[4] +
+            #
+            #       ".  Mine: " + '%.3e' % action_probs[5] +
+            #
+            #       ".  Attack: " + '%.3e' % action_probs[6])
+            # if math.isnan(action_probs[0]):
+            #weights = self.actor.model.get_weights()
+            #print("Found nan")
+        action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
         # print(game_state.reward+bonusreward)
         if self.GOOD_GAME and self.episode > 0:
@@ -276,7 +224,9 @@ class ActorCriticAgent:
             self.actions: actions
         })
 
-        self.actor.train(states, action_one_hots, advantages)
+        imitation_actions = self.help_policy(states)
+
+        self.actor.train(states, action_one_hots, advantages, imitation_actions)
         self.critic.train(states, state_values)
 
     def probs_to_one_hot(self, probabilities):
@@ -286,3 +236,60 @@ class ActorCriticAgent:
             one_hot = tf.one_hot(tf.nn.top_k(a).indices, tf.shape(a)[0]).eval(session=self.sess)
             one_hot_tensor.append(one_hot[0])
         return np.array(one_hot_tensor)
+
+    def help_policy(self, states):
+        actions = []
+        for state in states:
+            state = [state]
+            if self.build_index >= len(self.build_order):
+                if state[0][7] < 6 / 10:
+                    if state[0][0] >= 150 / 3000:
+                        action_index = 4
+                    elif state[0][4] >= 1 / 200:
+                        action_index = 5
+                    else:
+                        action_index = 0
+                elif state[0][8] >= 10 / 200 and random.random() < 0.1:
+                    action_index = 6
+                elif state[0][4] >= 1 / 200:
+                    action_index = 5
+                elif state[0][3] - state[0][2] <= 3 / 200 and state[0][0] > 100 / 3000:
+                    action_index = 2
+                elif state[0][3] - state[0][2] >= 1 / 200 and state[0][0] > 50 / 3000:
+                    action_index = 3
+                elif state[0][4] >= 1 / 200:
+                    action_index = 5
+                else:
+                    action_index = 0
+            else:
+                build = self.build_order[self.build_index]
+                if build == "scv":
+                    if state[0][0] >= 50 / 3000 and state[0][3] - state[0][2] >= 1 / 200:
+                        action_index = 1
+                        self.build_index += 1
+                    elif state[0][4] >= 1 / 200:
+                        action_index = 5
+                    else:
+                        action_index = 0
+
+                if build == "supply":
+                    if state[0][0] >= 100 / 3000:
+                        action_index = 2
+                        self.build_index += 1
+                    elif state[0][4] >= 1 / 200:
+                        action_index = 5
+                    else:
+                        action_index = 0
+
+                if build == "barracks":
+                    if state[0][0] >= 150 / 3000:
+                        action_index = 4
+                        self.build_index += 1
+                    elif state[0][4] >= 1 / 200:
+                        action_index = 5
+                    else:
+                        action_index = 0
+            action_one_hot = [0] * self.action_dim
+            action_one_hot[action_index] = 1
+            actions.append(action_one_hot)
+        return actions

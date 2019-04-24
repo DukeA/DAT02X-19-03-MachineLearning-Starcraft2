@@ -23,7 +23,8 @@ class ActorNetwork(object):
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
         self.UPDATE_STEPS = UPDATE_STEPS
-        self.ENTROPY_WEIGHT = 0.02
+        self.ENTROPY_WEIGHT = 0.005
+        self.IMITATION_WEIGHT = 100
 
         K.set_session(sess)
 
@@ -36,17 +37,21 @@ class ActorNetwork(object):
 
         self.action_one_hot = tf.placeholder(dtype=tf.float32)
         self.advantages = tf.placeholder(dtype=tf.float32)
+        self.imitation_actions = tf.placeholder(dtype=tf.float32)
 
         negative_likelihoods = tf.nn.softmax_cross_entropy_with_logits_v2(
             labels=self.action_one_hot, logits=self.model_policy)
         weighted_negative_likelihoods = tf.multiply(negative_likelihoods, self.advantages)
+
         self.policy_loss = tf.reduce_mean(weighted_negative_likelihoods)
 
         self.entropy_loss = - tf.reduce_sum(self.softmax_policy * tf.log(self.softmax_policy))
 
-        total_loss = self.policy_loss - self.entropy_loss * self.ENTROPY_WEIGHT
+        self.imitation_loss = tf.reduce_mean(tf.losses.mean_squared_error(self.softmax_policy, self.imitation_actions))
 
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.LEARNING_RATE)
+        total_loss = self.policy_loss - self.entropy_loss * self.ENTROPY_WEIGHT + self.imitation_loss * self.IMITATION_WEIGHT
+
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=self.LEARNING_RATE)
         self.gradients = optimizer.compute_gradients(total_loss)
         capped_gvs = [(self.ClipIfNotNone(grad), var) for grad, var in self.gradients]
         self.optimize = optimizer.apply_gradients(capped_gvs)
@@ -77,7 +82,7 @@ class ActorNetwork(object):
 
         self.sess.run(tf.global_variables_initializer())
 
-    def train(self, states, action_one_hot, advantages):
+    def train(self, states, action_one_hot, advantages, imitation_actions):
         # grads = self.sess.run(self.gradients, feed_dict={
         #    self.state: states,
         #    self.action_one_hot: action_one_hot,
@@ -86,7 +91,8 @@ class ActorNetwork(object):
         self.sess.run(self.optimize, feed_dict={
             self.state: states,
             self.action_one_hot: action_one_hot,
-            self.advantages: advantages
+            self.advantages: advantages,
+            self.imitation_actions: imitation_actions
         })
         # test1 = self.sess.run(self.model_policy, feed_dict={
         #    self.state: states,
@@ -101,14 +107,19 @@ class ActorNetwork(object):
             self.action_one_hot: action_one_hot,
             self.advantages: advantages
         })
-        #print("Policy loss", policy_loss)
+        print("Policy loss", policy_loss)
         entropy_loss = self.sess.run(self.entropy_loss, feed_dict={
             self.state: states,
         })
-        #print("Entropy loss", entropy_loss)
+        print("Total entropy loss", entropy_loss * self.ENTROPY_WEIGHT)
+        imitation_loss = self.sess.run(self.imitation_loss, feed_dict={
+            self.state: states,
+            self.imitation_actions: imitation_actions
+        })
+        print("Total imitation loss", imitation_loss * self.IMITATION_WEIGHT)
 
-        self.avg_policy_loss += policy_loss
-        self.avg_entropy_loss += entropy_loss
+        # self.avg_policy_loss += policy_loss
+        # self.avg_entropy_loss += entropy_loss
         # if self.predict_iter >= self.num_avg:
         #     self.ax1.scatter(self.plot_iter, self.avg_policy_loss/self.num_avg, s=3, c='blue')
         #     self.ax2.scatter(self.plot_iter, self.avg_entropy_loss /
