@@ -59,10 +59,8 @@ def main(unused_argv):
                     use_feature_units=True,
                     use_raw_units=True,
                     use_camera_position=True),
-                step_mul=8,  # about 200 APM
-                game_steps_per_episode=30000,  # Ends after 13 minutes (real-time)16 * 60 * 0 * 1.4
-                # save_replay_episodes=1, #How often do you save replays
-                # replay_dir="C:/Users/Claes/Desktop/StarCraft2Replays", # Need to change to your own path
+                step_mul=8,
+                game_steps_per_episode=30000,
                 visualize=False,
                 disable_fog=True) as env:
             while True:
@@ -132,7 +130,7 @@ def main(unused_argv):
                                 [agent.actor_critic_agent.prev_state[0],
                                  agent.actor_critic_agent.prev_actions, end_reward, state[0], True])
 
-                        if save_buffer:
+                        if save_buffer and agent.reward == 1:
                             filehandler = open("good_buffer.data", 'wb')
                             pickle.dump(agent.actor_critic_agent.good_buffer, filehandler)
                             print(len(agent.actor_critic_agent.good_buffer))

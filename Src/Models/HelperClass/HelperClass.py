@@ -1,13 +1,13 @@
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units, features
+from pysc2.lib import actions, units
 import numpy as np
 from Models.BuildOrders.ActionSingleton import ActionSingleton
-from Models.Predefines.Coordinates import Coordinates
 import random
+
 
 class HelperClass(base_agent.BaseAgent):
 
-    #Moves to camera to a self.base_location
+    # Moves to camera to a self.base_location
     def move_camera_to_base_location(self, obs):
         return actions.FUNCTIONS.move_camera(self.base_location)
 
@@ -104,12 +104,6 @@ class HelperClass(base_agent.BaseAgent):
         # The camera takes up 24 units.
         delta_x = round((x-42)/(200*84/(24*64)))
         delta_y = round((y-42)/(200*84/(24*64)))
-
-        # print(current_minimap_coordinates)
-        # print(relative_coordinates)
-        # print((delta_x, delta_y))
-        # print((delta_x+current_minimap_coordinates[0], delta_y+current_minimap_coordinates[1]))
-
         new_action = [actions.FUNCTIONS.move_camera((delta_x+current_minimap_coordinates[0],
                                                      delta_y+current_minimap_coordinates[1]))]
 
@@ -141,22 +135,21 @@ class HelperClass(base_agent.BaseAgent):
             units.Terran.Starport: actions.FUNCTIONS.Build_Starport_screen
         }
 
-        build_screen_action = action_types.get(building_type, actions.FUNCTIONS.Build_SupplyDepot_screen)
+        build_screen_action = action_types.get(
+            building_type, actions.FUNCTIONS.Build_SupplyDepot_screen)
 
         if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
             if HelperClass.do_action(self, obs, build_screen_action.id):
                 coordinates = (HelperClass.sigma(coordinates[0]), HelperClass.sigma(coordinates[1]))
                 new_action = [build_screen_action("now", coordinates)]
-                if building_type is not units.Terran.CommandCenter:
-                    self.game_state.add_unit_in_progress(
-                        self, HelperClass.get_current_minimap_location(obs), coordinates, building_type.value)
 
         return new_action
 
     def check_minimap_for_units(self, obs, camera_coordinate):
         camera_coordinate = [int(coord) for coord in camera_coordinate]
         minimap_player_relative = obs.observation.feature_minimap[5]
-        minimap_screen_area_rows = minimap_player_relative[(camera_coordinate[1] - 4):(camera_coordinate[1] + 2)]
+        minimap_screen_area_rows = minimap_player_relative[(
+            camera_coordinate[1] - 4):(camera_coordinate[1] + 2)]
         minimap_screen_area = np.array(
             [row[(camera_coordinate[0] - 4):(camera_coordinate[0] + 2)] for row in minimap_screen_area_rows])
         friendly_unit_indexes = np.where(minimap_screen_area == 1)

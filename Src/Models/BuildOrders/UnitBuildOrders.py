@@ -1,10 +1,8 @@
-
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
-
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
-import random
+
 
 """
 @Author :Adam Grandén

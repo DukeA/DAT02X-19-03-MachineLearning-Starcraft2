@@ -1,12 +1,10 @@
 import random
-
 from pysc2.agents import base_agent
 from pysc2.lib import actions, units
-
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
-from Models.HelperClass.IsPossible import IsPossible
+
 
 """
 The Class belongs to the Build Order request
@@ -50,10 +48,12 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
-            coordinates = BuildOrders.find_placement(self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
+            coordinates = BuildOrders.find_placement(
+                self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
 
             if coordinates is not None:
-                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0], coordinates[1])
+                new_action = HelperClass.place_building(
+                    self, obs, units.Terran.Barracks, coordinates[0], coordinates[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -82,7 +82,8 @@ class BuildOrders(base_agent.BaseAgent):
                 x = random.randint(2, 82)
                 y = random.randint(2, 82)
                 if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
-                    new_action = HelperClass.place_building(self, obs, units.Terran.SupplyDepot, x, y)
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.SupplyDepot, x, y)
                     break
 
         self.reqSteps -= 1
@@ -167,7 +168,8 @@ class BuildOrders(base_agent.BaseAgent):
                           if u.unit_type == units.Terran.Refinery
                           and u.alliance == 1]
             if len(refineries) == 0 and len(geysers) > 0:
-                new_action = HelperClass.place_building(self, obs, units.Terran.Refinery, geysers[0].x, geysers[0].y)
+                new_action = HelperClass.place_building(
+                    self, obs, units.Terran.Refinery, geysers[0].x, geysers[0].y)
             elif len(refineries) == 1 and len(geysers) == 2:
                 geyser_loc_1 = (geysers[0].x, geysers[0].y)
                 geyser_loc_2 = (geysers[1].x, geysers[1].y)
@@ -279,10 +281,12 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
-            coordinates = BuildOrders.find_placement(self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
+            coordinates = BuildOrders.find_placement(
+                self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
 
             if coordinates is not None:
-                new_action = HelperClass.place_building(self, obs, units.Terran.Factory, coordinates[0], coordinates[1])
+                new_action = HelperClass.place_building(
+                    self, obs, units.Terran.Factory, coordinates[0], coordinates[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -315,10 +319,12 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
-            coordinates = BuildOrders.find_placement(self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
+            coordinates = BuildOrders.find_placement(
+                self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
 
             if coordinates is not None:
-                new_action = HelperClass.place_building(self, obs, units.Terran.Starport, coordinates[0], coordinates[1])
+                new_action = HelperClass.place_building(
+                    self, obs, units.Terran.Starport, coordinates[0], coordinates[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -422,26 +428,13 @@ class BuildOrders(base_agent.BaseAgent):
                 else:
                     t = Coordinates.CC_LOCATIONS2[self.expo_loc]
                 if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
-                    new_action = HelperClass.place_building(self, obs, units.Terran.CommandCenter, t[0], t[1])
-                    minimap_location = HelperClass.get_current_minimap_location(obs)
-                    self.game_state.add_unit_in_progress(self, minimap_location, t, units.Terran.CommandCenter.value)
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.CommandCenter, t[0], t[1])
+
                 self.expo_loc = None
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
-
-    def choose_screen_location(self, top_start):  # returns a location based on the start location
-        if top_start:
-            return Coordinates().CC_LOCATIONS[self.expo_loc]
-        else:
-            return Coordinates().CC_LOCATIONS2[self.expo_loc]
-
-    def choose_location(self, top_start):
-        # returns a location based on the start location
-        if top_start:
-            return Coordinates().EXPO_LOCATIONS[self.expo_loc]
-        else:
-            return Coordinates().EXPO_LOCATIONS2[self.expo_loc]
 
     def is_valid_placement(self, obs, screen_coordinates, building_radius):
         """Checks if a location and a radius around it is a suitable place to build a building.

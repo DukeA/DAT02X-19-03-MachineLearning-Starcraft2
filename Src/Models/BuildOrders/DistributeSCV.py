@@ -1,9 +1,6 @@
 import random
 import numpy as np
-
-from pysc2.agents import base_agent
-from pysc2.lib import actions, units, features
-
+from pysc2.lib import actions, units
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
@@ -61,8 +58,8 @@ class DistributeSCV:
             elif self.camera_moved:
                 self.camera_moved = False
                 #  If on the first loop through expo locations and there is a command center, add this to the total num
-                #if self.curr_step < 2*len(command_centers_pos) and len(command_centers) > 0:
-                    #self.num_command_centers += 1
+                # if self.curr_step < 2*len(command_centers_pos) and len(command_centers) > 0:
+                #self.num_command_centers += 1
 
         elif self.curr_step % steps_needed == 1:  #
 
@@ -87,7 +84,8 @@ class DistributeSCV:
                         refinery_scv_ideal_diff = refinery.assigned_harvesters - self.refinery_desired_harvesters
 
                         #  Check how many units are selected currently
-                        units_selected = [unit for unit in obs.observation.feature_units if unit.is_selected]
+                        units_selected = [
+                            unit for unit in obs.observation.feature_units if unit.is_selected]
                         num_units_selected = len(units_selected)
 
                         #  Check if this refinery has too few SCV:s
@@ -104,7 +102,8 @@ class DistributeSCV:
                                 else:
                                     action_type = "toggle"
 
-                                new_action = self.select_single_scv_at_minerals(obs, action_type, (refinery.x, refinery.y))
+                                new_action = self.select_single_scv_at_minerals(
+                                    obs, action_type, (refinery.x, refinery.y))
 
                             #  If more than the number of SCV:s missing are selected, deselect at index 0 (first position)
                             elif num_units_selected > abs(refinery_scv_ideal_diff):
@@ -114,7 +113,8 @@ class DistributeSCV:
                             #  If the right amount of SCV:s are selected, assign these to harvest at the refinery
                             elif num_units_selected == abs(refinery_scv_ideal_diff):
                                 if refinery.x > 0 and refinery.y > 0 and refinery.x < 84 and refinery.y < 84:
-                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (refinery.x, refinery.y))]
+                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                                        "now", (refinery.x, refinery.y))]
                                     self.first_scv_selected = False
 
                         #  Check if this refinery has too many SCV:s
@@ -141,17 +141,20 @@ class DistributeSCV:
                                     self.first_scv_selected = True
                                 else:
                                     action_type = "toggle"
-                                new_action = [actions.FUNCTIONS.select_point(action_type, (scv_selected.x, scv_selected.y))]
+                                new_action = [actions.FUNCTIONS.select_point(
+                                    action_type, (scv_selected.x, scv_selected.y))]
                             # Check if the number of SCV:s selected is more than the amount too many. If so, deselect.
                             elif num_units_selected > refinery_scv_ideal_diff:
                                 new_action = self.deselect_at_index(obs, 0)
                                 self.first_scv_selected = False
                             #  Check if the number of SCV:s selected is the amount too many. If so, send to harvest minerals
                             elif num_units_selected == refinery_scv_ideal_diff:
-                                minerals_on_screen = self.get_units_by_type(obs, units.Neutral.MineralField)
+                                minerals_on_screen = self.get_units_by_type(
+                                    obs, units.Neutral.MineralField)
                                 if len(minerals_on_screen) > 0:
                                     mineral = random.choice(minerals_on_screen)
-                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (mineral.x, mineral.y))]
+                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                                        "now", (mineral.x, mineral.y))]
                                     self.first_scv_selected = False
                         #  If refinery has the right amount of SCV:s, reset the first selected variable
                         else:
@@ -164,7 +167,7 @@ class DistributeSCV:
 
                     #  Check if all refineries are checked for the current Command Center
                     if (len(refineries_not_ideal) == 0 or
-                          command_center.assigned_harvesters <= self.min_num_mineral_harvesters) \
+                        command_center.assigned_harvesters <= self.min_num_mineral_harvesters) \
                             and not self.all_refineries_checked:
                         self.num_CC_refineries_checked += 1
 
@@ -201,12 +204,14 @@ class DistributeSCV:
                             if not self.first_scv_selected:
                                 action_type = "select"
                                 self.first_scv_selected = True
-                                new_action = self.select_single_scv_at_minerals(obs, action_type, "mean")
+                                new_action = self.select_single_scv_at_minerals(
+                                    obs, action_type, "mean")
                             else:
                                 action_type = "toggle"
 
                                 if num_units_selected < scv_ideal_diff:
-                                    new_action = self.select_single_scv_at_minerals(obs, action_type, "mean")
+                                    new_action = self.select_single_scv_at_minerals(
+                                        obs, action_type, "mean")
                                 elif num_units_selected > scv_ideal_diff:
                                     new_action = self.deselect_at_index(obs, 0)
 
@@ -232,7 +237,8 @@ class DistributeSCV:
                                 #  these SCV:s to harvest at this Command Center
                                 elif num_units_selected > 0:
 
-                                    minerals_on_screen = self.get_units_by_type(obs, units.Neutral.MineralField)
+                                    minerals_on_screen = self.get_units_by_type(
+                                        obs, units.Neutral.MineralField)
                                     mineral = random.choice(minerals_on_screen)
 
                                     new_action = [
@@ -287,7 +293,8 @@ class DistributeSCV:
                         scv = random.choice(scvs_at_minerals)
                     else:
                         if closest_to_point == "mean":
-                            point = [np.mean([o.x for o in minerals_on_screen]), np.mean([o.y for o in minerals_on_screen])]
+                            point = [np.mean([o.x for o in minerals_on_screen]),
+                                     np.mean([o.y for o in minerals_on_screen])]
                         else:
                             point = closest_to_point
                         min_dist = 84 ** 2
@@ -395,5 +402,3 @@ class DistributeSCV:
             self.all_command_centers_found = True
 
         return
-
-

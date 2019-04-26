@@ -1,7 +1,6 @@
 from pysc2.env import sc2_env
 from pysc2.agents import base_agent
 from pysc2.lib import features, actions
-from Models.ArmyControl.ArmyControl import ArmyControl
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from absl import app
@@ -73,6 +72,7 @@ def main(unused_argv):
 
     except KeyboardInterrupt:
         pass
+
 
 if __name__ == "__main__":
     app.run(main)

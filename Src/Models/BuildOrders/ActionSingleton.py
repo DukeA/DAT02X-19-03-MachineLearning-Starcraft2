@@ -1,10 +1,9 @@
-
-
 from Models.BuildOrders.Singleton import Singelton
 
 """
 The class is a singelton pattern to get the actions to the ai robot.
 """
+
 
 class ActionSingleton(metaclass=Singelton):
 

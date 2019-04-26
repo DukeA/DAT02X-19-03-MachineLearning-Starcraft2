@@ -1,21 +1,13 @@
 import numpy as np
 import random
-import math
-import argparse
-from keras.models import model_from_json, Model
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.optimizers import Adam
 import tensorflow as tf
-# from keras.engine.training import _collect_trainable_weights
 import json
 
-from Models.MachineLearning.ReplayBuffer import ReplayBuffer
 from Models.MachineLearning.ActorNetwork import ActorNetwork
 from Models.MachineLearning.CriticNetwork import CriticNetwork
-import timeit
 
 from collections import deque
+
 
 class ActorCriticAgent:
     def __init__(self, state_dim, action_space, epsilon):
@@ -45,9 +37,7 @@ class ActorCriticAgent:
         np.random.seed(1337)
 
         self.epsilon = epsilon
-        self.indicator = 0
         self.episode = 0
-        self.NUM_STEPS_UNTIL_UPDATE = 10
 
         # Tensorflow GPU optimization
         self.config = tf.ConfigProto()
@@ -57,9 +47,9 @@ class ActorCriticAgent:
         k.set_session(self.sess)
 
         self.actor = ActorNetwork(self.sess, self.state_dim, self.action_dim,
-                                  self.BATCH_SIZE, self.TAU, self.LRA, self.NUM_STEPS_UNTIL_UPDATE)
+                                  self.BATCH_SIZE, self.TAU, self.LRA)
         self.critic = CriticNetwork(self.sess, self.state_dim, self.BATCH_SIZE,
-                                    self.TAU, self.LRC, self.NUM_STEPS_UNTIL_UPDATE)
+                                    self.TAU, self.LRC)
 
         self.actions = tf.placeholder(tf.int32)
         self.action_one_hot = tf.one_hot(self.actions, self.action_dim)
@@ -67,7 +57,6 @@ class ActorCriticAgent:
         self.total_reward = 0
         self.prev_state = None
         self.prev_actions = None
-        self.bonusreward = 0
 
         self.actions_softmax = tf.nn.softmax(self.actor.model.output[0])
 
@@ -81,11 +70,8 @@ class ActorCriticAgent:
             self.actor.model.load_weights("actormodel.h5")
             self.critic.model.load_weights("criticmodel.h5")
             print("Weights loaded successfully")
-        except:
+        except IOError:
             print("Could not find weights")
-
-        # Batch variables
-        # self.loss = 0
 
     def predict(self, game_state, obs):
         state, oldscore, map = game_state.get_state_now(obs)
@@ -95,25 +81,9 @@ class ActorCriticAgent:
             action_probs = self.sess.run(self.actions_softmax, feed_dict={
                 self.actor.state: state
             })
-            # print("No_op: " + '%.3e' % action_probs[0] +
-            #
-            #       ".  SCV: " + '%.3e' % action_probs[1] +
-            #
-            #       ".  Supply: " + '%.3e' % action_probs[2] +
-            #
-            #       ".  Marine: " + '%.3e' % action_probs[3] +
-            #
-            #       ".  Rax: " + '%.3e' % action_probs[4] +
-            #
-            #       ".  Mine: " + '%.3e' % action_probs[5] +
-            #
-            #       ".  Attack: " + '%.3e' % action_probs[6])
-            # if math.isnan(action_probs[0]):
-            #weights = self.actor.model.get_weights()
-            #print("Found nan")
+
         action_index = np.random.choice(range(self.action_dim), 1, p=action_probs)[0]
 
-        # print(game_state.reward+bonusreward)
         if self.GOOD_GAME and self.episode > 0:
             self.good_buffer.append([self.prev_state[0], self.prev_actions,
                                      0, state[0], False])
@@ -122,52 +92,7 @@ class ActorCriticAgent:
             self.buffer.append(
                 [self.prev_state[0], self.prev_actions, 0, state[0], False])  # Add replay
 
-        # print("Reward: ", game_state.reward+bonusreward)
-
-        # discourage bad supplydepots
-        # if ((state[0][3]-state[0][2] > 15/200) or state[0][3] == 1) and action_index == 2:
-        #     self.bonusreward = -100
-            #print(self.bonusreward + game_state.reward)
-        # encourage good supplydepots
-        # if (state[0][3]-state[0][2] < 3/200) and action_index == 2:
-        #     bonusreward = 80
-        # discourage too many scvs
-        # if state[0][9] >= 24/200 and action_index == 1:
-        #     self.bonusreward = -80
-        # encourage return scv
-        # if state[0][4] >= 2/200 and action_index == 5 and not state[0][4] >= 20:
-        #     self.bonusreward = 20
-        # discourage doing nothing
-        # if state[0][0] > 500/3000 and action_index == 0:
-        #     bonusreward = -40
-
-        # checking if returnscv possible
-        # if state[0][4] == 0 and action_index == 5:
-        #     # print("bad return")
-        #     bonusreward = -1
-        # # check if build marine is possible
-        # if (state[0][7] == 0 or state[0][0] < 50/3000 or state[0][3]-state[0][2] == 0) and action_index == 3:
-        #     # print("bad marine")
-        #     bonusreward = -1
-        # # check is build scv is possible
-        # if (state[0][5] == 0 or state[0][0] < 50/3000 or state[0][3]-state[0][2] == 0) and action_index == 1:
-        #     # print("bad scv")
-        #     bonusreward = -1
-        # # check build supply depot possible
-        # if state[0][0] < 100/3000 and action_index == 2:
-        #     # print("bad supplydepot")
-        #     bonusreward = -1
-        # # check build barracks possible
-        # if (state[0][6] == 0 or state[0][0] < 150/3000) and action_index == 4:
-        #     # print("bad barrack")
-        #     bonusreward = -1
-        # # check if attack is possible
-        # if state[0][8] <= 5/200 and action_index == 6:
-        #     # print("bad attack")
-        #     bonusreward = -1
-
-        self.total_reward += game_state.reward+self.bonusreward
-        self.bonusreward = 0
+        self.total_reward += game_state.reward
         self.prev_actions = action_index
         self.prev_state = state
         self.episode += 1

@@ -10,6 +10,8 @@ import random
 """
 This class manages the army and scouting.
 """
+
+
 class ArmyControl(base_agent.BaseAgent):
     def __init__(self):
         super(ArmyControl, self).__init__()
@@ -83,7 +85,7 @@ class ArmyControl(base_agent.BaseAgent):
         new_action = [actions.FUNCTIONS.no_op()]
 
         if location is None:
-            location = [32,32]
+            location = [32, 32]
 
         if self.reqSteps == 0:
             self.reqSteps = 4
@@ -124,9 +126,11 @@ class ArmyControl(base_agent.BaseAgent):
             if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
                 if actions.FUNCTIONS.Move_minimap.id in obs.observation.available_actions:
                     if self.start_top:
-                        self.scout_loc = random.choice(Coordinates.EXPO_LOCATIONS2+[Coordinates.START_LOCATIONS[1]])
+                        self.scout_loc = random.choice(
+                            Coordinates.EXPO_LOCATIONS2+[Coordinates.START_LOCATIONS[1]])
                     else:
-                        self.scout_loc = random.choice(Coordinates.EXPO_LOCATIONS2+[Coordinates.START_LOCATIONS[0]])
+                        self.scout_loc = random.choice(
+                            Coordinates.EXPO_LOCATIONS2+[Coordinates.START_LOCATIONS[0]])
 
                     self.last_scout = self.steps
                     self.action_finished = True
@@ -212,7 +216,8 @@ class ArmyControl(base_agent.BaseAgent):
             if actions.FUNCTIONS.select_army.id in obs.observation.available_actions:
                 new_action = [actions.FUNCTIONS.select_army("select")]
             else:
-                self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
+                # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
+                self.reqSteps = -1
 
         elif self.reqSteps == 1:
             if HelperClass.is_unit_selected(self, obs, units.Terran.Marine):
@@ -221,6 +226,7 @@ class ArmyControl(base_agent.BaseAgent):
                     if obs.observation.multi_select[i].unit_type == units.Terran.Marine:
                         self.marine_count += 1
 
-            self.reqSteps = -1    # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
+            # Fulhack, men detta gör så att attack selector alltid kan göra detta först.
+            self.reqSteps = -1
 
         ActionSingleton().set_action(new_action)

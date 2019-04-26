@@ -71,8 +71,6 @@ class AiBot(base_agent.BaseAgent):
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
             self.game_state = State(self)
-            self.game_state.add_unit_in_progress(
-                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
 
         action = [actions.FUNCTIONS.no_op()]
 

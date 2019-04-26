@@ -1,27 +1,19 @@
-import numpy as np
-import math
-from keras.initializers import normal, identity
-from keras.models import model_from_json, load_model
-#from keras.engine.training import collect_trainable_weights
-from keras.models import Sequential
-from keras.layers import Dense, Flatten, Input, merge, Lambda, Activation, add
-from keras.models import Sequential, Model
+from keras.layers import Dense, Input
+from keras.models import Model
 from keras.optimizers import Adam
 import keras.backend as K
-import tensorflow as tf
+
 
 HIDDEN1_UNITS = 64
 HIDDEN2_UNITS = 128
-HIDDEN3_UNITS = 200
 
 
 class CriticNetwork(object):
-    def __init__(self, sess, state_size, BATCH_SIZE, TAU, LEARNING_RATE, UPDATE_STEPS):
+    def __init__(self, sess, state_size, BATCH_SIZE, TAU, LEARNING_RATE):
         self.sess = sess
         self.BATCH_SIZE = BATCH_SIZE
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
-        self.UPDATE_STEPS = UPDATE_STEPS
 
         K.set_session(sess)
 

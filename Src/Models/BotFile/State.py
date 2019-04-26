@@ -1,10 +1,7 @@
 import random
 import numpy as np
-import statistics
-
-from pysc2.lib import actions, units, features
+from pysc2.lib import actions, units
 from collections import defaultdict
-
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
 
@@ -27,47 +24,10 @@ class State:
         self.idle_workers = 0
         self.oldscore = 1000
         self.reward = 0
-        self.action_issued = None
-        self.state_tuple = []
 
         self.last_attacked = 0
         self.units_attacked = 0
-
-        # Variables required for updating the game state
-
-        # Information about buildings placed but not yet found is stored here on the form
-        # [coordinate, unit_type, step it was created, if it has been found]
-        self.units_in_progress = []
-        self.update_steps_per_unit = 4  # Steps required to add each unit in units_in_progress to a control group
-        # Threshold steps for finding a building before it's removed from
-        self.update_building_step_threshold = 400
-        self.units_amounts_updated = False
-        self.unit_weight = 50
-        self.current_unit = None
-
         self.bot_obj = bot_obj
-
-        # Constants
-        # Action space of actions whose success is easily evaluated with observation.last_actions[0].
-        self.action_space = {
-            42: "build_barracks",
-            91: "build_supply_depot",
-            79: "build_refinery",
-            44: "expand",
-            76: "build_factory",
-            89: "build_starport",
-            94: "build_tech_lab_barracks",
-            477: "build_marine",
-            476: "build_marauder",
-            488: "build_reaper",
-            470: "build_hellion",
-            478: "build_medivac",
-            498: "build_viking",
-            490: "build_scv",
-            0: "no_op"
-        }
-        # For reference, the rest of the action space is:
-        # {attack, retreat, scout, distribute_scv, return_scv, transform_vikings_to_ground, transform_vikings_to_air}
 
     def get_state(self):
         """
@@ -87,22 +47,6 @@ class State:
 
         if bot_obj.reqSteps == 0:
             bot_obj.reqSteps = 3
-
-            # Find latest issued action
-            if bot_obj.action_finished:
-                # This catches everything in ArmyControl, return_scv() and distribute_scv()
-                bot_obj.action_finished = False
-                self.action_issued = bot_obj.earlier_action
-            else:
-                # This catches the rest
-                if len(obs.observation.last_actions) > 0:
-                    self.action_issued = self.action_space.get(
-                        obs.observation.last_actions[0], "no_op")
-                else:
-                    self.action_issued = "no_op"
-
-            # Saves last state and last action in a tuple
-                    # Selects control group 9
             new_action = [actions.FUNCTIONS.select_control_group("recall", 9)]
 
         # Section for adding unselected production building to control group 9.
@@ -144,16 +88,10 @@ class State:
         ActionSingleton().set_action(new_action)
 
     def get_state_now(self, obs):
-        self.state_tuple.append((self.minerals, self.vespene, self.food_used, self.food_cap, self.idle_workers,
-                                 dict(self.units_amount), dict(self.enemy_units_amount),
-                                 self.action_issued, self.bot_obj.steps))
 
         # Update any state that doesn't require actions
         oldscore = self.oldscore
         score = obs.observation.score_cumulative.score
-        # (obs.observation.score_cumulative.total_value_units + obs.observation.score_cumulative.total_value_structures +
-        # obs.observation.score_cumulative.killed_value_units +
-        # obs.observation.score_cumulative.killed_value_structures)
         if score != oldscore:
             self.reward = score - self.oldscore
         else:
@@ -251,41 +189,3 @@ class State:
                        u.unit_type == units.Terran.Factory or
                        u.unit_type == units.Terran.Starport
                     )]
-
-    # Method for adding placed buildings to the building queue units_in_progress. Takes current camera_coordinate
-    # and the unit type of the building placed.
-    # Obsolete with raw_units.
-    def add_unit_in_progress(self, bot_obj, camera_coordinate, screen_coordinate, unit_type):
-        # Check if variable types are correct
-        if not isinstance(camera_coordinate, list) and not isinstance(camera_coordinate, tuple):
-            print("Type of camera_coordinate must be a list or tuple.")
-            return False
-        elif not isinstance(unit_type, int):
-            print("Type of unit_type must be an integer.")
-            return False
-        else:  # Everything of correct type. Add to building queue
-            old_camera_coordinate = camera_coordinate
-            camera_coordinate = [coord for coord in old_camera_coordinate]
-            camera_coordinate[0] = camera_coordinate[0] + (screen_coordinate[0] - 42) / 84 * 7
-            camera_coordinate[1] = camera_coordinate[1] + (screen_coordinate[1] - 42) / 84 * 7
-            self.units_in_progress.append([camera_coordinate, unit_type, bot_obj.steps, False])
-            return True
-
-    # Method not finished. Supposed to check minimap for units
-    def check_building_states_from_minimap(self, obs, building_type):
-        building_states = self.get_building_states(building_type)
-
-        found_states = []
-        if len(building_states) != 0:
-            for building in building_states:
-                building_coordinate = building[0]
-                player_relative_value = obs.observation.feature_minimap.player_relative[
-                    int(round(building_coordinate[1]))][int(round(building_coordinate[0]))]
-                if player_relative_value == 1:
-                    found_states.append(building)
-            self.set_building_states(building_type, found_states)
-        else:
-            print("No states for building type " + str(building_type) + ".")
-            return False
-
-        return True
