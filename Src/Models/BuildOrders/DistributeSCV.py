@@ -149,9 +149,10 @@ class DistributeSCV:
                             #  Check if the number of SCV:s selected is the amount too many. If so, send to harvest minerals
                             elif num_units_selected == refinery_scv_ideal_diff:
                                 minerals_on_screen = self.get_units_by_type(obs, units.Neutral.MineralField)
-                                mineral = random.choice(minerals_on_screen)
-                                new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (mineral.x, mineral.y))]
-                                self.first_scv_selected = False
+                                if len(minerals_on_screen) > 0:
+                                    mineral = random.choice(minerals_on_screen)
+                                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen("now", (mineral.x, mineral.y))]
+                                    self.first_scv_selected = False
                         #  If refinery has the right amount of SCV:s, reset the first selected variable
                         else:
                             self.first_scv_selected = False
