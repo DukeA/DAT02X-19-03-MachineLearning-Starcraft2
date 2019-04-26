@@ -11,8 +11,8 @@ import tensorflow as tf
 import keras.backend as K
 
 
-HIDDEN1_UNITS = 16
-HIDDEN2_UNITS = 32
+HIDDEN1_UNITS = 64
+HIDDEN2_UNITS = 128
 HIDDEN3_UNITS = 200
 
 
@@ -23,8 +23,8 @@ class ActorNetwork(object):
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
         self.UPDATE_STEPS = UPDATE_STEPS
-        self.ENTROPY_WEIGHT = 0.005
-        self.IMITATION_WEIGHT = 100
+        self.ENTROPY_WEIGHT = 0.0001
+        self.IMITATION_WEIGHT = 0.1
 
         K.set_session(sess)
 
@@ -37,6 +37,7 @@ class ActorNetwork(object):
 
         self.action_one_hot = tf.placeholder(dtype=tf.float32)
         self.advantages = tf.placeholder(dtype=tf.float32)
+        self.imitation_weight = tf.placeholder(dtype=tf.float32)
         self.imitation_actions = tf.placeholder(dtype=tf.float32)
 
         negative_likelihoods = tf.nn.softmax_cross_entropy_with_logits_v2(
@@ -45,18 +46,18 @@ class ActorNetwork(object):
 
         self.policy_loss = tf.reduce_mean(weighted_negative_likelihoods)
 
-        self.entropy_loss = - tf.reduce_sum(self.softmax_policy * tf.log(self.softmax_policy))
+        self.entropy_loss = - tf.reduce_sum(self.softmax_policy * tf.log(self.softmax_policy+10**-15))
 
-        self.imitation_loss = tf.reduce_mean(tf.losses.mean_squared_error(self.softmax_policy, self.imitation_actions))
+        self.imitation_loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(logits=self.model_policy, onehot_labels=self.imitation_actions))
 
-        total_loss = self.policy_loss - self.entropy_loss * self.ENTROPY_WEIGHT + self.imitation_loss * self.IMITATION_WEIGHT
+        total_loss = self.policy_loss - self.entropy_loss * self.ENTROPY_WEIGHT + self.imitation_loss * self.imitation_weight
 
         optimizer = tf.train.RMSPropOptimizer(learning_rate=self.LEARNING_RATE)
         self.gradients = optimizer.compute_gradients(total_loss)
         capped_gvs = [(self.ClipIfNotNone(grad), var) for grad, var in self.gradients]
         self.optimize = optimizer.apply_gradients(capped_gvs)
 
-        self.num_avg = 50
+        self.num_avg = 30
         self.avg_policy_loss = 0
         self.avg_entropy_loss = 0
 
@@ -88,11 +89,16 @@ class ActorNetwork(object):
         #    self.action_one_hot: action_one_hot,
         #    self.advantages: advantages
         # })
+        #if imitate:
+        imitation_weight = self.IMITATION_WEIGHT
+        #else:
+        #    imitation_weight = 0
         self.sess.run(self.optimize, feed_dict={
             self.state: states,
             self.action_one_hot: action_one_hot,
             self.advantages: advantages,
-            self.imitation_actions: imitation_actions
+            self.imitation_actions: imitation_actions,
+            self.imitation_weight: imitation_weight
         })
         # test1 = self.sess.run(self.model_policy, feed_dict={
         #    self.state: states,
@@ -101,7 +107,7 @@ class ActorNetwork(object):
         # test = self.sess.run(self.softmax_policy, feed_dict={
         #    self.state: states,
         # })
-        # print(test)
+        #print(test)
         policy_loss = self.sess.run(self.policy_loss, feed_dict={
             self.state: states,
             self.action_one_hot: action_one_hot,
@@ -116,7 +122,7 @@ class ActorNetwork(object):
             self.state: states,
             self.imitation_actions: imitation_actions
         })
-        print("Total imitation loss", imitation_loss * self.IMITATION_WEIGHT)
+        print("Total imitation loss", imitation_loss * imitation_weight)
 
         # self.avg_policy_loss += policy_loss
         # self.avg_entropy_loss += entropy_loss
@@ -149,7 +155,7 @@ class ActorNetwork(object):
         return tf.clip_by_value(grad, -1, 1)
 
     def create_actor_network(self, state_size, action_dim):
-        print("Now we build the model")
+        print("Building Actor model")
         S = Input(shape=[state_size])
         h0 = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
         h1 = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(h0)

@@ -53,7 +53,7 @@ def main(unused_argv):
                 map_name="AbyssalReef",
                 players=[sc2_env.Agent(sc2_env.Race.terran),
                          sc2_env.Bot(sc2_env.Race.terran,
-                                     sc2_env.Difficulty.easy)],
+                                     sc2_env.Difficulty.medium)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     use_feature_units=True,
@@ -88,6 +88,11 @@ def main(unused_argv):
                     agent.actor_critic_agent.epsilon *= eps_reduction_factor
                 if agent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.buffer_epsilon_min:
                     agent.actor_critic_agent.buffer_epsilon *= agent.actor_critic_agent.buffer_epsilon_decay
+                if agent.actor_critic_agent.actor.IMITATION_WEIGHT > 0.0001:
+                    agent.actor_critic_agent.actor.IMITATION_WEIGHT *= 0.97
+                else:
+                    agent.actor_critic_agent.actor.IMITATION_WEIGHT = 0.0001
+                print("Imitation weight: ", agent.actor_critic_agent.actor.IMITATION_WEIGHT)
 
                 # For determining win/loss/tie
                 agent.reward = 0
@@ -104,17 +109,17 @@ def main(unused_argv):
                         if agent.reward == 1:
                             last_100.append(1)
                             latest_result = 1
-                            end_reward = 10000
+                            end_reward = 1
                         # If it lost
                         elif agent.reward == -1:
                             last_100.append(0)
                             latest_result = 0
-                            end_reward = -10000
+                            end_reward = -1
                         # If time's up
                         else:
                             last_100.append(0)
                             latest_result = 0
-                            end_reward = -10000
+                            end_reward = -0.5
 
                         agent.actor_critic_agent.total_reward += end_reward
 

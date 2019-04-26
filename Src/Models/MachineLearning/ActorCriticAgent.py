@@ -27,20 +27,20 @@ class ActorCriticAgent:
         self.GAMMA = 0.9995
         self.TAU = 0.1  # Target Network HyperParameters
         self.LRA = 0.00001  # Learning rate for Actor
-        self.LRC = 0.0001  # Lerning rate for Critic
+        self.LRC = 0.00001  # Learning rate for Critic
 
-        self.buffer = deque(maxlen=5000)
+        self.buffer = deque(maxlen=10000)
         self.good_buffer = deque(maxlen=8000)
         self.GOOD_GAME = False
-        self.buffer_epsilon = 0.
-        self.buffer_epsilon_decay = 0.99
+        self.buffer_epsilon = 0
+        self.buffer_epsilon_decay = 1
         self.buffer_epsilon_min = 0.0
 
         ################ Other stuff #####################
 
         self.action_space = action_space
         self.action_dim = len(self.action_space)
-        self.state_dim = state_dim  # TODO Pass variable from State to set this automatically
+        self.state_dim = state_dim
 
         np.random.seed(1337)
 
@@ -80,9 +80,9 @@ class ActorCriticAgent:
         try:
             self.actor.model.load_weights("actormodel.h5")
             self.critic.model.load_weights("criticmodel.h5")
-            print("Weight load successfully")
+            print("Weights loaded successfully")
         except:
-            print("Cannot find the weight")
+            print("Could not find weights")
 
         # Batch variables
         # self.loss = 0
@@ -90,7 +90,7 @@ class ActorCriticAgent:
     def predict(self, game_state, obs):
         state, oldscore, map = game_state.get_state_now(obs)
         if self.GOOD_GAME:
-            action_probs = self.help_policy([state])[0]
+            action_probs = self.help_policy(state)[0]
         else:
             action_probs = self.sess.run(self.actions_softmax, feed_dict={
                 self.actor.state: state
@@ -173,8 +173,10 @@ class ActorCriticAgent:
         self.episode += 1
 
         chosen_action = self.action_space[action_index]
-        # print(chosen_action)
-        # print(action_probs)
+
+        print(action_probs)
+        print("Chosen action: ", chosen_action)
+        print("Help policy action: ", self.action_space[np.argmax(self.help_policy_2(state))])
 
         if chosen_action == "attack":
             game_state.units_attacked = obs.observation.player.army_count/200
@@ -182,9 +184,10 @@ class ActorCriticAgent:
         if(len(self.buffer) > self.BATCH_SIZE):
             if self.buffer_epsilon > random.random():
                 training_batch = random.sample(self.good_buffer, self.BATCH_SIZE)
+                self.train(training_batch, imitate=True)
             else:
                 training_batch = random.sample(self.buffer, self.BATCH_SIZE)
-            self.train(training_batch)
+            self.train(training_batch, imitate=False)
 
         # FOR TESTING
         if np.mod(self.episode, 30) == 0 and self.episode > 0:
@@ -199,7 +202,7 @@ class ActorCriticAgent:
 
         return chosen_action
 
-    def train(self, training_batch):
+    def train(self, training_batch, imitate):
         states = np.asarray([row[0] for row in training_batch])
         actions = np.asarray([row[1] for row in training_batch])
         rewards = np.asarray([row[2] for row in training_batch])
@@ -224,7 +227,7 @@ class ActorCriticAgent:
             self.actions: actions
         })
 
-        imitation_actions = self.help_policy(states)
+        imitation_actions = self.help_policy_2(states)
 
         self.actor.train(states, action_one_hots, advantages, imitation_actions)
         self.critic.train(states, state_values)
@@ -242,15 +245,15 @@ class ActorCriticAgent:
         for state in states:
             state = [state]
             if self.build_index >= len(self.build_order):
-                if state[0][7] < 6 / 10:
+                if state[0][8] >= 10 / 200 and random.random() < 0.1:
+                    action_index = 6
+                elif state[0][7] < 6 / 10 and random.random() < 0.9:
                     if state[0][0] >= 150 / 3000:
                         action_index = 4
                     elif state[0][4] >= 1 / 200:
                         action_index = 5
                     else:
                         action_index = 0
-                elif state[0][8] >= 10 / 200 and random.random() < 0.1:
-                    action_index = 6
                 elif state[0][4] >= 1 / 200:
                     action_index = 5
                 elif state[0][3] - state[0][2] <= 3 / 200 and state[0][0] > 100 / 3000:
@@ -292,4 +295,31 @@ class ActorCriticAgent:
             action_one_hot = [0] * self.action_dim
             action_one_hot[action_index] = 1
             actions.append(action_one_hot)
+        return actions
+
+    def help_policy_2(self, states):
+        actions = []
+        for state in states:
+            state = [state]
+            if state[0][8] >= 20 / 200 and random.random() < 0.9:
+                action_index = 6
+            elif state[0][8] >= 10 / 200 and random.random() < 0.2:
+                action_index = 6
+            elif state[0][6] == 0:
+                action_index = 2
+            elif state[0][7] < 6 / 10 and random.random() < 0.9 and state[0][0] >= 150 / 3000:
+                action_index = 4
+            elif state[0][4] >= 1 / 200:
+                action_index = 5
+            elif state[0][3] - state[0][2] <= 5 / 200 and state[0][0] > 100 / 3000:
+                action_index = 2
+            elif state[0][3] - state[0][2] >= 1 / 200 and state[0][0] > 50 / 3000:
+                action_index = 3
+            else:
+                action_index = 0
+
+            action_one_hot = [0] * self.action_dim
+            action_one_hot[action_index] = 1
+            actions.append(action_one_hot)
+
         return actions

@@ -50,7 +50,7 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
-            coordinates = BuildOrders.find_placement(self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
+            coordinates = BuildOrders.find_placement(self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
 
             if coordinates is not None:
                 new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0], coordinates[1])

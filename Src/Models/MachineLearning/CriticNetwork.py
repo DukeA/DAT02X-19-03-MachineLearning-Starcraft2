@@ -10,8 +10,8 @@ from keras.optimizers import Adam
 import keras.backend as K
 import tensorflow as tf
 
-HIDDEN1_UNITS = 16
-HIDDEN2_UNITS = 32
+HIDDEN1_UNITS = 64
+HIDDEN2_UNITS = 128
 HIDDEN3_UNITS = 200
 
 
@@ -42,7 +42,7 @@ class CriticNetwork(object):
         self.target_model.set_weights(critic_target_weights)
 
     def create_critic_network(self, state_size):
-        print("Now we build the model")
+        print("Building Critic model")
         S = Input(shape=[state_size])
         w1 = Dense(HIDDEN1_UNITS, activation='relu')(S)
         h1 = Dense(HIDDEN2_UNITS, activation='relu')(w1)
