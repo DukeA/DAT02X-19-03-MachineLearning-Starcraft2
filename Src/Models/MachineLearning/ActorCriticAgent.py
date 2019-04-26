@@ -101,7 +101,7 @@ class ActorCriticAgent:
 
         print(action_probs)
         print("Chosen action: ", chosen_action)
-        print("Help policy action: ", self.action_space[np.argmax(self.help_policy_2(state))])
+        print("Help policy action: ", self.action_space[np.argmax(self.help_policy(state))])
 
         if chosen_action == "attack":
             game_state.units_attacked = obs.observation.player.army_count/200
@@ -152,7 +152,7 @@ class ActorCriticAgent:
             self.actions: actions
         })
 
-        imitation_actions = self.help_policy_2(states)
+        imitation_actions = self.help_policy(states)
 
         self.actor.train(states, action_one_hots, advantages, imitation_actions)
         self.critic.train(states, state_values)
