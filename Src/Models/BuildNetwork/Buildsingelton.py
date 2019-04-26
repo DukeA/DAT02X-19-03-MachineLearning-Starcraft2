@@ -14,6 +14,5 @@ class Buildsingelton( metaclass=Singelton):
         return self.location
 
     def set_location(self, x, y):
-        location =[]
-        location.append(x)
-        location.append(y)
+        self.location.append(x)
+        self.location.append(y)

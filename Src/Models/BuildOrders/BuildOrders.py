@@ -31,7 +31,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         """
 
-    def build_barracks(self, obs):
+    def build_barracks(self, obs,building_location):
         """
             Builds a barracks.
         """
@@ -53,12 +53,13 @@ class BuildOrders(base_agent.BaseAgent):
             coordinates = BuildOrders.find_placement(self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
 
             if coordinates is not None:
-                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0], coordinates[1])
+                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, building_location[0],
+                                                        building_location[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 
-    def build_supply_depot(self, obs):
+    def build_supply_depot(self, obs,building_location):
         """
             Builds a supply depot.
         """
@@ -76,8 +77,8 @@ class BuildOrders(base_agent.BaseAgent):
 
         elif self.reqSteps == 1:
             for loop in range(20):
-                x = random.randint(2, 82)
-                y = random.randint(2, 82)
+                x = building_location[0]
+                y = building_location[1]
                 if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
                     new_action = HelperClass.place_building(self, obs, units.Terran.SupplyDepot, x, y)
                     break

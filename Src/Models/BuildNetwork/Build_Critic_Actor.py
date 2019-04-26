@@ -26,9 +26,10 @@ class Build_Critic_Actor:
 
 
     def create_crtic_model(self,build_model,action_state):
-        build_crtic_model_state = Input(shape=build_model)
-        hidden_layer1 = Dense(600, activation='relu', kernel_initializer='random_normal')(build_crtic_model_state)
-        hidden_layer2 = Dense(300, activation='relu', kernel_initializer='random_normal')(hidden_layer1)
+        value = (len(build_model[0]),)
+        build_crtic_model_state = Input(shape=value)
+        hidden_layer1 = Dense(32, activation='relu', kernel_initializer='random_normal')(build_crtic_model_state)
+        hidden_layer2 = Dense(16, activation='relu', kernel_initializer='random_normal')(hidden_layer1)
         build_crtic_action_state = Dense(action_state, activation='linear', kernel_initializer='random_normal')(hidden_layer2)
         build_crtic_model = Model(input=build_crtic_model_state, output=build_crtic_action_state)
         return build_crtic_model, build_crtic_model_state, \

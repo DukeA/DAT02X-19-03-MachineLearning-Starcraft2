@@ -21,7 +21,6 @@ class BuildFacade:
     def set_up(self, obs):
         build_state = BuildModelGather.set_locations(self, obs)
         list = build_state
-        flatten_list = BuildFacade.flatten_list(self, list)
         BuildFacade.build_model = BuildModelLocations.set_building_location(self, list)
         good_locations = Build_location.get_good_locations(self, BuildFacade.build_model)
         action_list = BuildFacade.set_Actions(self)
@@ -31,8 +30,8 @@ class BuildFacade:
             self.reward = (score - self.oldScore) / 200
         else:
             self.reward = 0
-        return np.array([[
-            good_locations, flatten_list, action_list]]), \
+        return np.array([
+            good_locations, action_list]), \
                oldScore, obs.observation.feature_minimap.player_relative
 
         """

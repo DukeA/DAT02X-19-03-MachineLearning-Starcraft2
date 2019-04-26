@@ -7,6 +7,7 @@ from keras import backend
 from werkzeug.wrappers import json
 
 from Models.BuildNetwork.BuildBuffer import BuildBuffer
+from Models.BuildNetwork.Buildsingelton import Buildsingelton
 from Models.BuildNetwork.Build_Actor import Build_Actor
 from Models.BuildNetwork.Build_Critic_Actor import Build_Critic_Actor
 
@@ -70,7 +71,7 @@ class BuildNetwork:
                 print("Cannot find the weight")
 
     def predict_neural_network(self, build_Current_state):
-        if isinstance(self.build_state, int):
+        if isinstance(self.action_space, int):
             state, old_score, map = build_Current_state
         else:
             state, old_score, map = build_Current_state
@@ -82,15 +83,18 @@ class BuildNetwork:
                 self.build_actor: state
             })
         action_index = np.random.choice(range(self.action_space), 1, p=action_probs)[0]
-        if self.episode > 0:
+
+        if self.episode > 1:
             self.memory_Buffer.append([self.prev_state[0], self.prev_actions, build_Current_state.reward,
                                        state[0], False])
         self.prev_actions = action_index
         self.prev_state = state
         self.episode += 1
 
-        chosen_action = self.action_space[action_index]
-        if len((self.memory_Buffer) > self.Batch_Size):
+        chosen_action = self.action_state[action_index]
+        Buildsingelton().set_location(chosen_action[0],chosen_action[1])
+
+        if len(self.memory_Buffer) > self.Batch_Size:
             traning_batch = random.sample(self.memory_Buffer, self.Batch_Size)
             self.train_neural_network(self, traning_batch)
 
@@ -104,7 +108,6 @@ class BuildNetwork:
                     self.critic.model.save_weights("DATA/Results/criticmodel.h5", overwrite=True)
                     with open("DATA/Results/criticmodel.json", "w") as outfile:
                         json.dump(self.critic.model.to_json(), outfile)
-        return chosen_action
 
     def train_neural_network(self, traning_batch):
         states = np.asarray([row[0] for row in traning_batch])
