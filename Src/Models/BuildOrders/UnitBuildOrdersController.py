@@ -1,8 +1,4 @@
-
-
 from pysc2.agents import base_agent
-
-
 from Models.BuildOrders.UnitBuildOrders import UnitBuildOrders
 
 """

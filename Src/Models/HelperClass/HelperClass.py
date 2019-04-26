@@ -1,23 +1,25 @@
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units, features
+from pysc2.lib import actions, units
 import numpy as np
 from Models.BuildOrders.ActionSingleton import ActionSingleton
-from Models.Predefines.Coordinates import Coordinates
 import random
+
 
 class HelperClass(base_agent.BaseAgent):
 
-    #Moves to camera to a self.base_location
+    # Moves to camera to a self.base_location
     def move_camera_to_base_location(self, obs):
         return actions.FUNCTIONS.move_camera(self.base_location)
 
-    def select_all_buildings(self, obs):
+    @staticmethod
+    def select_all_buildings(obs):
         if obs.observation.control_groups[9][1] > 0:
             return [actions.FUNCTIONS.select_control_group("recall", 9)]
         else:
             return [actions.FUNCTIONS.no_op()]
 
-    def sigma(self, num):
+    @staticmethod
+    def sigma(num):
         if num <= 0:
             return 0
         elif num >= 83:
@@ -35,8 +37,8 @@ class HelperClass(base_agent.BaseAgent):
             else:
                 command = random.choice(command_scv)
                 new_action = [actions.FUNCTIONS.select_point(
-                    "select", (HelperClass.sigma(self, command.x),
-                               HelperClass.sigma(self, command.y)))]
+                    "select", (HelperClass.sigma(command.x),
+                               HelperClass.sigma(command.y)))]
         return new_action
 
     def is_unit_selected(self, obs, unit_type):
@@ -72,7 +74,8 @@ class HelperClass(base_agent.BaseAgent):
         return [unit for unit in obs.observation.feature_units
                 if unit.unit_type == unit_type]
 
-    def get_current_minimap_location(self, obs):
+    @staticmethod
+    def get_current_minimap_location(obs):
         """
         Gets the current minimap location (which corresponds to the move_camera coordinate)
         """
@@ -88,19 +91,32 @@ class HelperClass(base_agent.BaseAgent):
         # x-4 to x+2 and y-4 to y+2. Why? No idea.
         return min(x)+4, min(y)+4
 
+    @staticmethod
+    def move_screen(obs, relative_coordinates):
+        """
+        Moves the screen relative to the input coordinates
+        :param obs:
+        :param relative_coordinates: The relative screen coordinates
+        """
+        current_minimap_coordinates = HelperClass.get_current_minimap_location(obs)
+        x, y = relative_coordinates
+        # The map is 200x176 units, but the camera movement works better if it's treated as 200x200 for some reason.
+        # The camera takes up 24 units.
+        delta_x = round((x-42)/(200*84/(24*64)))
+        delta_y = round((y-42)/(200*84/(24*64)))
+        new_action = [actions.FUNCTIONS.move_camera((delta_x+current_minimap_coordinates[0],
+                                                     delta_y+current_minimap_coordinates[1]))]
+
+        return new_action
+
     def no_op(self, obs):
 
         new_action = [actions.FUNCTIONS.no_op()]
 
         if self.reqSteps == 0:
-            self.reqSteps = 2
+            self.reqSteps = 4
 
-        if self.reqSteps == 2:
-            self.reqSteps = 1
-
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-
+        self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 
     def place_building(self, obs, building_type, *coordinates):
@@ -119,14 +135,26 @@ class HelperClass(base_agent.BaseAgent):
             units.Terran.Starport: actions.FUNCTIONS.Build_Starport_screen
         }
 
-        build_screen_action = action_types.get(building_type, actions.FUNCTIONS.Build_SupplyDepot_screen)
+        build_screen_action = action_types.get(
+            building_type, actions.FUNCTIONS.Build_SupplyDepot_screen)
 
         if HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
             if HelperClass.do_action(self, obs, build_screen_action.id):
-                coordinates = (HelperClass.sigma(self, coordinates[0]), HelperClass.sigma(self, coordinates[1]))
+                coordinates = (HelperClass.sigma(coordinates[0]), HelperClass.sigma(coordinates[1]))
                 new_action = [build_screen_action("now", coordinates)]
-                if building_type is not units.Terran.CommandCenter:
-                    self.game_state.add_unit_in_progress(
-                        self, HelperClass.get_current_minimap_location(self, obs), coordinates, building_type.value)
 
         return new_action
+
+    def check_minimap_for_units(self, obs, camera_coordinate):
+        camera_coordinate = [int(coord) for coord in camera_coordinate]
+        minimap_player_relative = obs.observation.feature_minimap[5]
+        minimap_screen_area_rows = minimap_player_relative[(
+            camera_coordinate[1] - 4):(camera_coordinate[1] + 2)]
+        minimap_screen_area = np.array(
+            [row[(camera_coordinate[0] - 4):(camera_coordinate[0] + 2)] for row in minimap_screen_area_rows])
+        friendly_unit_indexes = np.where(minimap_screen_area == 1)
+
+        if len(friendly_unit_indexes[0]) > 0:
+            return True
+        else:
+            return False

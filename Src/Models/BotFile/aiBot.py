@@ -12,6 +12,10 @@ from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
 from Models.HelperClass.HelperClass import HelperClass
 from Models.BotFile.State import State
+from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
+
+import os
+import pickle
 
 
 class AiBot(base_agent.BaseAgent):
@@ -27,10 +31,23 @@ class AiBot(base_agent.BaseAgent):
         self.next_action = None
         self.earlier_action = None
         self.DistributeSCVInstance = None
+        self.actor_critic_agent = None
         self.game_state = None
         self.game_state_updated = False
+
+        # Basic game state test variables.
+
+        self.last_scout = 0        # Maybe for ML
+        self.marine_count = 0      # Maybe for ML
         self.action_finished = False
-        self.oldScore = 0
+        self.attacking = False
+
+    def save_game(self, path, episode):
+        offset = 0
+        while os.path.exists(path + str(episode)+str(offset)+".txt"):
+            offset += 1
+        with open(path + str(episode)+str(offset)+".txt", 'wb') as filehandle:
+            pickle.dump(self.game_state.get_state(), filehandle)
 
     def step(self, obs, epsilon):
         super(AiBot, self).step(obs)
@@ -55,10 +72,7 @@ class AiBot(base_agent.BaseAgent):
                 self.attack_coordinates = Coordinates.START_LOCATIONS[0]
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
-            self.game_state = State()
-            # The command center isn't actually in the center of the screen!
-            self.game_state.add_unit_in_progress(
-                self, self.base_location, (42, 42), units.Terran.CommandCenter.value)
+            self.game_state = State(self)
 
             self.build_States = BuildFacade.set_up(self, obs)
             self.build_state = self.build_States[1]
@@ -82,18 +96,18 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         if self.next_action == "expand":
-            BuildOrdersController.build_expand(self, obs, self.start_top)
+            BuildOrdersController.build_expand(self, obs)
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_scv":  # build scv
             UnitBuildOrdersController.build_scv(self, obs)
             action = ActionSingleton().get_action()
 
-        # elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
-        #   if self.reqSteps == 0:
-        #      self.DistributeSCVInstance = DistributeSCV()
-        # self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location, 2)
-        # action = ActionSingleton().get_action()
+        elif self.next_action == "distribute_scv":  # Har inte gjort någon controller än
+            if self.reqSteps == 0:
+                self.DistributeSCVInstance = DistributeSCV()
+            self.DistributeSCVInstance.distribute_scv(self, obs, self.base_location)
+            action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
             HelperClass.move_camera_to_base_location(self, obs)

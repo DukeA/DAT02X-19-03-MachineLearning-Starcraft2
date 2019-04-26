@@ -1,15 +1,13 @@
-
-
 from pysc2.agents import base_agent
 from Models.ArmyControl.ArmyControl import ArmyControl
 from Models.HelperClass.HelperClass import HelperClass
 """
  @Author Adam Grandén
- @Class Description: 
+ @Class Description:
  The code  is a controller for the method  Build Methods which sends a
- call to the  BuildOrder method and execute 
+ call to the  BuildOrder method and execute
  the following methods to make it run
- 
+
  Adapted for ArmyControl
 """
 
