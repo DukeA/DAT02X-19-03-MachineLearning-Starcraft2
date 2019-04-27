@@ -1,7 +1,8 @@
-from Models.BuildOrders.Singleton import Singelton
+
+from Models.BuildOrders.Singelton import Singelton
 
 """
-The class is a singelton pattern to get the actions to the ai robot.
+The class is a singleton pattern to get the actions to the ai robot.
 """
 
 

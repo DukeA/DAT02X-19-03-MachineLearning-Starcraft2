@@ -98,7 +98,7 @@ def main(unused_argv):
                 agent.actor_critic_agent.total_reward = 0
 
                 while True:
-                    step_actions = [agent.step(timesteps[0], epsilon)]
+                    step_actions = [agent.step(timesteps[0], epsilon, episode)]
 
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])

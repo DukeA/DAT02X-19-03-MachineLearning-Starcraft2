@@ -98,10 +98,12 @@ class Build_location:
         if len(list) <= 0 or value or empty_tuple:
             return []
         build_location = []
+        build_location_reward =[]
         for i in list:
             area_position = i
             x_pos = math.ceil(area_position[0] - (area_position[2] / 2))
             y_pos = math.ceil(area_position[1] - (area_position[3] / 2))
             reward = int(area_position[2] * area_position[3])
-            build_location.append([x_pos, y_pos, reward])
-        return build_location
+            build_location.append([x_pos, y_pos])
+            build_location_reward.append(reward)
+        return build_location, build_location_reward
