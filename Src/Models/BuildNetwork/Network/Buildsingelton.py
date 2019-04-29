@@ -8,11 +8,12 @@ from Models.BuildOrders.Singelton import Singelton
 class Buildsingelton( metaclass=Singelton):
     def __init__(self):
         super(Buildsingelton,self).__init__()
-        self.location = []
+        self.location_x = 0
+        self.location_y =0
 
     def get_location(self):
-        return self.location
+        return self.location_x,self.location_y
 
     def set_location(self, x, y):
-        self.location.append(x)
-        self.location.append(y)
+        self.location_x = x
+        self.location_y = y

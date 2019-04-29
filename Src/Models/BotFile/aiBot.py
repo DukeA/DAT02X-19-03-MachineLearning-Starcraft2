@@ -56,6 +56,7 @@ class AiBot(base_agent.BaseAgent):
         self.building_location = []
         self.sess = tf.Session()
         self.actions_softmax = 0
+        self.build_location = ()
 
 
     def save_game(self, path, episode):
@@ -69,6 +70,7 @@ class AiBot(base_agent.BaseAgent):
         super(AiBot, self).step(obs)
         self.epsilon = epsilon
         self.episode = episode
+
 
         # first step
         if obs.first():
@@ -91,24 +93,30 @@ class AiBot(base_agent.BaseAgent):
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
             self.game_state = State(self)
+
+
+
+
+        if HelperClass.check_building_at_position(self,obs, Buildsingelton().get_location()) and \
+                len(self.build_location) != 2 or len(self.build_location) == 0:
+            HelperClass.move_camera_to_base_location(self, obs)
             self.build_States = BuildFacade.set_up(self, obs)
 
-        self.build_state_reward = self.build_States[0][0]
-        self.build_state = self.build_States[0][1]
+            self.build_state_reward = self.build_States[0][0]
+            self.build_state = self.build_States[0][1]
 
-        self.action_state = self.build_States[0][2]
+            self.action_state = self.build_States[0][2]
 
-        self.old_score = self.build_States[1]
+            self.old_score = self.build_States[1]
 
-        self.build_state = self.build_States[2]
-        self.build_space = len(self.build_state)
+            self.build_state = self.build_States[2]
+            self.build_space = len(self.build_state)
 
-        self.build_network = BuildNetwork(self.build_state_reward,self.build_state, self.action_state, epsilon)
+            self.build_network = BuildNetwork(self.build_state_reward,self.build_state, self.action_state, epsilon)
 
-        BuildNetwork.predict_neural_network(self.build_network, self.build_States)
+            BuildNetwork.predict_neural_network(self.build_network, self.build_States)
 
-        build_location = Buildsingelton().get_location()
-
+        self.build_location = Buildsingelton().get_location()
 
         action = [actions.FUNCTIONS.no_op()]
 
@@ -136,13 +144,13 @@ class AiBot(base_agent.BaseAgent):
 
         elif self.next_action == "build_supply_depot":  # build supply depot
             HelperClass.move_camera_to_base_location(self, obs)
-            BuildOrdersController.build_supply_depot(self, obs,build_location)
+            BuildOrdersController.build_supply_depot(self, obs,self.build_location)
             action = ActionSingleton().get_action()
 
 
         elif self.next_action == "build_barracks":
             HelperClass.move_camera_to_base_location(self,obs)
-            BuildOrdersController.build_barracks(self, obs,build_location)
+            BuildOrdersController.build_barracks(self, obs,self.build_location)
             action = ActionSingleton().get_action()
 
 

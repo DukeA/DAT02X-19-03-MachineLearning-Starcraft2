@@ -14,8 +14,6 @@ class Coordinates():
     STARPORT_X = 80
     STARPORT_Y = 20
 
-
-
     # minimap locations, reversed exists to simplify spawning in different corners
     EXPO_LOCATIONS = [(22, 18), (13, 26), (18, 32), (22, 26), (31, 19),
                   (13, 42), (22, 51), (41, 15), (50, 24), (32, 47), (41, 40), (45, 35), (50, 40), (41, 48)]
