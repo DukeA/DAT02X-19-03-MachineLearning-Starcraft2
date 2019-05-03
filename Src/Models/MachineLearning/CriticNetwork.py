@@ -36,8 +36,9 @@ class CriticNetwork(object):
     def create_critic_network(self, state_size):
         print("Building Critic model")
         S = Input(shape=[state_size])
-        w1 = Dense(HIDDEN1_UNITS, activation='relu')(S)
-        h1 = Dense(HIDDEN2_UNITS, activation='relu')(w1)
-        V = Dense(1, activation='linear')(h1)
+        x = Dense(32, activation='relu', kernel_initializer='random_normal')(S)
+        x = Dense(32, activation='relu', kernel_initializer='random_normal')(x)
+        x = Dense(16, activation='relu', kernel_initializer='random_normal')(x)
+        V = Dense(1, activation='linear')(x)
         model = Model(inputs=S, outputs=V)
         return model, S, V, model.trainable_weights

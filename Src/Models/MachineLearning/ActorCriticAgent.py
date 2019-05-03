@@ -99,7 +99,13 @@ class ActorCriticAgent:
 
         chosen_action = self.action_space[action_index]
 
-        print(action_probs)
+        print("No_op: " + '%.3e' % action_probs[0] +
+              ".  SCV: " + '%.3e' % action_probs[1] +
+              ".  Supply: " + '%.3e' % action_probs[2] +
+              ".  Marine: " + '%.3e' % action_probs[3] +
+              ".  Rax: " + '%.3e' % action_probs[4] +
+              ".  Mine: " + '%.3e' % action_probs[5] +
+              ".  Attack: " + '%.3e' % action_probs[6])
         print("Chosen action: ", chosen_action)
         print("Help policy action: ", self.action_space[np.argmax(self.help_policy(state))])
 

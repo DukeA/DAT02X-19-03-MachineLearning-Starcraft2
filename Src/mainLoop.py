@@ -21,7 +21,7 @@ def main(unused_argv):
     last_100 = deque(maxlen=100)
     iter = 1
 
-    agent.actor_critic_agent = ActorCriticAgent(30,
+    agent.actor_critic_agent = ActorCriticAgent(15,
                                                 ["no_op",
                                                  "build_scv",
                                                  "build_supply_depot",
