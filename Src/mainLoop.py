@@ -87,7 +87,7 @@ def main(unused_argv):
                 if agent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.buffer_epsilon_min:
                     agent.actor_critic_agent.buffer_epsilon *= agent.actor_critic_agent.buffer_epsilon_decay
                 if agent.actor_critic_agent.actor.IMITATION_WEIGHT > 0.0001:
-                    agent.actor_critic_agent.actor.IMITATION_WEIGHT *= 0.97
+                    agent.actor_critic_agent.actor.IMITATION_WEIGHT *= 0.995
                 else:
                     agent.actor_critic_agent.actor.IMITATION_WEIGHT = 0.0001
                 print("Imitation weight: ", agent.actor_critic_agent.actor.IMITATION_WEIGHT)

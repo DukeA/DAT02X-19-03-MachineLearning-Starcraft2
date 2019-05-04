@@ -158,7 +158,7 @@ class ActorCriticAgent:
             self.actions: actions
         })
 
-        imitation_actions = self.help_policy(states)
+        imitation_actions = self.help_policy_2(states)
 
         self.actor.train(states, action_one_hots, advantages, imitation_actions)
         self.critic.train(states, state_values)

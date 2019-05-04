@@ -15,7 +15,7 @@ class ActorNetwork(object):
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
         self.ENTROPY_WEIGHT = 1e-5
-        self.IMITATION_WEIGHT = 0.1
+        self.IMITATION_WEIGHT = 1
         self.AMPLIFIER = 1e2
 
         K.set_session(sess)
