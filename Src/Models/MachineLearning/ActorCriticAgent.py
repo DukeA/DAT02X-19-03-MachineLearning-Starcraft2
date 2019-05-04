@@ -244,6 +244,8 @@ class ActorCriticAgent:
                 action_index = 5
             elif state[0][3] - state[0][2] <= 5 / 200 and state[0][0] > 100 / 3000:
                 action_index = 2
+            elif state[0][3] - state[0][2] >= 1 / 200 and state[0][0] > 50 / 3000 and state[0][9] < 16/200:
+                action_index = 1
             elif state[0][3] - state[0][2] >= 1 / 200 and state[0][0] > 50 / 3000:
                 action_index = 3
             else:
