@@ -1,4 +1,4 @@
-trafrom keras.layers import Dense, Input
+from keras.layers import Dense, Input
 from keras.models import Model
 from keras.optimizers import Adam
 import keras.backend as K

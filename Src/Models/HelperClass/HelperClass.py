@@ -1,11 +1,12 @@
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units
+from pysc2.lib import actions, units,features
 import numpy as np
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 import random
 
 
 class HelperClass(base_agent.BaseAgent):
+    All_Buildings = []
 
     # Moves to camera to a self.base_location
     def move_camera_to_base_location(self, obs):
@@ -75,25 +76,36 @@ class HelperClass(base_agent.BaseAgent):
                 if unit.unit_type == unit_type]
 
     def check_building_at_position(self, obs, build_location):
-        if len(build_location) < 1:
-            return False
+        if build_location[0] == -1:
+            return True
         unit_type = [units.Terran.Barracks, units.Terran.SupplyDepot]
-        building_done = True
         x = build_location[0]
         y = build_location[1]
         buildings = [unit for unit in obs.observation.feature_units
                      if unit.unit_type == unit_type[0] or unit.unit_type == unit_type[1]]
         if len(buildings) <= 0:
             return False
+        new_building_found = False
         for building in buildings:
+            value = building.owner
+            if value != 1 :
+                return False
             if building.build_progress != 100:
                 return False
-            elif building.build_progress ==100:
-                return True
+            exist = False
+            for existing_building in HelperClass.All_Buildings:
+                if existing_building.x == building.x and existing_building.y == building.y:
+                    exist = True
+            if exist == False:
+                new_building_found = True
+                break
+        if new_building_found == False:
+            return False
+        HelperClass.All_Buildings = []
         for building in buildings:
-            if building.x != x and building.y != y:
-               return False
-        return building_done
+            HelperClass.All_Buildings.append(building)
+        return True
+
 
     @staticmethod
     def get_current_minimap_location(obs):
@@ -129,6 +141,9 @@ class HelperClass(base_agent.BaseAgent):
                                                      delta_y + current_minimap_coordinates[1]))]
 
         return new_action
+
+    def move_camera_to_Start_Base(obs):
+       return True
 
     def no_op(self, obs):
 

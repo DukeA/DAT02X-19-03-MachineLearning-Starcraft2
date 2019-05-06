@@ -7,10 +7,10 @@ import tensorflow as tf
 from keras import backend
 import json
 
-from Models.BuildNetwork.BuildBuffer import BuildBuffer
-from Models.BuildNetwork.Buildsingelton import Buildsingelton
-from Models.BuildNetwork.Build_Actor import Build_Actor
-from Models.BuildNetwork.Build_Critic_Actor import Build_Critic_Actor
+from Models.BuildNetwork.Network.BuildBuffer import BuildBuffer
+from Models.BuildNetwork.Network.Buildsingelton import Buildsingelton
+from Models.BuildNetwork.Network.Build_Actor import Build_Actor
+from Models.BuildNetwork.Network.Build_Critic_Actor import Build_Critic_Actor
 
 
 class BuildNetwork:

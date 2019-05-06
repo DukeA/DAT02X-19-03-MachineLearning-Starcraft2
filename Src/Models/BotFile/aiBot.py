@@ -6,8 +6,8 @@ from Models.BuildOrders.BuildOrdersController import BuildOrdersController
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.BuildNetwork.BuildFacade import BuildFacade
-from Models.BuildNetwork.BuildNetwork import BuildNetwork
-from Models.BuildNetwork.Buildsingelton import Buildsingelton
+from Models.BuildNetwork.Network.BuildNetwork import BuildNetwork
+from Models.BuildNetwork.Network.Buildsingelton import Buildsingelton
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
@@ -97,8 +97,7 @@ class AiBot(base_agent.BaseAgent):
 
 
 
-        if HelperClass.check_building_at_position(self,obs, Buildsingelton().get_location()) and \
-                len(self.build_location) != 2 or len(self.build_location) == 0:
+        if HelperClass.check_building_at_position(self,obs, Buildsingelton().get_location()):
             HelperClass.move_camera_to_base_location(self, obs)
             self.build_States = BuildFacade.set_up(self, obs)
 
@@ -115,6 +114,7 @@ class AiBot(base_agent.BaseAgent):
             self.build_network = BuildNetwork(self.build_state_reward,self.build_state, self.action_state, epsilon)
 
             BuildNetwork.predict_neural_network(self.build_network, self.build_States)
+
 
         self.build_location = Buildsingelton().get_location()
 

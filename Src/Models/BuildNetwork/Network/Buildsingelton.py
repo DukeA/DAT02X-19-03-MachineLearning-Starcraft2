@@ -1,5 +1,5 @@
 
-from Models.BuildOrders.Singelton import Singelton
+from Models.HelperClass.Singelton import Singelton
 
 """
     An singelton class for getting the x and y coordinates
@@ -8,8 +8,8 @@ from Models.BuildOrders.Singelton import Singelton
 class Buildsingelton( metaclass=Singelton):
     def __init__(self):
         super(Buildsingelton,self).__init__()
-        self.location_x = 0
-        self.location_y =0
+        self.location_x = -1
+        self.location_y = -1
 
     def get_location(self):
         return self.location_x,self.location_y
