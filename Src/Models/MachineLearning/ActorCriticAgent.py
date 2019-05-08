@@ -21,7 +21,7 @@ class ActorCriticAgent:
         self.LRA = 0.00001  # Learning rate for Actor
         self.LRC = 0.00001  # Learning rate for Critic
 
-        self.buffer = deque(maxlen=10000)
+        self.buffer = deque(maxlen=100000)
         self.good_buffer = deque(maxlen=8000)
         self.GOOD_GAME = False
         self.buffer_epsilon = 0
