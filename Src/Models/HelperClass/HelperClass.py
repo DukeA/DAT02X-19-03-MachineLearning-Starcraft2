@@ -7,6 +7,7 @@ import random
 
 class HelperClass(base_agent.BaseAgent):
     All_Buildings = []
+    Camera_Position =[]
 
     # Moves to camera to a self.base_location
     def move_camera_to_base_location(self, obs):
@@ -85,6 +86,7 @@ class HelperClass(base_agent.BaseAgent):
                      if unit.unit_type == unit_type[0] or unit.unit_type == unit_type[1]]
         if len(buildings) <= 0:
             return False
+        Camera = obs.observation.camera_position
         new_building_found = False
         for building in buildings:
             value = building.owner
@@ -94,7 +96,7 @@ class HelperClass(base_agent.BaseAgent):
                 return False
             exist = False
             for existing_building in HelperClass.All_Buildings:
-                if existing_building.x == building.x and existing_building.y == building.y:
+                if existing_building[0] == building.x+ Camera[0] and existing_building[1] == building.y+Camera[1]:
                     exist = True
             if exist == False:
                 new_building_found = True
@@ -103,7 +105,9 @@ class HelperClass(base_agent.BaseAgent):
             return False
         HelperClass.All_Buildings = []
         for building in buildings:
-            HelperClass.All_Buildings.append(building)
+            value_x = building.x+Camera[0]
+            value_y = building.y+Camera[1]
+            HelperClass.All_Buildings.append([value_x,value_y])
         return True
 
 
@@ -142,8 +146,14 @@ class HelperClass(base_agent.BaseAgent):
 
         return new_action
 
-    def move_camera_to_Start_Base(obs):
-       return True
+    def find_the_camera_postion(self, obs):
+      Camera = obs.observation.camera_position
+      HelperClass.Camera_Position = []
+      value_x = Camera[0]
+      value_y = Camera[1]
+      HelperClass.Camera_Position.append([value_x,value_y])
+      print (value_x, value_y)
+
 
     def no_op(self, obs):
 

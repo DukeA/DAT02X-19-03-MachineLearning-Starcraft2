@@ -3,7 +3,6 @@ import numpy as np
 from Models.BuildNetwork.BuildingTerranQueue import BuildingTerranQueue
 from Models.BuildNetwork.BuildingNeutral import BuildingsNeutral
 
-
 """
     The class is a wrapper class for the 
     State of the building location which checks the environment and 
@@ -45,7 +44,6 @@ class BuildModelGather:
         self.reward = state.reward
         self.units_in_progress = state.units_in_progress
 
-
     """
         :param The parameter of the observable universe
         The method takes the  environment and sets  the value of the environment in that place.
@@ -64,13 +62,14 @@ class BuildModelGather:
             if (build_units != None):
                 for unit in build_units:
                     for value in unit:
-                        value_x = value[0]
-                        value_y = value[1]
-                        if isinstance(value[2], tuple):
-                            value_type = value[2][0]
-                        else:
-                            value_type = value[2]
-                        viewlist[value_x, value_y] = value_type
+                        if value[0] < 82 or value[1] < 82 or value[0] > 0 or value[1] > 0:
+                            value_x = value[0]
+                            value_y = value[1]
+                            if isinstance(value[2], tuple):
+                                value_type = value[2][0]
+                            else:
+                                value_type = value[2]
+                            viewlist[value_x, value_y] = value_type
         return viewlist
 
     """
@@ -90,7 +89,7 @@ class BuildModelGather:
         for unit in units:
             unit_shape = unit.radius * 2
             coordinates.append(
-                BuildModelGather.set_setsourdingvalues(self, unit.x , unit.y, unit_shape, building_type)
+                BuildModelGather.set_setsourdingvalues(self, unit.x, unit.y, unit_shape, building_type)
             )
         return coordinates
 
@@ -102,15 +101,15 @@ class BuildModelGather:
 
     def get_neutral_object_location(self, obs, neutral_type):
         neutral_units = [unit for unit in obs.observation.feature_units
-                 if unit.unit_type == neutral_type]
+                         if unit.unit_type == neutral_type]
         if not neutral_units:
             return
         neutral_coordinates = []
         for unit in neutral_units:
-            unit_shape = unit.radius*2
+            unit_shape = unit.radius * 2
             for i in range(unit.radius):
                 neutral_coordinates.append(
-                    BuildModelGather.set_setsourdingvalues(self, unit.x , unit.y, unit_shape, neutral_type)
+                    BuildModelGather.set_setsourdingvalues(self, unit.x, unit.y, unit_shape, neutral_type)
                 )
         return neutral_coordinates
 
@@ -124,18 +123,19 @@ class BuildModelGather:
 
     def set_setsourdingvalues(self, unit_x, unit_y, unit_shape, type):
         radius = unit_shape
-        x = unit_x-radius
-        y = unit_y-radius
+        x = unit_x - radius
+        y = unit_y - radius
         diameter = radius
         coordinates_radius = []
         for i in range(diameter):
             for j in range(diameter):
-                coordinates_radius.append((x+i, y+j, type))
+                coordinates_radius.append((x + i, y + j, type))
         return coordinates_radius
 
     """
         An method which builds up an array which has the size of 82  arrays with the size 82
     """
+
     def set_buildmap(self):
         viewlist = np.full((82, 82), 0)
         return viewlist

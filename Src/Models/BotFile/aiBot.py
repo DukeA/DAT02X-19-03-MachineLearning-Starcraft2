@@ -94,12 +94,11 @@ class AiBot(base_agent.BaseAgent):
 
             self.game_state = State(self)
 
-
-
+        HelperClass.find_the_camera_postion(self, obs)
 
         if HelperClass.check_building_at_position(self,obs, Buildsingelton().get_location()):
             HelperClass.move_camera_to_base_location(self, obs)
-            self.build_States = BuildFacade.set_up(self, obs)
+            self.build_States = BuildFacade.set_up(self, obs, self.base_location)
 
             self.build_state_reward = self.build_States[0][0]
             self.build_state = self.build_States[0][1]
@@ -143,13 +142,11 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
-            HelperClass.move_camera_to_base_location(self, obs)
             BuildOrdersController.build_supply_depot(self, obs,self.build_location)
             action = ActionSingleton().get_action()
 
 
         elif self.next_action == "build_barracks":
-            HelperClass.move_camera_to_base_location(self,obs)
             BuildOrdersController.build_barracks(self, obs,self.build_location)
             action = ActionSingleton().get_action()
 

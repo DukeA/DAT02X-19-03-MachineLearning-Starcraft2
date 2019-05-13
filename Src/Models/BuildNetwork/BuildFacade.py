@@ -7,7 +7,7 @@ from Models.BotFile.State import State
 
 
 class BuildFacade:
-    def __init__(self):
+    def __init__(self ):
         self.state = State()
         self.build_state = []
         self.build_model = []
@@ -19,11 +19,11 @@ class BuildFacade:
         self.build_locations = []
         self.oldScore = 0
 
-    def set_up(self, obs):
-        build_state = BuildModelGather.set_locations(self, obs)
+    def set_up(self, obs, base_location):
+        build_state = BuildModelGather.set_locations(self, obs )
         list = build_state
         BuildFacade.build_model = BuildModelLocations.set_building_location(self, list)
-        build_locations, build_locations_reward = Build_location.get_good_locations(self, BuildFacade.build_model)
+        build_locations, build_locations_reward = Build_location.get_good_locations(self, BuildFacade.build_model,obs, base_location)
         action_list = BuildFacade.set_Actions(self)
         oldScore = self.oldScore
         score = obs.observation.score_cumulative.score

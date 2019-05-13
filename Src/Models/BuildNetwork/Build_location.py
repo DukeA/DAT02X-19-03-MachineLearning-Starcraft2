@@ -1,4 +1,5 @@
 import math
+from pysc2.lib import features
 
 
 class Build_location:
@@ -11,13 +12,13 @@ class Build_location:
         where it is able to build an building 
     """
 
-    def get_good_locations(self, lists):
+    def get_good_locations(self, lists,obs, base_location):
         if len(lists) <= 0:
             return lists
         Build_location.LIST = lists
         build_location = []
         list = Build_location.get_surronding_area(self, Build_location.LIST)
-        build_points = Build_location().build_location(list)
+        build_points = Build_location().build_location(list,obs, base_location)
         return build_points
 
 
@@ -92,7 +93,7 @@ class Build_location:
             the reward of building there.
     """
 
-    def build_location(self, list):
+    def build_location(self, list,obs, base_location):
         value = any((0 in i) for i in list)
         empty_tuple = any(i == () for i in list)
         if len(list) <= 0 or value or empty_tuple:
@@ -104,6 +105,14 @@ class Build_location:
             x_pos = math.floor(area_position[0] - (area_position[2] / 2))
             y_pos = math.floor(area_position[1] - (area_position[3] / 2))
             reward = int(area_position[2] * area_position[3])
-            build_location.append([x_pos, y_pos])
-            build_location_reward.append(reward)
+            start_y, start_x = obs.observation.camera_position
+            if start_x < 128 and start_y < 128:
+                if  build_location[0]< x_pos  and build_location[1] <y_pos :
+                    build_location.append([x_pos, y_pos])
+                    build_location_reward.append(reward)
+            elif start_x > 128 and start_y > 128:
+                if base_location[0] > x_pos  and base_location[1] > y_pos :
+                    build_location.append([x_pos, y_pos])
+                    build_location_reward.append(reward)
+
         return build_location, build_location_reward
