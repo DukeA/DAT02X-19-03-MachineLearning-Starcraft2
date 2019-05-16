@@ -108,17 +108,17 @@ def main(unused_argv):
                         if agent.reward == 1:
                             last_100.append(1)
                             latest_result = 1
-                            end_reward = 1
+                            end_reward = 100
                         # If it lost
                         elif agent.reward == -1:
                             last_100.append(0)
                             latest_result = 0
-                            end_reward = -1
+                            end_reward = -100
                         # If time's up
                         else:
                             last_100.append(0)
                             latest_result = 0
-                            end_reward = -0.5
+                            end_reward = -5
 
                         agent.actor_critic_agent.total_reward += end_reward
 

@@ -15,13 +15,16 @@ class ActorCriticAgent:
         ############### Hyperparameters #################
 
         self.train_indicator = True
+        self.do_train = True
+        self.do_train_actor = True
+        self.do_train_critic = True
         self.BATCH_SIZE = 64
         self.GAMMA = 0.9995
         self.TAU = 0.1  # Target Network HyperParameters
         self.LRA = 0.00001  # Learning rate for Actor
         self.LRC = 0.00001  # Learning rate for Critic
 
-        self.buffer = deque(maxlen=100000)
+        self.buffer = deque(maxlen=500000)
         self.good_buffer = deque(maxlen=8000)
         self.GOOD_GAME = False
         self.buffer_epsilon = 0
@@ -98,7 +101,8 @@ class ActorCriticAgent:
         self.episode += 1
 
         chosen_action = self.action_space[action_index]
-
+        predicted_value = self.critic.model.predict(state)
+        print('Predicted state value: ', str(predicted_value[0]))
         print("No_op: " + '%.3e' % action_probs[0] +
               ".  SCV: " + '%.3e' % action_probs[1] +
               ".  Supply: " + '%.3e' % action_probs[2] +
@@ -112,24 +116,25 @@ class ActorCriticAgent:
         if chosen_action == "attack":
             game_state.units_attacked = obs.observation.player.army_count/200
             game_state.last_attacked = state[0][-1]
-        if(len(self.buffer) > self.BATCH_SIZE):
-            if self.buffer_epsilon > random.random():
-                training_batch = random.sample(self.good_buffer, self.BATCH_SIZE)
-                self.train(training_batch, imitate=True)
-            else:
-                training_batch = random.sample(self.buffer, self.BATCH_SIZE)
-            self.train(training_batch, imitate=False)
+        if self.do_train:
+            if(len(self.buffer) > self.BATCH_SIZE):
+                if self.buffer_epsilon > random.random():
+                    training_batch = random.sample(self.good_buffer, self.BATCH_SIZE)
+                    self.train(training_batch, imitate=True)
+                else:
+                    training_batch = random.sample(self.buffer, self.BATCH_SIZE)
+                self.train(training_batch, imitate=False)
 
-        # FOR TESTING
-        if np.mod(self.episode, 30) == 0 and self.episode > 0:
-            if self.train_indicator:
-                self.actor.model.save_weights("actormodel.h5", overwrite=True)
-                with open("actormodel.json", "w") as outfile:
-                    json.dump(self.actor.model.to_json(), outfile)
+            # FOR TESTING
+            if np.mod(self.episode, 30) == 0 and self.episode > 0:
+                if self.train_indicator:
+                    self.actor.model.save_weights("actormodel.h5", overwrite=True)
+                    with open("actormodel.json", "w") as outfile:
+                        json.dump(self.actor.model.to_json(), outfile)
 
-                self.critic.model.save_weights("criticmodel.h5", overwrite=True)
-                with open("criticmodel.json", "w") as outfile:
-                    json.dump(self.critic.model.to_json(), outfile)
+                    self.critic.model.save_weights("criticmodel.h5", overwrite=True)
+                    with open("criticmodel.json", "w") as outfile:
+                        json.dump(self.critic.model.to_json(), outfile)
 
         return chosen_action
 
@@ -159,9 +164,10 @@ class ActorCriticAgent:
         })
 
         imitation_actions = self.help_policy_2(states)
-
-        self.actor.train(states, action_one_hots, advantages, imitation_actions)
-        self.critic.train(states, state_values)
+        if self.do_train_actor:
+            self.actor.train(states, action_one_hots, advantages, imitation_actions)
+        if self.do_train_critic:
+            self.critic.train(states, state_values)
 
     def probs_to_one_hot(self, probabilities):
         one_hot_tensor = []
