@@ -61,15 +61,18 @@ class BuildModelGather:
         for build_units in build_units_list:
             if (build_units != None):
                 for unit in build_units:
-                    for value in unit:
-                        if value[0] < 82 or value[1] < 82 or value[0] > 0 or value[1] > 0:
-                            value_x = value[0]
-                            value_y = value[1]
-                            if isinstance(value[2], tuple):
-                                value_type = value[2][0]
-                            else:
-                                value_type = value[2]
-                            viewlist[value_x, value_y] = value_type
+                     values = unit[0]
+                     for i in range(values[0], values[2]):
+                         if (i < 82 and i > 0):
+                            for j in range(values[1], values[3]):
+                                if (j < 82 and j > 0):
+                                    value_x = i
+                                    value_y = j
+                                    if isinstance(values[4], tuple):
+                                        value_type = values[4][0]
+                                    else:
+                                        value_type = values[4]
+                                    viewlist[value_x, value_y] = value_type
         return viewlist
 
     """
@@ -107,10 +110,8 @@ class BuildModelGather:
         neutral_coordinates = []
         for unit in neutral_units:
             unit_shape = unit.radius * 2
-            for i in range(unit.radius):
-                neutral_coordinates.append(
-                    BuildModelGather.set_setsourdingvalues(self, unit.x, unit.y, unit_shape, neutral_type)
-                )
+            neutral_coordinates.append(
+                BuildModelGather.set_setsourdingvalues(self, unit.x, unit.y, unit_shape, neutral_type))
         return neutral_coordinates
 
     """
@@ -127,9 +128,7 @@ class BuildModelGather:
         y = unit_y - radius
         diameter = radius
         coordinates_radius = []
-        for i in range(diameter):
-            for j in range(diameter):
-                coordinates_radius.append((x + i, y + j, type))
+        coordinates_radius.append((x, y,unit_x, unit_y, type))
         return coordinates_radius
 
     """

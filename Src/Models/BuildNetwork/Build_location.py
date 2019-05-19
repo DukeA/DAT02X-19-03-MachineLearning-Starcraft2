@@ -45,38 +45,42 @@ class Build_location:
             height = 0
             x_pos = 0
             y_pos = 0
-            y_tmp_max_pos = 0
-            for i in range(1, Row):
+            x_tmp_max_pos = 0
+            for i in range(0, Row):
                 for j in range(0, Column):
                     if lists[i][j] == 1:
-                        State[i][j] = State[i - 1][j] + 1
+                        if i == 0:
+                            State[i][j] = 1
+                        else:
+                            State[i][j] = State[i - 1][j] + 1
                 high_value = max(State[i])
-                for x in range(3, high_value + 1):
+                for y in range(3, high_value + 1):
                     current_length = 0
                     length = 0
-                    for y in range(0, Column):
-                        if State[i][y] >= x:
+                    for x in range(0, Column):
+                        list_value = State[x]
+                        if State[i][x] >= y:
                             current_length += 1
                         else:
                             current_length = 0
                         if current_length > length:
                             length = current_length
-                            y_tmp_max_pos = y
-                    area = length * x
+                            x_tmp_max_pos = x
+                    area = length * y
                     if area >= max_area:
-                        width = x
-                        x_pos = i
-                        y_pos = y_tmp_max_pos
-                        height = length
+                        height = y
+                        y_pos = i
+                        x_pos = x_tmp_max_pos
+                        width = length
                         max_area = area
-            if x_pos != 0 and y_pos !=0 and width != 0 and height != 0:
+            if  width >=3 and height >=3:
                 build_areas.append((x_pos, y_pos, width, height))
             else:
                 return build_areas
 
             for i in range(x_pos, x_pos - width, -1):
                 for j in range(y_pos, y_pos - height, -1):
-                    lists[i][j] = 0
+                    lists[j][i] = 0
 
             for i in range(0, len(lists)):
                 if max(lists[i]) == 0:
@@ -102,16 +106,16 @@ class Build_location:
         build_location_reward =[]
         for i in list:
             area_position = i
-            x_pos = math.floor(area_position[0] - (area_position[2] / 2))
-            y_pos = math.floor(area_position[1] - (area_position[3] / 2))
+            x_pos = math.ceil(area_position[0] - (area_position[2] / 2))
+            y_pos = math.ceil(area_position[1] - (area_position[3] / 2))
             reward = int(area_position[2] * area_position[3])
             start_y, start_x = obs.observation.camera_position
             if start_x < 128 and start_y < 128:
-                if  build_location[0]< x_pos  and build_location[1] <y_pos :
+                if  base_location[0]< x_pos  or base_location[1] < y_pos :
                     build_location.append([x_pos, y_pos])
                     build_location_reward.append(reward)
             elif start_x > 128 and start_y > 128:
-                if base_location[0] > x_pos  and base_location[1] > y_pos :
+                if base_location[0] > x_pos  or base_location[1] > y_pos :
                     build_location.append([x_pos, y_pos])
                     build_location_reward.append(reward)
 

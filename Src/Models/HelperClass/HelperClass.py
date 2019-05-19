@@ -62,6 +62,8 @@ class HelperClass(base_agent.BaseAgent):
                     return False
         return True
 
+
+
     def do_action(self, obs, action):
         return action in obs.observation.available_actions
 
@@ -110,6 +112,7 @@ class HelperClass(base_agent.BaseAgent):
             HelperClass.All_Buildings.append([value_x,value_y])
         return True
 
+    def get_the_nextbuild_location(self):
 
     @staticmethod
     def get_current_minimap_location(obs):
