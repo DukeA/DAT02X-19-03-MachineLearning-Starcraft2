@@ -1,6 +1,6 @@
 import random
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units,features
+from pysc2.lib import actions, units, features
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
@@ -56,12 +56,12 @@ class BuildOrders(base_agent.BaseAgent):
                 self.reqSteps -= 1
                 ActionSingleton().set_action(new_action)
                 return
-            #coordinates = BuildOrders.find_placement(
-             #   self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
+            coordinates = BuildOrders.find_placement(
+                self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
 
-            #if coordinates is not None:
-             #   new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0],
-              #                                          coordinates[1])
+            if coordinates is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0],
+                                                        coordinates[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -95,13 +95,13 @@ class BuildOrders(base_agent.BaseAgent):
                 self.reqSteps -= 1
                 return
 
-            #for loop in range(20):
-             #   x = random.randint(2, 82)
-              #  y = random.randint(2, 82)
-               # if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
-               #    new_action = HelperClass.place_building(
-                #        self, obs, units.Terran.SupplyDepot, x, y)
-               # break
+            for loop in range(20):
+                x = random.randint(2, 82)
+                y = random.randint(2, 82)
+                if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.SupplyDepot, x, y)
+                break
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
