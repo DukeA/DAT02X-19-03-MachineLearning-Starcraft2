@@ -71,7 +71,7 @@ class Build_location:
                         x_pos = x_tmp_max_pos
                         width = length
                         max_area = area
-            if width >= 3 and height >= 3:
+            if width >= 9 and height >= 9:
                 build_areas.append((x_pos, y_pos, width, height))
             else:
                 return build_areas
