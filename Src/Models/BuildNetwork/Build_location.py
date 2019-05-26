@@ -32,6 +32,7 @@ class Build_location:
         done = False
         Row = len(lists)
         Column = len(lists[0])
+        mimium_size = 9
         while done == False:
             max_area = 0
             area = 0
@@ -52,7 +53,7 @@ class Build_location:
                         else:
                             State[i][j] = State[i - 1][j] + 1
                 high_value = max(State[i])
-                for y in range(3, high_value + 1):
+                for y in range(mimium_size, high_value + 1):
                     current_length = 0
                     length = 0
                     for x in range(0, Column):
@@ -71,7 +72,7 @@ class Build_location:
                         x_pos = x_tmp_max_pos
                         width = length
                         max_area = area
-            if width >= 9 and height >= 9:
+            if width >= mimium_size and height >= mimium_size:
                 build_areas.append((x_pos, y_pos, width, height))
             else:
                 return build_areas
