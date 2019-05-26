@@ -2,18 +2,16 @@
 from Models.HelperClass.Singelton import Singelton
 
 """
-    An singelton class for getting the x and y coordinates
+    An singelton class for getting all the x and y coordinates
 """
 
 class Buildsingelton( metaclass=Singelton):
     def __init__(self):
         super(Buildsingelton,self).__init__()
-        self.location_x = -1
-        self.location_y = -1
+        self.build_location = []
 
     def get_location(self):
-        return self.location_x,self.location_y
+        return self.build_location
 
-    def set_location(self, x, y):
-        self.location_x = x
-        self.location_y = y
+    def set_location(self, build_location):
+        self.build_location = build_location

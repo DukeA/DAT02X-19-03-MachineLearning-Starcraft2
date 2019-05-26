@@ -1,6 +1,6 @@
 import random
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units
+from pysc2.lib import actions, units,features
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
@@ -47,12 +47,21 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
-            coordinates = BuildOrders.find_placement(
-                self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
 
-            if coordinates is not None:
-                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, build_location[0],
-                                                        build_location[1])
+            place_location = BuildOrders.find_placement_buildplacment \
+                (self, obs, building_radius=7, build_locations=build_location)
+            if place_location is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks,
+                                                        place_location[0], place_location[1])
+                self.reqSteps -= 1
+                ActionSingleton().set_action(new_action)
+                return
+          #  coordinates = BuildOrders.find_placement(
+           #     self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
+
+           # if coordinates is not None:
+           #     new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0],
+            #                                            coordinates[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -77,13 +86,22 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         if self.reqSteps == 1:
-            for loop in range(20):
-                x = build_location[0]
-                y = build_location[1]
-                if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
-                    new_action = HelperClass.place_building(
-                        self, obs, units.Terran.SupplyDepot, x, y)
-                    break
+            place_location = BuildOrders.find_placement_buildplacment \
+                (self, obs, building_radius=2, build_locations=build_location)
+            if place_location is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.SupplyDepot,
+                                                        place_location[0], place_location[1])
+                ActionSingleton().set_action(new_action)
+                self.reqSteps -= 1
+                return
+
+            #for loop in range(20):
+              #  x = random.randint(2, 82)
+              #  y = random.randint(2, 82)
+              #  if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
+              #      new_action = HelperClass.place_building(
+              #          self, obs, units.Terran.SupplyDepot, x, y)
+             #   break
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -456,6 +474,23 @@ class BuildOrders(base_agent.BaseAgent):
                         obs.observation.feature_screen[0][x - building_radius + i][y - building_radius + j] != height):
                     return False
         return True
+
+    """
+            @Author Adam Grandén
+            @:param self- Object aibot
+            @:param obs - the observable universe
+            @:param building_radius - The radius for the building
+            @:param build_locations - All of the build_location
+            This code takes the points where it's okay to build the values is 
+            then checked if you can build there
+    """
+
+    def find_placement_buildplacment(self, obs, building_radius, build_locations):
+        value = obs.observation.feature_screen[5][0]
+        for location in range(len(build_locations)):
+            if BuildOrders.is_valid_placement(self, obs, build_locations[location], building_radius):
+                return build_locations[location]
+        return None
 
     def find_placement(self, obs, building_radius, maximum_searches=None, sampling_size=None):
         """Finds a suitable location to place a building on a grid on the current screen.

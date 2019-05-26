@@ -19,25 +19,31 @@ class BuildModelLocations:
         bot should place the object in this case.
     """
 
-    def set_building_location(self, build_state):
+    def set_building_location(self, obs, build_state):
         view = BuildModelLocations.set_buildlocations(self)
         x = len(build_state)
         y = len(build_state[0])
+        height_map = obs.observation.feature_screen.height_map
         for i in range(x):
             for j in range(y):
                 if BuildModelLocations.check_startLocation_Of_Base(self, build_state):
-                    if (j >= 41 and i >= 41) or (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
-                        if build_state[i][j] == 0:
-                            view[i][j] = 1
-                        elif build_state[i][j] != 0:
-                            view[i][j] = 0
-
+                    if height_map[i][j] == 255:
+                        if (j >= 41 and i >= 41) or (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
+                            if build_state[i][j] == 0:
+                                view[i][j] = 1
+                            elif build_state[i][j] != 0:
+                                view[i][j] = 0
+                    else:
+                        view[i][j] = -1
                 else:
-                    if (j <= 41 and i <= 41) or (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
-                        if build_state[i][j] == 0:
-                            view[i][j] = 1
-                        elif build_state[i][j] != 0:
-                            view[i][j] = 0
+                    if height_map[i][j] == 255:
+                        if (j <= 41 and i <= 41) or (j >= 41 and i <= 41) or (j <= 41 and i >= 41):
+                            if build_state[i][j] == 0:
+                                view[i][j] = 1
+                            elif build_state[i][j] != 0:
+                                view[i][j] = 0
+                    else:
+                        view[i][j] = -1
         return view
 
     """

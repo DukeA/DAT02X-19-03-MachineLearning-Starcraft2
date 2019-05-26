@@ -5,22 +5,20 @@ from pysc2.lib import features
 class Build_location:
     LIST = []
 
-
     """
         :param lists - The value where the location of the points are located.
         The method which takes out the good locations 
         where it is able to build an building 
     """
 
-    def get_good_locations(self, lists,obs, base_location):
+    def get_good_locations(self, lists, obs, base_location):
         if len(lists) <= 0:
             return lists
         Build_location.LIST = lists
         build_location = []
         list = Build_location.get_surronding_area(self, Build_location.LIST)
-        build_points = Build_location().build_location(list,obs, base_location)
+        build_points = Build_location().build_location(list, obs, base_location)
         return build_points
-
 
     """
         :param lists -The building list with all the coordinates for the map
@@ -73,7 +71,7 @@ class Build_location:
                         x_pos = x_tmp_max_pos
                         width = length
                         max_area = area
-            if  width >=3 and height >=3:
+            if width >= 3 and height >= 3:
                 build_areas.append((x_pos, y_pos, width, height))
             else:
                 return build_areas
@@ -97,13 +95,14 @@ class Build_location:
             the reward of building there.
     """
 
-    def build_location(self, list,obs, base_location):
+    def build_location(self, list, obs, base_location):
         value = any((0 in i) for i in list)
         empty_tuple = any(i == () for i in list)
         if len(list) <= 0 or value or empty_tuple:
             return []
         build_location = []
-        build_location_reward =[]
+        height_map = obs.observation.feature_screen.height_map
+        build_location_reward = []
         for i in list:
             area_position = i
             x_pos = math.ceil(area_position[0] - (area_position[2] / 2))
@@ -111,12 +110,14 @@ class Build_location:
             reward = int(area_position[2] * area_position[3])
             start_y, start_x = obs.observation.camera_position
             if start_x < 128 and start_y < 128:
-                if  base_location[0]< x_pos  or base_location[1] < y_pos :
-                    build_location.append([x_pos, y_pos])
-                    build_location_reward.append(reward)
+                if base_location[0] < x_pos or base_location[1] < y_pos:
+                    if height_map[x_pos][y_pos] == 255:
+                        build_location.append([x_pos, y_pos])
+                        build_location_reward.append(reward)
             elif start_x > 128 and start_y > 128:
-                if base_location[0] > x_pos  or base_location[1] > y_pos :
-                    build_location.append([x_pos, y_pos])
-                    build_location_reward.append(reward)
+                if base_location[0] > x_pos or base_location[1] > y_pos:
+                    if height_map[x_pos][y_pos] == 255:
+                        build_location.append([x_pos, y_pos])
+                        build_location_reward.append(reward)
 
         return build_location, build_location_reward

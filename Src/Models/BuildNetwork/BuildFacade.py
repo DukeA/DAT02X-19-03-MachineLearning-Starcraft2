@@ -22,7 +22,7 @@ class BuildFacade:
     def set_up(self, obs, base_location):
         build_state = BuildModelGather.set_locations(self, obs )
         list = build_state
-        BuildFacade.build_model = BuildModelLocations.set_building_location(self, list)
+        BuildFacade.build_model = BuildModelLocations.set_building_location(self,obs, list)
         build_locations, build_locations_reward = Build_location.get_good_locations(self, BuildFacade.build_model,obs, base_location)
         action_list = BuildFacade.set_Actions(self)
         oldScore = self.oldScore

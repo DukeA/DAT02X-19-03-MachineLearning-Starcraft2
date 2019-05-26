@@ -1,5 +1,5 @@
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units,features
+from pysc2.lib import actions, units, features
 import numpy as np
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 import random
@@ -7,7 +7,7 @@ import random
 
 class HelperClass(base_agent.BaseAgent):
     All_Buildings = []
-    Camera_Position =[]
+    Camera_Position = []
 
     # Moves to camera to a self.base_location
     def move_camera_to_base_location(self, obs):
@@ -62,8 +62,6 @@ class HelperClass(base_agent.BaseAgent):
                     return False
         return True
 
-
-
     def do_action(self, obs, action):
         return action in obs.observation.available_actions
 
@@ -79,11 +77,14 @@ class HelperClass(base_agent.BaseAgent):
                 if unit.unit_type == unit_type]
 
     def check_building_at_position(self, obs, build_location):
-        if build_location[0] == -1:
+        if len(build_location) == 0:
             return True
         unit_type = [units.Terran.Barracks, units.Terran.SupplyDepot]
-        x = build_location[0]
-        y = build_location[1]
+        commandcenter = [units.Terran.CommandCenter]
+        coomand_centerdied = [unit for unit in obs.observation.feature_units
+                              if unit.unit_type == commandcenter]
+        if len(coomand_centerdied) <= 0:
+            return False
         buildings = [unit for unit in obs.observation.feature_units
                      if unit.unit_type == unit_type[0] or unit.unit_type == unit_type[1]]
         if len(buildings) <= 0:
@@ -92,13 +93,13 @@ class HelperClass(base_agent.BaseAgent):
         new_building_found = False
         for building in buildings:
             value = building.owner
-            if value != 1 :
+            if value != 1:
                 return False
             if building.build_progress != 100:
                 return False
             exist = False
             for existing_building in HelperClass.All_Buildings:
-                if existing_building[0] == building.x+ Camera[0] and existing_building[1] == building.y+Camera[1]:
+                if existing_building[0] == building.x + Camera[0] and existing_building[1] == building.y + Camera[1]:
                     exist = True
             if exist == False:
                 new_building_found = True
@@ -107,12 +108,10 @@ class HelperClass(base_agent.BaseAgent):
             return False
         HelperClass.All_Buildings = []
         for building in buildings:
-            value_x = building.x+Camera[0]
-            value_y = building.y+Camera[1]
-            HelperClass.All_Buildings.append([value_x,value_y])
+            value_x = building.x + Camera[0]
+            value_y = building.y + Camera[1]
+            HelperClass.All_Buildings.append([value_x, value_y])
         return True
-
-    def get_the_nextbuild_location(self):
 
     @staticmethod
     def get_current_minimap_location(obs):
@@ -150,13 +149,12 @@ class HelperClass(base_agent.BaseAgent):
         return new_action
 
     def find_the_camera_postion(self, obs):
-      Camera = obs.observation.camera_position
-      HelperClass.Camera_Position = []
-      value_x = Camera[0]
-      value_y = Camera[1]
-      HelperClass.Camera_Position.append([value_x,value_y])
-      print (value_x, value_y)
-
+        Camera = obs.observation.camera_position
+        HelperClass.Camera_Position = []
+        value_x = Camera[0]
+        value_y = Camera[1]
+        HelperClass.Camera_Position.append([value_x, value_y])
+        print(value_x, value_y)
 
     def no_op(self, obs):
 

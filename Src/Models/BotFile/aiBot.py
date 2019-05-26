@@ -102,7 +102,7 @@ class AiBot(base_agent.BaseAgent):
 
             self.build_state_reward = self.build_States[0][0]
             self.build_state = self.build_States[0][1]
-            Buildsingelton().set_location(self.build_state[0][0], self.build_state[0][1])
+            Buildsingelton().set_location(self.build_state)
 
             self.action_state = self.build_States[0][2]
 
