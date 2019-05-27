@@ -1,4 +1,5 @@
 from pysc2.agents import base_agent
+
 from Models.BuildOrders.BuildOrders import BuildOrders
 
 """
@@ -15,14 +16,14 @@ class BuildOrdersController(base_agent.BaseAgent):
         super(BuildOrdersController).__init__()
         self.BuildOrders()
 
-    def build_supply_depot(self, obs):
-        BuildOrders.build_supply_depot(self, obs)
+    def build_supply_depot(self, obs, build_location):
+        BuildOrders.build_supply_depot(self, obs, build_location)
 
     def build_refinery(self, obs):
         BuildOrders.build_refinery(self, obs)
 
-    def build_barracks(self, obs):
-        BuildOrders.build_barracks(self, obs)
+    def build_barracks(self, obs, build_location):
+        BuildOrders.build_barracks(self, obs, build_location)
 
     def return_scv(self, obs):
         BuildOrders.return_scv(self, obs)

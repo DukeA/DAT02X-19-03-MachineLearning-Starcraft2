@@ -57,6 +57,7 @@ def main(unused_argv):
                                      sc2_env.Difficulty.medium)],
                 agent_interface_format=features.AgentInterfaceFormat(
                     feature_dimensions=features.Dimensions(screen=84, minimap=64),
+
                     use_feature_units=True,
                     use_raw_units=True,
                     use_camera_position=True),
@@ -99,7 +100,7 @@ def main(unused_argv):
                 agent.actor_critic_agent.total_reward = 0
 
                 while True:
-                    step_actions = [agent.step(timesteps[0], epsilon)]
+                    step_actions = [agent.step(timesteps[0], epsilon, episode)]
 
                     if timesteps[0].last():
                         state, oldscore, map = agent.game_state.get_state_now(timesteps[0])

@@ -1,10 +1,9 @@
 import random
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units
+from pysc2.lib import actions, units, features
 from Models.Predefines.Coordinates import Coordinates
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
-
 
 """
 The Class belongs to the Build Order request
@@ -29,7 +28,7 @@ class BuildOrders(base_agent.BaseAgent):
 
         """
 
-    def build_barracks(self, obs):
+    def build_barracks(self, obs, build_location):
         """
             Builds a barracks.
         """
@@ -44,21 +43,30 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 3:
             new_action = HelperClass.select_scv(self, obs)
 
-        elif self.reqSteps == 2:    # Moves camera twice because select_scv can also move camera
+        elif self.reqSteps == 2:  # Moves camera twice because select_scv can also move camera
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
+
+            place_location = BuildOrders.find_placement_buildplacment \
+                (self, obs, building_radius=7, build_locations=build_location)
+            if place_location is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks,
+                                                        place_location[0], place_location[1])
+                self.reqSteps -= 1
+                ActionSingleton().set_action(new_action)
+                return
             coordinates = BuildOrders.find_placement(
                 self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
 
             if coordinates is not None:
-                new_action = HelperClass.place_building(
-                    self, obs, units.Terran.Barracks, coordinates[0], coordinates[1])
+                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0],
+                                                        coordinates[1])
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
 
-    def build_supply_depot(self, obs):
+    def build_supply_depot(self, obs, build_location):
         """
             Builds a supply depot.
         """
@@ -78,13 +86,22 @@ class BuildOrders(base_agent.BaseAgent):
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         if self.reqSteps == 1:
+            place_location = BuildOrders.find_placement_buildplacment \
+                (self, obs, building_radius=2, build_locations=build_location)
+            if place_location is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.SupplyDepot,
+                                                        place_location[0], place_location[1])
+                ActionSingleton().set_action(new_action)
+                self.reqSteps -= 1
+                return
+
             for loop in range(20):
                 x = random.randint(2, 82)
                 y = random.randint(2, 82)
                 if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
                     new_action = HelperClass.place_building(
                         self, obs, units.Terran.SupplyDepot, x, y)
-                    break
+                break
 
         self.reqSteps -= 1
         ActionSingleton().set_action(new_action)
@@ -113,7 +130,7 @@ class BuildOrders(base_agent.BaseAgent):
         # With a margin, a geyser will be less than 9.5 * 84/24 screen units from its Command Center (or half a screen)
         # That's how this code judges if a geyser belongs to a base.
         if self.reqSteps == 2:
-            geyser_distance = (9.5*84/24)**2
+            geyser_distance = (9.5 * 84 / 24) ** 2
             all_geysers = [u for u in obs.observation.raw_units
                            if u.unit_type == units.Neutral.VespeneGeyser]
             all_refineries = [u for u in obs.observation.raw_units
@@ -154,7 +171,7 @@ class BuildOrders(base_agent.BaseAgent):
                     if len(all_geysers) > 0:
                         geyser_pos = [(geyser.x, geyser.y) for geyser in all_geysers]
                         for i in range(len(all_geysers)):
-                            if (cc[0]-geyser_pos[i][0])**2+(cc[1]-geyser_pos[i][1])**2 < geyser_distance:
+                            if (cc[0] - geyser_pos[i][0]) ** 2 + (cc[1] - geyser_pos[i][1]) ** 2 < geyser_distance:
                                 selected_geyser = geyser_pos[i]
 
             if selected_geyser:
@@ -205,7 +222,7 @@ class BuildOrders(base_agent.BaseAgent):
                                and u.build_progress == 100
                                and u.ideal_harvesters > 0]
             undermanned_command_centers = [u for u in command_centers
-                                           if u.assigned_harvesters/u.ideal_harvesters < 0]
+                                           if u.assigned_harvesters / u.ideal_harvesters < 0]
             undermanned_refineries = [u for u in obs.observation.raw_units
                                       if u.alliance == 1
                                       and u.unit_type == units.Terran.Refinery
@@ -277,7 +294,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 3:
             new_action = HelperClass.select_scv(self, obs)
 
-        elif self.reqSteps == 2:    # Moves camera twice because select_scv can also move camera
+        elif self.reqSteps == 2:  # Moves camera twice because select_scv can also move camera
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
@@ -315,7 +332,7 @@ class BuildOrders(base_agent.BaseAgent):
         elif self.reqSteps == 3:
             new_action = HelperClass.select_scv(self, obs)
 
-        elif self.reqSteps == 2:    # Moves camera twice because select_scv can also move camera
+        elif self.reqSteps == 2:  # Moves camera twice because select_scv can also move camera
             new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
@@ -398,8 +415,8 @@ class BuildOrders(base_agent.BaseAgent):
                 expansions_minimap = Coordinates.EXPO_LOCATIONS
                 expansions_screen = Coordinates.CC_LOCATIONS
             # This should be compatible with the coordinates gotten from raw_units
-            expansions_relative_screen = [((a[0][0]-camera_pos[0])*(200*84/(24*64)) + a[1][0],
-                                           (a[0][1]-camera_pos[1])*(200*84/(24*64)) + a[1][1])
+            expansions_relative_screen = [((a[0][0] - camera_pos[0]) * (200 * 84 / (24 * 64)) + a[1][0],
+                                           (a[0][1] - camera_pos[1]) * (200 * 84 / (24 * 64)) + a[1][1])
                                           for a in list(zip(expansions_minimap, expansions_screen))]
 
             cc = [u for u in obs.observation.raw_units
@@ -447,16 +464,33 @@ class BuildOrders(base_agent.BaseAgent):
         """
         x = screen_coordinates[1]
         y = screen_coordinates[0]
-        if x-building_radius < 0 or x+building_radius > 84 or y-building_radius < 0 or y+building_radius > 84:
+        if x - building_radius < 0 or x + building_radius > 84 or y - building_radius < 0 or y + building_radius > 84:
             return False
         height = obs.observation.feature_screen[0][x][y]
-        for i in range(2*building_radius):
-            for j in range(2*building_radius):
-                if (height <= 10 or    # Godtyckligt vald (botten av kartan är unpathable)
-                        obs.observation.feature_screen[5][x-building_radius+i][y-building_radius+j] != 0 or
-                        obs.observation.feature_screen[0][x-building_radius+i][y-building_radius+j] != height):
+        for i in range(2 * building_radius):
+            for j in range(2 * building_radius):
+                if (height <= 10 or  # Godtyckligt vald (botten av kartan är unpathable)
+                        obs.observation.feature_screen[5][x - building_radius + i][y - building_radius + j] != 0 or
+                        obs.observation.feature_screen[0][x - building_radius + i][y - building_radius + j] != height):
                     return False
         return True
+
+    """
+            @Author Adam Grandén
+            @:param self- Object aibot
+            @:param obs - the observable universe
+            @:param building_radius - The radius for the building
+            @:param build_locations - All of the build_location
+            This code takes the points where it's okay to build the values is 
+            then checked if you can build there
+    """
+
+    def find_placement_buildplacment(self, obs, building_radius, build_locations):
+        value = obs.observation.feature_screen[5][0]
+        for location in range(len(build_locations)):
+            if BuildOrders.is_valid_placement(self, obs, build_locations[location], building_radius):
+                return build_locations[location]
+        return None
 
     def find_placement(self, obs, building_radius, maximum_searches=None, sampling_size=None):
         """Finds a suitable location to place a building on a grid on the current screen.
@@ -479,10 +513,10 @@ class BuildOrders(base_agent.BaseAgent):
         elif sampling_size < 1:
             sampling_size = 1
         if size > 0:
-            for x in range(int(size/sampling_size)):
-                for y in range(int(size/sampling_size)):
-                    if obs.observation.feature_screen[5][sampling_size*y][sampling_size*x] == 0:
-                        coordinates.append((sampling_size*x, sampling_size*y))
+            for x in range(int(size / sampling_size)):
+                for y in range(int(size / sampling_size)):
+                    if obs.observation.feature_screen[5][sampling_size * y][sampling_size * x] == 0:
+                        coordinates.append((sampling_size * x, sampling_size * y))
         else:
             return None
 

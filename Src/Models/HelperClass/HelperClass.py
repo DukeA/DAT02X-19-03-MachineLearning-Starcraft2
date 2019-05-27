@@ -1,11 +1,13 @@
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units
+from pysc2.lib import actions, units, features
 import numpy as np
 from Models.BuildOrders.ActionSingleton import ActionSingleton
 import random
 
 
 class HelperClass(base_agent.BaseAgent):
+    All_Buildings = []
+    Camera_Position = []
 
     # Moves to camera to a self.base_location
     def move_camera_to_base_location(self, obs):
@@ -74,6 +76,43 @@ class HelperClass(base_agent.BaseAgent):
         return [unit for unit in obs.observation.feature_units
                 if unit.unit_type == unit_type]
 
+    def check_building_at_position(self, obs, build_location):
+        if len(build_location) == 0:
+            return True
+        unit_type = [units.Terran.Barracks, units.Terran.SupplyDepot]
+        commandcenter = [units.Terran.CommandCenter]
+        coomand_centerdied = [unit for unit in obs.observation.feature_units
+                              if unit.unit_type == commandcenter]
+        if len(coomand_centerdied) <= 0:
+            return False
+        buildings = [unit for unit in obs.observation.feature_units
+                     if unit.unit_type == unit_type[0] or unit.unit_type == unit_type[1]]
+        if len(buildings) <= 0:
+            return False
+        Camera = obs.observation.camera_position
+        new_building_found = False
+        for building in buildings:
+            value = building.owner
+            if value != 1:
+                return False
+            if building.build_progress != 100:
+                return False
+            exist = False
+            for existing_building in HelperClass.All_Buildings:
+                if existing_building[0] == building.x + Camera[0] and existing_building[1] == building.y + Camera[1]:
+                    exist = True
+            if exist == False:
+                new_building_found = True
+                break
+        if new_building_found == False:
+            return False
+        HelperClass.All_Buildings = []
+        for building in buildings:
+            value_x = building.x + Camera[0]
+            value_y = building.y + Camera[1]
+            HelperClass.All_Buildings.append([value_x, value_y])
+        return True
+
     @staticmethod
     def get_current_minimap_location(obs):
         """
@@ -89,7 +128,7 @@ class HelperClass(base_agent.BaseAgent):
 
         # Why +4? Because move_camera(x, y) moves the camera so that it covers the minimap coordinates from
         # x-4 to x+2 and y-4 to y+2. Why? No idea.
-        return min(x)+4, min(y)+4
+        return min(x) + 4, min(y) + 4
 
     @staticmethod
     def move_screen(obs, relative_coordinates):
@@ -102,12 +141,20 @@ class HelperClass(base_agent.BaseAgent):
         x, y = relative_coordinates
         # The map is 200x176 units, but the camera movement works better if it's treated as 200x200 for some reason.
         # The camera takes up 24 units.
-        delta_x = round((x-42)/(200*84/(24*64)))
-        delta_y = round((y-42)/(200*84/(24*64)))
-        new_action = [actions.FUNCTIONS.move_camera((delta_x+current_minimap_coordinates[0],
-                                                     delta_y+current_minimap_coordinates[1]))]
+        delta_x = round((x - 42) / (200 * 84 / (24 * 64)))
+        delta_y = round((y - 42) / (200 * 84 / (24 * 64)))
+        new_action = [actions.FUNCTIONS.move_camera((delta_x + current_minimap_coordinates[0],
+                                                     delta_y + current_minimap_coordinates[1]))]
 
         return new_action
+
+    def find_the_camera_postion(self, obs):
+        Camera = obs.observation.camera_position
+        HelperClass.Camera_Position = []
+        value_x = Camera[0]
+        value_y = Camera[1]
+        HelperClass.Camera_Position.append([value_x, value_y])
+        print(value_x, value_y)
 
     def no_op(self, obs):
 
@@ -149,7 +196,7 @@ class HelperClass(base_agent.BaseAgent):
         camera_coordinate = [int(coord) for coord in camera_coordinate]
         minimap_player_relative = obs.observation.feature_minimap[5]
         minimap_screen_area_rows = minimap_player_relative[(
-            camera_coordinate[1] - 4):(camera_coordinate[1] + 2)]
+                                                                   camera_coordinate[1] - 4):(camera_coordinate[1] + 2)]
         minimap_screen_area = np.array(
             [row[(camera_coordinate[0] - 4):(camera_coordinate[0] + 2)] for row in minimap_screen_area_rows])
         friendly_unit_indexes = np.where(minimap_screen_area == 1)

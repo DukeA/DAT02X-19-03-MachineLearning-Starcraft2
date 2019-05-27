@@ -1,10 +1,13 @@
+from Models.BuildOrders.DistributeSCV import DistributeSCV
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 
 from Models.BuildOrders.BuildOrdersController import BuildOrdersController
 from Models.BuildOrders.UnitBuildOrdersController import UnitBuildOrdersController
 from Models.BuildOrders.ActionSingleton import ActionSingleton
-from Models.BuildOrders.DistributeSCV import DistributeSCV
+from Models.BuildNetwork.BuildFacade import BuildFacade
+from Models.BuildNetwork.Network.BuildNetwork import BuildNetwork
+from Models.BuildNetwork.Network.Buildsingelton import Buildsingelton
 from Models.ArmyControl.ArmyControlController import ArmyControlController
 from Models.Predefines.Coordinates import Coordinates
 from Models.Selector.selector import Selector
@@ -14,6 +17,7 @@ from Models.MachineLearning.ActorCriticAgent import ActorCriticAgent
 
 import os
 import pickle
+import tensorflow as tf
 
 
 class AiBot(base_agent.BaseAgent):
@@ -40,6 +44,21 @@ class AiBot(base_agent.BaseAgent):
         self.action_finished = False
         self.attacking = False
 
+        self.oldScore = 0
+        self.epsilon = 0
+        self.build_space = 0
+        self.episodes = 0
+        self.Batch_Size = 32
+        self.action_state = []
+        self.memory_Buffer = []
+        self.prev_state = []
+        self.prev_actions = []
+        self.building_location = []
+        self.sess = tf.Session()
+        self.actions_softmax = 0
+        self.build_location = ()
+
+
     def save_game(self, path, episode):
         offset = 0
         while os.path.exists(path + str(episode)+str(offset)+".txt"):
@@ -47,8 +66,11 @@ class AiBot(base_agent.BaseAgent):
         with open(path + str(episode)+str(offset)+".txt", 'wb') as filehandle:
             pickle.dump(self.game_state.get_state(), filehandle)
 
-    def step(self, obs, epsilon):
+    def step(self, obs, epsilon, episode):
         super(AiBot, self).step(obs)
+        self.epsilon = epsilon
+        self.episode = episode
+
 
         # first step
         if obs.first():
@@ -71,6 +93,33 @@ class AiBot(base_agent.BaseAgent):
                 self.base_location = Coordinates.START_LOCATIONS[1]
 
             self.game_state = State(self)
+
+        HelperClass.find_the_camera_postion(self, obs)
+
+        if HelperClass.check_building_at_position(self,obs, Buildsingelton().get_location()):
+            HelperClass.move_camera_to_base_location(self, obs)
+            self.build_States = BuildFacade.set_up(self, obs, self.base_location)
+
+            self.build_state_reward = self.build_States[0][0]
+            self.build_state = self.build_States[0][1]
+            Buildsingelton().set_location(self.build_state)
+
+            self.action_state = self.build_States[0][2]
+
+            self.old_score = self.build_States[1]
+
+            self.build_state = self.build_States[2]
+            self.build_space = len(self.build_state)
+
+
+
+            #self.build_network = BuildNetwork(self.build_state_reward,self.build_state, self.action_state, epsilon)
+
+            #BuildNetwork.predict_neural_network(self.build_network, self.build_States)
+
+
+
+        self.build_location = Buildsingelton().get_location()
 
         action = [actions.FUNCTIONS.no_op()]
 
@@ -97,12 +146,14 @@ class AiBot(base_agent.BaseAgent):
             action = ActionSingleton().get_action()
 
         elif self.next_action == "build_supply_depot":  # build supply depot
-            BuildOrdersController.build_supply_depot(self, obs)
+            BuildOrdersController.build_supply_depot(self, obs,self.build_location)
             action = ActionSingleton().get_action()
 
+
         elif self.next_action == "build_barracks":
-            BuildOrdersController.build_barracks(self, obs)
+            BuildOrdersController.build_barracks(self, obs,self.build_location)
             action = ActionSingleton().get_action()
+
 
         elif self.next_action == "build_refinery":
             BuildOrdersController.build_refinery(self, obs)
