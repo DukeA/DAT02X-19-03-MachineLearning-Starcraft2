@@ -14,8 +14,9 @@ class ActorNetwork(object):
         self.BATCH_SIZE = BATCH_SIZE
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
-        self.ENTROPY_WEIGHT = 0.0001
-        self.IMITATION_WEIGHT = 0.1
+        self.ENTROPY_WEIGHT = 1e-5
+        self.IMITATION_WEIGHT = 1
+        self.AMPLIFIER = 1e2
 
         K.set_session(sess)
 
@@ -43,8 +44,8 @@ class ActorNetwork(object):
         self.imitation_loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(
             logits=self.model_policy, onehot_labels=self.imitation_actions))
 
-        total_loss = self.policy_loss - self.entropy_loss * \
-            self.ENTROPY_WEIGHT + self.imitation_loss * self.imitation_weight
+        total_loss = (self.policy_loss * self.AMPLIFIER - self.entropy_loss * self.ENTROPY_WEIGHT) * (1 - self.imitation_weight) + \
+                     self.imitation_loss * self.imitation_weight
 
         optimizer = tf.train.RMSPropOptimizer(learning_rate=self.LEARNING_RATE)
         self.gradients = optimizer.compute_gradients(total_loss)
@@ -70,16 +71,16 @@ class ActorNetwork(object):
             self.action_one_hot: action_one_hot,
             self.advantages: advantages
         })
-        print("Policy loss", policy_loss)
+        print("Weighted policy loss", policy_loss * self.AMPLIFIER * (1 - imitation_weight))
         entropy_loss = self.sess.run(self.entropy_loss, feed_dict={
             self.state: states,
         })
-        print("Total entropy loss", entropy_loss * self.ENTROPY_WEIGHT)
+        print("Weighted entropy loss", entropy_loss * self.ENTROPY_WEIGHT * (1 - imitation_weight))
         imitation_loss = self.sess.run(self.imitation_loss, feed_dict={
             self.state: states,
             self.imitation_actions: imitation_actions
         })
-        print("Total imitation loss", imitation_loss * imitation_weight)
+        print("Weighted imitation loss", imitation_loss * imitation_weight)
 
     def target_train(self):
         actor_weights = self.model.get_weights()
@@ -97,8 +98,9 @@ class ActorNetwork(object):
     def create_actor_network(self, state_size, action_dim):
         print("Building Actor model")
         S = Input(shape=[state_size])
-        h0 = Dense(HIDDEN1_UNITS, activation='relu', kernel_initializer='random_normal')(S)
-        h1 = Dense(HIDDEN2_UNITS, activation='relu', kernel_initializer='random_normal')(h0)
-        V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(h1)
+        x = Dense(32, activation='relu', kernel_initializer='random_normal')(S)
+        x = Dense(32, activation='relu', kernel_initializer='random_normal')(x)
+        x = Dense(16, activation='relu', kernel_initializer='random_normal')(x)
+        V = Dense(action_dim, activation='linear', kernel_initializer='random_normal')(x)
         model = Model(inputs=S, outputs=V)
         return model, S, V, model.trainable_weights

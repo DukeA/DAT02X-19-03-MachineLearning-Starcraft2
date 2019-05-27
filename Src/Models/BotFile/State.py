@@ -129,35 +129,68 @@ class State:
         for (unit_type, unit_type_count) in zip(unit_types, unit_type_counts):
             enemy_units_amount[unit_type] = unit_type_count
 
+        enemy_army = len([u for u in enemy_units
+                          if u.unit_type in [units.Terran.Marine,
+                                             units.Terran.Marauder,
+                                             units.Terran.Medivac,
+                                             units.Terran.Reaper,
+                                             units.Terran.Hellion,
+                                             units.Terran.Hellbat,
+                                             units.Terran.VikingFighter,
+                                             units.Terran.VikingAssault,
+                                             units.Terran.Thor,
+                                             units.Terran.ThorHighImpactMode,
+                                             units.Terran.SiegeTank,
+                                             units.Terran.SiegeTankSieged,
+                                             units.Terran.Cyclone,
+                                             units.Terran.Raven,
+                                             units.Terran.Ghost,
+                                             units.Terran.Liberator,
+                                             units.Terran.LiberatorAG,
+                                             units.Terran.Battlecruiser,
+                                             units.Terran.Banshee,
+                                             units.Terran.WidowMine,
+                                             units.Terran.WidowMineBurrowed,
+                                             units.Terran.SCV
+                                             ]])
+        enemy_buildings = len([u for u in enemy_units
+                              if u.unit_type in [units.Terran.CommandCenter,
+                                                 units.Terran.CommandCenterFlying,
+                                                 units.Terran.OrbitalCommand,
+                                                 units.Terran.OrbitalCommandFlying,
+                                                 units.Terran.PlanetaryFortress,
+                                                 units.Terran.SupplyDepot,
+                                                 units.Terran.SupplyDepotLowered,
+                                                 units.Terran.Refinery,
+                                                 units.Terran.Barracks,
+                                                 units.Terran.BarracksFlying,
+                                                 units.Terran.BarracksReactor,
+                                                 units.Terran.BarracksTechLab,
+                                                 units.Terran.EngineeringBay,
+                                                 units.Terran.MissileTurret,
+                                                 units.Terran.SensorTower,
+                                                 units.Terran.Bunker,
+                                                 units.Terran.Factory,
+                                                 units.Terran.FactoryFlying,
+                                                 units.Terran.FactoryReactor,
+                                                 units.Terran.FactoryTechLab,
+                                                 units.Terran.Armory,
+                                                 units.Terran.GhostAcademy,
+                                                 units.Terran.Starport,
+                                                 units.Terran.StarportFlying,
+                                                 units.Terran.StarportReactor,
+                                                 units.Terran.StarportTechLab,
+                                                 units.Terran.FusionCore
+                                                 ]])
+
         return np.array([[minerals, vespene, food_used, food_cap, idle_workers,
                           units_amount[units.Terran.CommandCenter],
                           units_amount[units.Terran.SupplyDepot]/24,
                           units_amount[units.Terran.Barracks]/10,
                           units_amount[units.Terran.Marine]/200,
                           units_amount[units.Terran.SCV]/200,
-                          enemy_units_amount[units.Terran.SupplyDepot]/24,
-                          (enemy_units_amount[units.Terran.Barracks]+enemy_units_amount[units.Terran.BarracksReactor] +
-                           enemy_units_amount[units.Terran.BarracksTechLab])/10,
-                          (enemy_units_amount[units.Terran.Factory]+enemy_units_amount[units.Terran.FactoryReactor] +
-                           enemy_units_amount[units.Terran.FactoryTechLab])/10,
-                          (enemy_units_amount[units.Terran.Starport]+enemy_units_amount[units.Terran.StarportReactor] +
-                           enemy_units_amount[units.Terran.StarportTechLab])/10,
-                          enemy_units_amount[units.Terran.Refinery]/10,
-                          (enemy_units_amount[units.Terran.CommandCenter] +
-                           enemy_units_amount[units.Terran.OrbitalCommand])/5,
-                          enemy_units_amount[units.Terran.Marine]/200,
-                          enemy_units_amount[units.Terran.Marauder]/100,
-                          enemy_units_amount[units.Terran.Medivac]/100,
-                          enemy_units_amount[units.Terran.Reaper]/200,
-                          enemy_units_amount[units.Terran.Hellion]/100,
-                          (enemy_units_amount[units.Terran.VikingAssault] +
-                           enemy_units_amount[units.Terran.VikingFighter])/100,
-                          enemy_units_amount[units.Terran.Thor]/33,
-                          (enemy_units_amount[units.Terran.SiegeTank] +
-                           enemy_units_amount[units.Terran.SiegeTankSieged])/66,
-                          enemy_units_amount[units.Terran.Cyclone]/66,
-                          enemy_units_amount[units.Terran.Raven]/100,
-                          enemy_units_amount[units.Terran.SCV]/200,
+                          enemy_army,
+                          enemy_buildings,
                           self.last_attacked,
                           self.units_attacked / 200,
                           self.bot_obj.steps*8/30000]]), oldscore, obs.observation.feature_minimap.player_relative

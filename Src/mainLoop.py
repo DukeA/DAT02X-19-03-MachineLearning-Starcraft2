@@ -6,6 +6,7 @@ import pickle
 import os
 from collections import deque
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def main(unused_argv):
@@ -21,7 +22,7 @@ def main(unused_argv):
     last_100 = deque(maxlen=100)
     iter = 1
 
-    agent.actor_critic_agent = ActorCriticAgent(30,
+    agent.actor_critic_agent = ActorCriticAgent(15,
                                                 ["no_op",
                                                  "build_scv",
                                                  "build_supply_depot",
@@ -87,7 +88,7 @@ def main(unused_argv):
                 if agent.actor_critic_agent.buffer_epsilon > agent.actor_critic_agent.buffer_epsilon_min:
                     agent.actor_critic_agent.buffer_epsilon *= agent.actor_critic_agent.buffer_epsilon_decay
                 if agent.actor_critic_agent.actor.IMITATION_WEIGHT > 0.0001:
-                    agent.actor_critic_agent.actor.IMITATION_WEIGHT *= 0.97
+                    agent.actor_critic_agent.actor.IMITATION_WEIGHT = imitation_factor(episode)
                 else:
                     agent.actor_critic_agent.actor.IMITATION_WEIGHT = 0.0001
                 print("Imitation weight: ", agent.actor_critic_agent.actor.IMITATION_WEIGHT)
@@ -107,17 +108,17 @@ def main(unused_argv):
                         if agent.reward == 1:
                             last_100.append(1)
                             latest_result = 1
-                            end_reward = 1
+                            end_reward = 100
                         # If it lost
                         elif agent.reward == -1:
                             last_100.append(0)
                             latest_result = 0
-                            end_reward = -1
+                            end_reward = -100
                         # If time's up
                         else:
                             last_100.append(0)
                             latest_result = 0
-                            end_reward = -0.5
+                            end_reward = -5
 
                         agent.actor_critic_agent.total_reward += end_reward
 
@@ -153,3 +154,32 @@ def main(unused_argv):
 
     except KeyboardInterrupt:
         pass
+
+
+def imitation_factor(episode):
+    """
+    The imitation factor to be used. It doesn't decrease as fast in the beginning compared to an exponential decrease.
+    Also saves an image of the curve if episode == 1.
+    :param episode: The current episode.
+    :return: The imitation factor for the episode.
+    """
+    offset_1 = 300
+    offset_2 = 1000
+    smooth_1 = 150
+    smooth_2 = 150
+
+    if episode == 1:
+        x = np.asarray(range(2000))
+        factor_1 = (np.pi/2 - np.arctan((x-offset_1)/smooth_1)) / (np.pi/2 + np.arctan(offset_1/smooth_1))
+        factor_2 = (np.pi/2 - np.arctan((x-offset_2)/smooth_2)) / (np.pi/2 + np.arctan(offset_2/smooth_2))
+        y = factor_1*factor_2
+        fig5, ax5 = plt.subplots(num=5)
+        ax5.plot(list(x), list(y))
+        ax5.set_xlabel("Imitation factor")
+        ax5.set_ylabel("Episodes")
+        fig5.savefig("imitation_factor.png")
+
+    factor_1 = (np.pi/2 - np.arctan((episode-offset_1)/smooth_1)) / (np.pi/2 + np.arctan(offset_1/smooth_1))
+    factor_2 = (np.pi/2 - np.arctan((episode-offset_2)/smooth_2)) / (np.pi/2 + np.arctan(offset_2/smooth_2))
+
+    return factor_1 * factor_2
