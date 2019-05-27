@@ -1,334 +1,459 @@
 import random
-
 from pysc2.agents import base_agent
-from pysc2.lib import actions, units
-
+from pysc2.lib import actions, units, features
 from Models.Predefines.Coordinates import Coordinates
-from Models.BuildOrders.ActionSingelton import ActionSingelton
+from Models.BuildOrders.ActionSingleton import ActionSingleton
 from Models.HelperClass.HelperClass import HelperClass
 
 """
-The Class belongs to the Build Order request 
+The Class belongs to the Build Order request
 to build certain elements such as supply depots and
-refinarys.  
+refineries.
 """
+
 
 class BuildOrders(base_agent.BaseAgent):
     def __init__(self):
         super(BuildOrders, self).__init__()
         self.base_location = None
-        self.expo_loc = 0
+        self.expo_loc = None
         self.new_action = None
-
 
         """
             @Author:Arvid , revised :Adam Grandén
             @:param The parameter would be  self which is a aibot
             @:param The other would be the observable universe
-            This method would be the barracks which builds the barrack from the start of the base_location 
+            This method would be the barracks which builds the barrack from the start of the base_location
             and gets an instance where to build that barrack on that location.
-        
+
         """
 
-    def build_barracks(self, obs):
+    def build_barracks(self, obs, build_location):
+        """
+            Builds a barracks.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
+
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        if self.reqSteps == 3:
-            self.reqSteps = 2
-            new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)]
+        if self.reqSteps == 4:
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
+        elif self.reqSteps == 3:
             new_action = HelperClass.select_scv(self, obs)
 
+        elif self.reqSteps == 2:  # Moves camera twice because select_scv can also move camera
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+
         elif self.reqSteps == 1:
-            self.reqSteps = 0
-            barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
-            if len(barracks) < 10:
-                if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Barracks_screen.id):
-                            coordinates = BuildOrders.find_placement(self, obs, 6, maximum_searches=10, sampling_size=9)
-                            if coordinates is not None:
-                                new_action = [actions.FUNCTIONS.Build_Barracks_screen("now", coordinates)]
 
-        ActionSingelton().set_action(new_action)
+            place_location = BuildOrders.find_placement_buildplacment \
+                (self, obs, building_radius=7, build_locations=build_location)
+            if place_location is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks,
+                                                        place_location[0], place_location[1])
+                self.reqSteps -= 1
+                ActionSingleton().set_action(new_action)
+                return
+            coordinates = BuildOrders.find_placement(
+                self, obs, building_radius=6, maximum_searches=1000, sampling_size=1)
 
-    def build_supply_depot(self, obs, free_supply):
+            if coordinates is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.Barracks, coordinates[0],
+                                                        coordinates[1])
+
+        self.reqSteps -= 1
+        ActionSingleton().set_action(new_action)
+
+    def build_supply_depot(self, obs, build_location):
+        """
+            Builds a supply depot.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
+
         if self.reqSteps == 0:
-            self.reqSteps = 2
+            self.reqSteps = 4
+
+        if self.reqSteps == 4:
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
+
+        if self.reqSteps == 3:
+            HelperClass.get_current_minimap_location(obs)
+            new_action = HelperClass.select_scv(self, obs)
 
         if self.reqSteps == 2:
-            self.reqSteps = 1
-            new_action = HelperClass.select_scv(self, obs)
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
+        if self.reqSteps == 1:
+            place_location = BuildOrders.find_placement_buildplacment \
+                (self, obs, building_radius=2, build_locations=build_location)
+            if place_location is not None:
+                new_action = HelperClass.place_building(self, obs, units.Terran.SupplyDepot,
+                                                        place_location[0], place_location[1])
+                ActionSingleton().set_action(new_action)
+                self.reqSteps -= 1
+                return
 
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-            supply_depot = HelperClass.get_units(self,obs,units.Terran.SupplyDepot)
-            if free_supply <= 4 and len(supply_depot) < 1  and HelperClass.not_in_progress(self, obs, units.Terran.SupplyDepot):
-                if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                    finding_location = True
-                    for loop in range(20):
-                        if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_SupplyDepot_screen.id) \
-                                and finding_location:
-                            x = random.randint(2, 82)
-                            y = random.randint(2, 82)
-                            if BuildOrders.check_placement(self, obs, (x, y), 2):
-                                finding_location = False
-                                new_action = [actions.FUNCTIONS.Build_SupplyDepot_screen("now", (x, y))]
-        ActionSingelton().set_action(new_action)
+            for loop in range(20):
+                x = random.randint(2, 82)
+                y = random.randint(2, 82)
+                if BuildOrders.is_valid_placement(self, obs, (x, y), building_radius=2):
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.SupplyDepot, x, y)
+                break
 
+        self.reqSteps -= 1
+        ActionSingleton().set_action(new_action)
 
     def build_refinery(self, obs):
+        """
+            Builds a refinery in any base with a command center.
+        """
+        # TODO: Maybe should check for depleted geysers
+        # TODO: Once stumbled upon a bug where it started to build refineries in the middle of the map. Haven't tried
+        # to fix it.
         new_action = [actions.FUNCTIONS.no_op()]
+
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
+
+        if self.reqSteps == 4:
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         if self.reqSteps == 3:
-            self.reqSteps = 2
             new_action = HelperClass.select_scv(self, obs)
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
-            new_action = [
-                HelperClass.move_camera_to_base_location(self, obs)]
+        # This step finds a vacant vespene geyser near a command center and moves the camera there.
+        # The center of a Command Center must be about 8 in-game units away from a geyser.
+        # The feature screen is 24x24 in-game units or 84x84 screen units.
+        # With a margin, a geyser will be less than 9.5 * 84/24 screen units from its Command Center (or half a screen)
+        # That's how this code judges if a geyser belongs to a base.
+        if self.reqSteps == 2:
+            geyser_distance = (9.5 * 84 / 24) ** 2
+            all_geysers = [u for u in obs.observation.raw_units
+                           if u.unit_type == units.Neutral.VespeneGeyser]
+            all_refineries = [u for u in obs.observation.raw_units
+                              if u.unit_type == units.Terran.Refinery
+                              and u.alliance == 1]
+            all_command_centers = [u for u in obs.observation.raw_units
+                                   if u.unit_type == units.Terran.CommandCenter
+                                   and u.alliance == 1]
+            selected_geyser = []
 
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-            if obs.observation.player.food_used >= 20:
-                if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Refinery_screen.id):
-                        geyser = HelperClass.get_units(self, obs, units.Neutral.VespeneGeyser)
+            if len(all_command_centers) > 0:
+                cc_pos = [(cc.x, cc.y) for cc in all_command_centers]
+                if len(all_refineries) > 0:
+                    refinery_pos = [(ref.x, ref.y) for ref in all_refineries]
+                    # Find CCs with at least one vacant geyser
+                    for i in range(len(all_command_centers)):
+                        cc = cc_pos[i]
+                        base_refineries = 0
+                        # Finds the number of refineries belonging to a CC
+                        for j in range(len(all_refineries)):
+                            if (cc[0] - refinery_pos[j][0]) ** 2 + (cc[1] - refinery_pos[j][1]) ** 2 < geyser_distance:
+                                base_refineries += 1
+                                if base_refineries == 2:
+                                    break
+                        # Equivalent to there being a vacant geyser near the CC
+                        if base_refineries < 2:
+                            geyser_pos = [(geyser.x, geyser.y) for geyser in all_geysers]
+                            for j in range(len(all_geysers)):
+                                if (cc[0] - geyser_pos[j][0]) ** 2 + (cc[1] - geyser_pos[j][1]) ** 2 < geyser_distance:
+                                    selected_geyser = geyser_pos[j]
+                                    break
+                        if selected_geyser:
+                            break
 
-                        new_action = [actions.FUNCTIONS.Build_Refinery_screen("now",
-                                                                              (HelperClass.sigma(self, geyser[0].x),
-                                                                               HelperClass.sigma(self, geyser[0].y)))]
-        ActionSingelton().set_action(new_action)
+                # Trivial case: there are no refineries so just pick any suitable geyser
+                else:
+                    cc = random.choice(cc_pos)
+                    if len(all_geysers) > 0:
+                        geyser_pos = [(geyser.x, geyser.y) for geyser in all_geysers]
+                        for i in range(len(all_geysers)):
+                            if (cc[0] - geyser_pos[i][0]) ** 2 + (cc[1] - geyser_pos[i][1]) ** 2 < geyser_distance:
+                                selected_geyser = geyser_pos[i]
 
+            if selected_geyser:
+                new_action = HelperClass.move_screen(obs, selected_geyser)
 
-    def build_scv(self, obs, free_supply):
+        # At this point there should be a vacant geyser on the screen (or none at all if last step failed).
+        if self.reqSteps == 1:
+            geysers = [u for u in obs.observation.feature_units
+                       if u.unit_type == units.Neutral.VespeneGeyser]
+            refineries = [u for u in obs.observation.feature_units
+                          if u.unit_type == units.Terran.Refinery
+                          and u.alliance == 1]
+            if len(refineries) == 0 and len(geysers) > 0:
+                new_action = HelperClass.place_building(
+                    self, obs, units.Terran.Refinery, geysers[0].x, geysers[0].y)
+            elif len(refineries) == 1 and len(geysers) == 2:
+                geyser_loc_1 = (geysers[0].x, geysers[0].y)
+                geyser_loc_2 = (geysers[1].x, geysers[1].y)
+                if geyser_loc_1[0] == refineries[0].x and geyser_loc_1[1] == refineries[0].y:
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.Refinery, geyser_loc_2[0], geyser_loc_2[1])
+                else:
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.Refinery, geyser_loc_1[0], geyser_loc_1[1])
 
-        new_action = [actions.FUNCTIONS.no_op()]
-        command_centers = HelperClass.get_units(self, obs, units.Terran.CommandCenter)
-        if self.reqSteps == 0:
-            self.reqSteps = 3
-
-        elif self.reqSteps == 3:
-            self.reqSteps = 2
-            new_action = [
-                HelperClass.move_camera_to_base_location(self, obs)
-            ]
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
-            if len(command_centers) > 0:
-                new_action = [actions.FUNCTIONS.select_point("select",
-                                                             (HelperClass.sigma(self, command_centers[0].x),
-                                                              HelperClass.sigma(self, command_centers[0].y)))]
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-            suv_units = HelperClass.get_units(self,obs,units.Terran.SCV)
-            if len(suv_units)< 15:
-                if HelperClass.select_unit(self, obs, units.Terran.CommandCenter):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Train_SCV_quick.id
-                                         ) and HelperClass.not_in_queue(self, obs, units.Terran.CommandCenter
-                                                                        ) and free_supply > 0 and command_centers[0].assigned_harvesters < command_centers[0].ideal_harvesters:
-                        new_action = [actions.FUNCTIONS.Train_SCV_quick("now")]
-        ActionSingelton().set_action(new_action)
-
-
+        self.reqSteps -= 1
+        ActionSingleton().set_action(new_action)
 
     def return_scv(self, obs):
+        """
+            Returns an idle SCV to mining. It tries to populate refineries first. Checks other bases if the main base
+            has depleted its resources.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        elif self.reqSteps == 3:
-            self.reqSteps = 2
-            if(obs.observation.player.idle_worker_count > 0):
+        if self.reqSteps == 4:
+            if obs.observation.player.idle_worker_count > 0:
                 new_action = [actions.FUNCTIONS.select_idle_worker(
                     "select", obs, units.Terran.SCV)]
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
-            new_action = [
-                HelperClass.move_camera_to_base_location(self, obs)]
+        # Finds a suitable base to send the SCV to.
+        if self.reqSteps == 3:
+            command_centers = [u for u in obs.observation.raw_units
+                               if u.alliance == 1
+                               and u.unit_type == units.Terran.CommandCenter
+                               and u.build_progress == 100
+                               and u.ideal_harvesters > 0]
+            undermanned_command_centers = [u for u in command_centers
+                                           if u.assigned_harvesters / u.ideal_harvesters < 0]
+            undermanned_refineries = [u for u in obs.observation.raw_units
+                                      if u.alliance == 1
+                                      and u.unit_type == units.Terran.Refinery
+                                      and u.build_progress == 100
+                                      and u.assigned_harvesters < 3]
+            if len(undermanned_refineries) > 0:
+                refinery = random.choice(undermanned_refineries)
+                new_action = HelperClass.move_screen(obs, (refinery.x, refinery.y))
+            elif len(undermanned_command_centers) > 0:
+                command_center = random.choice(undermanned_command_centers)
+                new_action = HelperClass.move_screen(obs, (command_center.x, command_center.y))
+            elif len(command_centers) > 0:
+                command_center = random.choice(command_centers)
+                new_action = HelperClass.move_screen(obs, (command_center.x, command_center.y))
 
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
-            if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                minerals = HelperClass.get_units(self, obs, units.Neutral.MineralField)
-                new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
-                    "now", (HelperClass.sigma(self, minerals[0].x),
-                            HelperClass.sigma(self, minerals[0].y)))]
-        ActionSingelton().set_action(new_action)
+        # Should be at a base now.
+        if self.reqSteps == 2:
+            undermanned_refineries = [u for u in obs.observation.feature_units
+                                      if u.alliance == 1
+                                      and u.unit_type == units.Terran.Refinery
+                                      and u.build_progress == 100
+                                      and u.assigned_harvesters < 3]
+            minerals = [u for u in obs.observation.feature_units if
+                        (u.unit_type == units.Neutral.MineralField
+                         or u.unit_type == units.Neutral.MineralField750
+                         or u.unit_type == units.Neutral.RichMineralField
+                         or u.unit_type == units.Neutral.RichMineralField750)]
+            if len(undermanned_refineries) > 0:
+                refinery = undermanned_refineries[0]
+                if HelperClass.do_action(self, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                        "now", (HelperClass.sigma(refinery.x),
+                                HelperClass.sigma(refinery.y)))]
+                    self.action_finished = True
+            elif len(minerals) > 0:
+                mineral = minerals[0]
+                if HelperClass.do_action(self, obs, actions.FUNCTIONS.Harvest_Gather_screen.id):
+                    new_action = [actions.FUNCTIONS.Harvest_Gather_screen(
+                        "now", (HelperClass.sigma(mineral.x),
+                                HelperClass.sigma(mineral.y)))]
+                    self.action_finished = True
 
+        # There's one step left (reqSteps == 1) that's intentionally being left blank.
+        self.reqSteps -= 1
+
+        ActionSingleton().set_action(new_action)
 
     """
-        @Author Adam Grandén 
+        @Author Adam Grandén
         @:param self- Object aibot
-        @:param obs - the observable universe 
-        The following code is the action for building an factory this is made from taking the builder 
-        then move to the loaction and then get if there was any  other factories being built and return 
-        a new build for factory.  
+        @:param obs - the observable universe
+        The following code is the action for building an factory this is made from taking the builder
+        then move to the loaction and then get if there was any  other factories being built and return
+        a new build for factory.
     """
+
     def build_factory(self, obs):
+        """
+            Builds a factory.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
+
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
+
+        if self.reqSteps == 4:
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 3:
-            self.reqSteps = 2
-            new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)]
+            new_action = HelperClass.select_scv(self, obs)
 
-
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
-            new_action = BuildOrders.select_scv(self, obs)
+        elif self.reqSteps == 2:  # Moves camera twice because select_scv can also move camera
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
-            self.reqSteps = 0
-            if HelperClass.not_in_progress(self, obs, units.Terran.Factory):
-                if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Factory_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
-                        new_action =[actions.FUNCTIONS.Build_Factory_screen("now", (x, y))]
-        ActionSingelton().set_action( new_action)
+            coordinates = BuildOrders.find_placement(
+                self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
+
+            if coordinates is not None:
+                new_action = HelperClass.place_building(
+                    self, obs, units.Terran.Factory, coordinates[0], coordinates[1])
+
+        self.reqSteps -= 1
+        ActionSingleton().set_action(new_action)
 
         """
-            @Author Adam Grandén 
+            @Author Adam Grandén
             @:param self-Object aibot
-            @:param obs - the observable universe 
-            The following code is the action for building an Starport this is made from taking the builder 
-            then move to the loaction and then get if there was any  other factories being built and return 
-            a new build for starport.  
+            @:param obs - the observable universe
+            The following code is the action for building an Starport this is made from taking the builder
+            then move to the loaction and then get if there was any  other factories being built and return
+            a new build for starport.
         """
-    def build_starport (self,obs):
+
+    def build_starport(self, obs):
+        """
+            Builds a starport.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
+
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
+
+        if self.reqSteps == 4:
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 3:
-            self.reqSteps = 2
-            new_action = [
-                actions.FUNCTIONS.move_camera(self.base_location)]
+            new_action = HelperClass.select_scv(self, obs)
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
-            new_action = BuildOrders.select_scv(self, obs)
+        elif self.reqSteps == 2:  # Moves camera twice because select_scv can also move camera
+            new_action = [actions.FUNCTIONS.move_camera(self.base_location)]
 
         elif self.reqSteps == 1:
-            self.reqSteps = 0
-            if HelperClass.not_in_progress(self, obs, units.Terran.Starport):
-                if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_Starport_screen.id):
-                        x = random.randint(2, 81)
-                        y = random.randint(2, 81)
-                        new_action = [actions.FUNCTIONS.Build_Starport_screen("now", (x, y))]
-        ActionSingelton().set_action( new_action)
+            coordinates = BuildOrders.find_placement(
+                self, obs, building_radius=6, maximum_searches=10, sampling_size=9)
 
+            if coordinates is not None:
+                new_action = HelperClass.place_building(
+                    self, obs, units.Terran.Starport, coordinates[0], coordinates[1])
+
+        self.reqSteps -= 1
+        ActionSingleton().set_action(new_action)
         """
-            @Author Adam Grandén 
+            @Author Adam Grandén
             @:param self- Object aibot
-            @:param obs - the observable universe 
-            This code takes the  barracks which are located and then adds 
+            @:param obs - the observable universe
+            This code takes the  barracks which are located and then adds
             an  techlab when the building is built.
         """
-    def upgrade_barracks(self, obs):
+
+    def build_tech_lab_barracks(self, obs):
+        """
+            Builds a tech lab addon at a barracks.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
         barracks = HelperClass.get_units(self, obs, units.Terran.Barracks)
 
         if self.reqSteps == 0:
-            self.reqSteps = 3
+            self.reqSteps = 4
 
-        elif self.reqSteps == 3:
-            self.reqSteps = 2
+        elif self.reqSteps == 4:
             new_action = [
                 actions.FUNCTIONS.move_camera(self.base_location)]
 
-        elif self.reqSteps == 2:
-            self.reqSteps = 1
+        elif self.reqSteps == 3:
             if len(barracks) > 0 and HelperClass.not_in_progress(self, obs, units.Terran.Barracks):
                 new_action = [actions.FUNCTIONS.select_point("select",
-                                                             (HelperClass.sigma(self, barracks[0].x),
-                                                              HelperClass.sigma(self, barracks[0].y)))]
-        elif self.reqSteps == 1:
-            self.reqSteps = 0
+                                                             (HelperClass.sigma(barracks[0].x),
+                                                              HelperClass.sigma(barracks[0].y)))]
+        elif self.reqSteps == 2:
             if len(barracks) > 0:
-                if HelperClass.select_unit(self, obs, units.Terran.Barracks):
-                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_quick.id):
-                        new_action = [actions.FUNCTIONS.Build_TechLab_quick("now")]
-        ActionSingelton().set_action(new_action)
+                if HelperClass.is_unit_selected(self, obs, units.Terran.Barracks):
+                    if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_TechLab_Barracks_quick.id):
+                        new_action = [actions.FUNCTIONS.Build_TechLab_Barracks_quick("now")]
+        self.reqSteps -= 1
+        ActionSingleton().set_action(new_action)
 
-    def expand(self, obs, top_start):
+    def expand(self, obs):
+        """
+            Builds a command center at a suitable, empty base. Doesn't build in the main bases.
+        """
         new_action = [actions.FUNCTIONS.no_op()]
-        if obs.observation.player.minerals >= 400:  # check if it is possible
-            if self.reqSteps == 0:
-                self.expo_loc = 0
-                self.reqSteps = 4
+        if self.reqSteps == 0:
+            self.expo_loc = 0
+            self.reqSteps = 4
 
-            if self.reqSteps == 4:  # move to base
-                new_action = [
-                    HelperClass.move_camera_to_base_location(self, obs)]
+        if self.reqSteps == 4:  # move to base
+            new_action = [
+                HelperClass.move_camera_to_base_location(self, obs)]
 
-            if self.reqSteps == 3:  # select scv
-                command_scv = HelperClass.get_units(self, obs, units.Terran.SCV)
-                if len(command_scv) > 0 and not HelperClass.select_unit(self, obs, units.Terran.SCV):
-                    if (obs.observation.player.idle_worker_count > 0):
-                        new_action = [actions.FUNCTIONS.select_idle_worker(
-                            "select", obs, units.Terran.SCV)]
-                    else:
-                        command = random.choice(command_scv)
-                        new_action = [actions.FUNCTIONS.select_point(
-                            "select", (HelperClass.sigma(self, command.x),
-                                       HelperClass.sigma(self, command.y)))]
-
-            if self.reqSteps == 2:  # move to expansion location
-                target = BuildOrders.choose_location(self, top_start)
-                new_action = [
-                    actions.FUNCTIONS.move_camera(target)]
-
-            if self.reqSteps == 1:  # check if there is a commandcenter there if there is move to the next location or build one
-                command_center = HelperClass.get_units(self, obs, units.Terran.CommandCenter)
-                if len(command_center) > 0:
-                    if len(Coordinates.EXPO_LOCATIONS) >= self.expo_loc+1:
-                        self.reqSteps = 2
-                        self.expo_loc += 1
-                        if self.expo_loc < len(Coordinates.CC_LOCATIONS):
-                            target = BuildOrders.choose_location(self, top_start)
-                            new_action = [
-                                actions.FUNCTIONS.move_camera(target)]
-                        else:
-                            self.reqSteps = 1
+        if self.reqSteps == 3:  # select scv
+            command_scv = HelperClass.get_units(self, obs, units.Terran.SCV)
+            if len(command_scv) > 0 and not HelperClass.is_unit_selected(self, obs, units.Terran.SCV):
+                if (obs.observation.player.idle_worker_count > 0):
+                    new_action = [actions.FUNCTIONS.select_idle_worker(
+                        "select", obs, units.Terran.SCV)]
                 else:
-                    if HelperClass.select_unit(self, obs, units.Terran.SCV):
-                        if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
-                            target = BuildOrders.choose_screen_location(self, top_start)
-                            new_action = [
-                                actions.FUNCTIONS.Build_CommandCenter_screen("now", target)]
-            self.reqSteps -= 1
-        ActionSingelton().set_action(new_action)
+                    command = random.choice(command_scv)
+                    new_action = [actions.FUNCTIONS.select_point(
+                        "select", (HelperClass.sigma(command.x),
+                                   HelperClass.sigma(command.y)))]
 
-    def choose_screen_location(self, top_start):  # returns a location based on the start location
-        if top_start:
-            return Coordinates().CC_LOCATIONS[self.expo_loc]
-        else:
-            return Coordinates().CC_LOCATIONS2[self.expo_loc]
+        # This part finds a vacant expansion location
+        if self.reqSteps == 2:
+            camera_pos = HelperClass.get_current_minimap_location(obs)
+            if self.start_top is not None and not self.start_top:
+                expansions_minimap = Coordinates.EXPO_LOCATIONS2
+                expansions_screen = Coordinates.CC_LOCATIONS2
+            else:
+                expansions_minimap = Coordinates.EXPO_LOCATIONS
+                expansions_screen = Coordinates.CC_LOCATIONS
+            # This should be compatible with the coordinates gotten from raw_units
+            expansions_relative_screen = [((a[0][0] - camera_pos[0]) * (200 * 84 / (24 * 64)) + a[1][0],
+                                           (a[0][1] - camera_pos[1]) * (200 * 84 / (24 * 64)) + a[1][1])
+                                          for a in list(zip(expansions_minimap, expansions_screen))]
 
-    def choose_location(self, top_start):
-        value =self.expo_loc
-        # returns a location based on the start location
-        if top_start:
-            return Coordinates().EXPO_LOCATIONS[self.expo_loc]
-        else:
-            return Coordinates().EXPO_LOCATIONS2[self.expo_loc]
+            cc = [u for u in obs.observation.raw_units
+                  if (u.unit_type == units.Terran.CommandCenter or
+                      u.unit_type == units.Terran.OrbitalCommand or
+                      u.unit_type == units.Terran.PlanetaryFortress)]
 
-    def check_placement(self, obs, screen_coordinates, building_radius):
+            for i in range(len(expansions_relative_screen)):
+                if len(cc) > 0:
+                    vacant = True
+                    for j in range(len(cc)):
+                        # 10 is an arbitrary screen length.
+                        if (abs(cc[j].x - expansions_relative_screen[i][0]) < 10 and
+                                abs(cc[j].y - expansions_relative_screen[i][1]) < 10):
+                            vacant = False
+                            break
+                    if vacant:
+                        new_action = [actions.FUNCTIONS.move_camera(expansions_minimap[i])]
+                        self.expo_loc = i
+                        break
+
+        if self.reqSteps == 1:
+            if self.expo_loc is not None:
+                if self.start_top:
+                    t = Coordinates.CC_LOCATIONS[self.expo_loc]
+                else:
+                    t = Coordinates.CC_LOCATIONS2[self.expo_loc]
+                if HelperClass.do_action(self, obs, actions.FUNCTIONS.Build_CommandCenter_screen.id):
+                    new_action = HelperClass.place_building(
+                        self, obs, units.Terran.CommandCenter, t[0], t[1])
+
+                self.expo_loc = None
+
+        self.reqSteps -= 1
+        ActionSingleton().set_action(new_action)
+
+    def is_valid_placement(self, obs, screen_coordinates, building_radius):
         """Checks if a location and a radius around it is a suitable place to build a building.
             Note: Air units in the desired location will return
                 :param obs: The observer.
@@ -339,16 +464,33 @@ class BuildOrders(base_agent.BaseAgent):
         """
         x = screen_coordinates[1]
         y = screen_coordinates[0]
-        if x-building_radius < 0 or x+building_radius > 84 or y-building_radius < 0 or y+building_radius > 84:
+        if x - building_radius < 0 or x + building_radius > 84 or y - building_radius < 0 or y + building_radius > 84:
             return False
         height = obs.observation.feature_screen[0][x][y]
-        for i in range(2*building_radius):
-            for j in range(2*building_radius):
-                if (height <= 10 or    # Godtyckligt vald (botten av kartan är unpathable)
-                        obs.observation.feature_screen[5][x-building_radius+i][y-building_radius+j] != 0 or
-                        obs.observation.feature_screen[0][x-building_radius+i][y-building_radius+j] != height):
+        for i in range(2 * building_radius):
+            for j in range(2 * building_radius):
+                if (height <= 10 or  # Godtyckligt vald (botten av kartan är unpathable)
+                        obs.observation.feature_screen[5][x - building_radius + i][y - building_radius + j] != 0 or
+                        obs.observation.feature_screen[0][x - building_radius + i][y - building_radius + j] != height):
                     return False
         return True
+
+    """
+            @Author Adam Grandén
+            @:param self- Object aibot
+            @:param obs - the observable universe
+            @:param building_radius - The radius for the building
+            @:param build_locations - All of the build_location
+            This code takes the points where it's okay to build the values is 
+            then checked if you can build there
+    """
+
+    def find_placement_buildplacment(self, obs, building_radius, build_locations):
+        value = obs.observation.feature_screen[5][0]
+        for location in range(len(build_locations)):
+            if BuildOrders.is_valid_placement(self, obs, build_locations[location], building_radius):
+                return build_locations[location]
+        return None
 
     def find_placement(self, obs, building_radius, maximum_searches=None, sampling_size=None):
         """Finds a suitable location to place a building on a grid on the current screen.
@@ -371,10 +513,10 @@ class BuildOrders(base_agent.BaseAgent):
         elif sampling_size < 1:
             sampling_size = 1
         if size > 0:
-            for x in range(int(size/sampling_size)):
-                for y in range(int(size/sampling_size)):
-                    if obs.observation.feature_screen[5][sampling_size*y][sampling_size*x] == 0:
-                        coordinates.append((sampling_size*x, sampling_size*y))
+            for x in range(int(size / sampling_size)):
+                for y in range(int(size / sampling_size)):
+                    if obs.observation.feature_screen[5][sampling_size * y][sampling_size * x] == 0:
+                        coordinates.append((sampling_size * x, sampling_size * y))
         else:
             return None
 
@@ -382,26 +524,6 @@ class BuildOrders(base_agent.BaseAgent):
         if maximum_searches is None or maximum_searches > len(coordinates):
             maximum_searches = len(coordinates)
         for location_tuple in range(maximum_searches):
-            if BuildOrders.check_placement(self, obs, coordinates[location_tuple], building_radius):
+            if BuildOrders.is_valid_placement(self, obs, coordinates[location_tuple], building_radius):
                 return coordinates[location_tuple]
         return None
-
-        if (len(obs.observation.multi_select) > 0 and
-                obs.observation.multi_select[0].unit_type == unit_type):
-            return True
-
-        return False
-
-    def select_scv(self, obs):
-        new_action = [actions.FUNCTIONS.no_op()]
-        command_scv = BuildOrders.get_units(self, obs, units.Terran.SCV)
-        if len(command_scv) > 0 and not BuildOrders.select_unit(self, obs, units.Terran.SCV):
-            if (obs.observation.player.idle_worker_count > 0):
-                new_action = [actions.FUNCTIONS.select_idle_worker(
-                    "select", obs, units.Terran.SCV)]
-            else:
-                command = random.choice(command_scv)
-                new_action = [actions.FUNCTIONS.select_point(
-                    "select", (BuildOrders.sigma(self, command.x),
-                               BuildOrders.sigma(self, command.y)))]
-        return new_action

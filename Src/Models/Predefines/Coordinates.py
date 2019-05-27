@@ -9,12 +9,10 @@ class Coordinates():
     FACTORY_Y =30
     # minimap locations. The first tuple is the top-left start location and the second is the bottom-right start.
     # Not entirely accurate (i.e. Command Center isn't centered).
-    START_LOCATIONS = [(11.4, 16.8), (51.5, 49.0)]
+    START_LOCATIONS = [(13, 17), (51.5, 49.0)]
 
     STARPORT_X = 80
     STARPORT_Y = 20
-
-
 
     # minimap locations, reversed exists to simplify spawning in different corners
     EXPO_LOCATIONS = [(22, 18), (13, 26), (18, 32), (22, 26), (31, 19),
